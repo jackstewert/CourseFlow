@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e1a">
+<title>CourseFlow</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #111827;
+    --bg-card: #161d2e;
+    --bg-hover: #1e2740;
+    --bg-sidebar: #0d1220;
+    --accent: #10e68c;
+    --accent-dim: #0bbf76;
+    --accent-glow: rgba(16,230,140,0.15);
+    --accent-2: #4f8ef7;
+    --text-primary: #e8edf5;
+    --text-secondary: #8b95a8;
+    --text-muted: #4a5568;
+    --border: #1e2d45;
+    --border-light: #263548;
+    --red: #f56565;
+    --yellow: #f6c90e;
+    --purple: #a78bfa;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg-primary); color:var(--text-primary); min-height:100vh; overflow-x:hidden; -webkit-text-size-adjust:100%; }
+  #root { display:flex; height:100vh; height:100dvh; overflow:hidden; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border-light); border-radius:10px; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width:68px; background:var(--bg-sidebar); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:6px;
+    flex-shrink:0; z-index:10; overflow-y:auto;
+  }
+  .sidebar-logo {
+    width:40px; height:40px; background:var(--accent); border-radius:10px;
+    display:flex; align-items:center; justify-content:center; margin-bottom:12px;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:15px; color:#0a0e1a; cursor:pointer;
+    flex-shrink:0;
+  }
+  .sidebar-divider { width:32px; height:1px; background:var(--border); margin:6px 0; flex-shrink:0; }
+  .sidebar-item {
+    width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .15s; position:relative; flex-shrink:0; overflow:hidden;
+    border:2px solid transparent;
+  }
+  .sidebar-item:hover { background:var(--bg-hover); }
+  .sidebar-item.active { background:var(--accent-glow); border-color:var(--accent); }
+  .sidebar-item img { width:26px; height:26px; object-fit:contain; border-radius:5px; }
+  .sidebar-item .favicon-placeholder {
+    width:26px; height:26px; border-radius:5px; display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:700; font-family:'Syne',sans-serif;
+  }
+  .sidebar-tooltip {
+    position:absolute; left:56px; background:#1e2740; color:var(--text-primary); font-size:12px;
+    padding:4px 10px; border-radius:6px; white-space:nowrap; pointer-events:none;
+    opacity:0; transition:opacity .15s; border:1px solid var(--border-light); z-index:100;
+  }
+  .sidebar-item:hover .sidebar-tooltip { opacity:1; }
+
+  /* MAIN */
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .topbar {
+    height:60px; background:var(--bg-secondary); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; padding:0 24px; gap:16px; flex-shrink:0;
+    padding-top:env(safe-area-inset-top, 0px);
+  }
+  .topbar-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; flex:1; }
+  .topbar-title span { color:var(--accent); }
+  .btn {
+    display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px;
+    font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .15s; font-family:'DM Sans',sans-serif;
+  }
+  .btn-primary { background:var(--accent); color:#0a0e1a; }
+  .btn-primary:hover { background:var(--accent-dim); transform:translateY(-1px); }
+  .btn-secondary { background:transparent; color:var(--text-secondary); border:1px solid var(--border-light); }
+  .btn-secondary:hover { background:var(--bg-hover); color:var(--text-primary); }
+  .btn-danger { background:transparent; color:var(--red); border:1px solid rgba(245,101,101,.3); }
+  .btn-danger:hover { background:rgba(245,101,101,.1); }
+  .btn-sm { padding:5px 12px; font-size:12px; }
+
+  /* CONTENT */
+  .content { flex:1; overflow-y:auto; padding:28px; -webkit-overflow-scrolling:touch; }
+
+  /* COURSES GRID */
+  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .section-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; }
+  .section-count { font-size:13px; color:var(--text-secondary); margin-left:8px; }
+
+  .courses-grid {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:20px;
+  }
+
+  .course-card {
+    background:var(--bg-card); border-radius:var(--radius-lg); overflow:hidden; cursor:pointer;
+    border:1px solid var(--border); transition:all .2s; position:relative;
+  }
+  .course-card:hover { border-color:var(--border-light); transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,.4); }
+  .course-thumb {
+    width:100%; aspect-ratio:16/9; object-fit:cover; background:var(--bg-hover);
+    display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
+  }
+  .course-thumb img { width:100%; height:100%; object-fit:cover; }
+  .course-thumb-placeholder {
+    width:100%; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center;
+    font-size:36px; position:relative; overflow:hidden;
+  }
+  .company-badge {
+    position:absolute; bottom:8px; right:8px; width:28px; height:28px; border-radius:6px;
+    background:rgba(10,14,26,.85); backdrop-filter:blur(4px); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .company-badge img { width:18px; height:18px; object-fit:contain; }
+  .company-badge .mini-placeholder { font-size:10px; font-weight:700; }
+  .course-body { padding:14px 16px 16px; }
+  .course-name { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:5px; line-height:1.3; }
+  .course-desc { font-size:12.5px; color:var(--text-secondary); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:12px; }
+  .progress-wrap { margin-top:4px; }
+  .progress-label { display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:5px; }
+  .progress-bar { height:3px; background:var(--border); border-radius:10px; overflow:hidden; }
+  .progress-fill { height:100%; background:var(--accent); border-radius:10px; transition:width .3s; }
+  .icon-btn {
+    width:28px; height:28px; border-radius:6px; background:rgba(10,14,26,.85); backdrop-filter:blur(4px);
+    border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:13px; transition:all .15s;
+  }
+  .icon-btn:hover { background:var(--bg-hover); }
+
+  /* MODAL */
+  .modal-backdrop {
+    position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;
+  }
+  .modal {
+    background:var(--bg-card); border-radius:var(--radius-lg); border:1px solid var(--border-light);
+    width:100%; max-width:520px; max-height:90vh; overflow-y:auto;
+    box-shadow:0 24px 80px rgba(0,0,0,.6); -webkit-overflow-scrolling:touch;
+  }
+  .modal-header { padding:20px 24px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .modal-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; }
+  .modal-body { padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+  .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-label { font-size:12.5px; font-weight:600; color:var(--text-secondary); letter-spacing:.03em; text-transform:uppercase; }
+  .form-input, .form-textarea, .form-select {
+    background:var(--bg-secondary); border:1px solid var(--border-light); border-radius:8px;
+    color:var(--text-primary); font-family:'DM Sans',sans-serif; font-size:16px; padding:10px 12px;
+    outline:none; transition:border-color .15s; width:100%;
+    -webkit-appearance:none; appearance:none;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color:var(--accent); }
+  .form-textarea { resize:vertical; min-height:80px; }
+  .form-select { cursor:pointer; appearance:none; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .close-btn {
+    width:28px; height:28px; border-radius:6px; background:transparent; border:none;
+    color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:18px; transition:all .15s;
+  }
+  .close-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
+
+  /* EMPTY STATE */
+  .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; text-align:center; gap:16px; }
+  .empty-icon { font-size:56px; opacity:.3; }
+  .empty-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--text-secondary); }
+  .empty-sub { font-size:14px; color:var(--text-muted); max-width:300px; line-height:1.6; }
+
+  /* COURSE PAGE */
+  .course-page { display:flex; height:100%; overflow:hidden; }
+  .course-index {
+    width:280px; flex-shrink:0; background:var(--bg-sidebar); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .course-index-header { padding:16px; border-bottom:1px solid var(--border); }
+  .course-index-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); margin-bottom:10px; }
+  .course-index-name { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; line-height:1.4; }
+  .progress-mini { margin-top:12px; }
+  .course-index-list { flex:1; overflow-y:auto; padding:10px 0; -webkit-overflow-scrolling:touch; }
+  /* ── MODULE HEADER ── */
+  .modh {
+    padding:20px 16px 6px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; background:var(--bg-sidebar); z-index:2;
+  }
+  .modlbl { font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); }
+  .modcnt { font-size:10px; color:var(--text-muted); }
+  .modgrp:first-child .modh { padding-top:12px; }
+
+  /* ── CHAPTER ROW ── */
+  .crow {
+    display:flex; align-items:center; gap:12px;
+    padding:11px 14px 11px 20px;
+    cursor:pointer; transition:background .12s;
+    border-left:3px solid transparent;
+  }
+  .crow:hover { background:var(--bg-hover); }
+  .crow.on { background:var(--accent-glow); border-left-color:var(--accent); }
+  .cnum {
+    width:28px; height:28px; border-radius:50%;
+    background:rgba(255,255,255,.05); border:1.5px solid var(--border-light);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; flex-shrink:0; color:var(--text-secondary);
+    transition:all .15s;
+  }
+  .crow.on .cnum { background:var(--accent); border-color:var(--accent); color:#0a0e1a; }
+  .crow.done .cnum { background:var(--accent-dim); border-color:var(--accent-dim); color:#0a0e1a; }
+  .cinfo { flex:1; min-width:0; }
+  .cchname { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-secondary); line-height:1.3; }
+  .crow.on .cchname { color:var(--text-primary); }
+  .cmeta { display:flex; align-items:center; gap:6px; margin-top:3px; }
+  .cbdg { font-size:9px; padding:2px 6px; border-radius:4px; font-weight:800; letter-spacing:.04em; }
+  .bv { background:rgba(79,142,247,.18); color:var(--accent-2); }
+  .bt { background:rgba(167,139,250,.18); color:var(--purple); }
+  .cdur { font-size:10.5px; color:var(--text-muted); }
+  .crow-acts { display:flex; gap:4px; opacity:0; transition:opacity .1s; flex-shrink:0; }
+  .crow:hover .crow-acts { opacity:1; }
+
+  /* COURSE MAIN */
+  .course-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .course-topbar {
+    height:56px; background:var(--bg-secondary); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0;
+  }
+  .chapter-title-bar { flex:1; font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
+  .course-content-area { flex:1; display:flex; overflow:hidden; }
+  .course-viewer { flex:1; overflow-y:auto; padding:24px; -webkit-overflow-scrolling:touch; }
+  .video-wrapper { width:100%; aspect-ratio:16/9; background:#000; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:20px; position:relative; }
+  .video-wrapper iframe { width:100%; height:100%; border:none; }
+  .video-placeholder { width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; background:var(--bg-card); border-radius:var(--radius-lg); color:var(--text-muted); font-size:14px; aspect-ratio:16/9; margin-bottom:20px; border:2px dashed var(--border-light); }
+
+  .desc-section { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; margin-bottom:20px; }
+  .desc-section-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:12px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.05em; }
+  .desc-text { font-size:14px; color:var(--text-secondary); line-height:1.7; white-space:pre-wrap; }
+  .files-list { display:flex; flex-direction:column; gap:8px; }
+  .file-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-hover); border-radius:8px; border:1px solid var(--border); }
+  .file-icon { font-size:18px; }
+  .file-name { font-size:13px; flex:1; }
+  .links-list { display:flex; flex-direction:column; gap:6px; }
+  .link-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--accent-2); padding:6px 0; text-decoration:none; }
+  .link-item:hover { color:var(--accent); }
+
+  /* NOTES PANEL */
+  .notes-panel {
+    width:300px; flex-shrink:0; background:var(--bg-card); border-left:1px solid var(--border);
+    display:flex; flex-direction:column; overflow:hidden; transition:width .2s;
+  }
+  .notes-panel.hidden { width:0; overflow:hidden; }
+  .notes-panel-header { padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .notes-panel-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); }
+  .notes-area { flex:1; padding:12px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+  .note-textarea {
+    width:100%; flex:1; background:var(--bg-secondary); border:1px solid var(--border-light); border-radius:8px;
+    color:var(--text-primary); font-family:'DM Sans',sans-serif; font-size:16px; padding:12px;
+    outline:none; resize:none; transition:border-color .15s; min-height:200px;
+    -webkit-appearance:none;
+  }
+  .note-textarea:focus { border-color:var(--accent); }
+  .note-saved { font-size:11px; color:var(--accent); text-align:right; height:14px; }
+
+  /* CHAPTER EDITOR (modal variant) */
+  .chapter-editor-modal .modal { max-width:680px; }
+  .tabs { display:flex; gap:2px; background:var(--bg-secondary); border-radius:8px; padding:3px; }
+  .tab-btn { padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--text-secondary); transition:all .15s; }
+  .tab-btn.active { background:var(--bg-card); color:var(--text-primary); }
+
+  /* BADGE */
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+  .badge-green { background:rgba(16,230,140,.12); color:var(--accent); }
+  .badge-blue { background:rgba(79,142,247,.12); color:var(--accent-2); }
+
+  /* MANAGE CHAPTERS BTN */
+  .add-chapter-row { padding:10px 16px; border-top:1px solid var(--border); flex-shrink:0; }
+
+  /* SEARCH */
+  .search-input-wrap { position:relative; }
+  .search-input { padding-left:34px !important; }
+  .search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:14px; pointer-events:none; }
+
+  /* TAG */
+  .tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:4px; font-size:11px; background:var(--bg-hover); color:var(--text-secondary); border:1px solid var(--border); }
+
+  /* CHIP */
+  .company-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .company-chip {
+    display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px;
+    cursor:pointer; border:1.5px solid var(--border); background:var(--bg-card);
+    font-size:12.5px; font-weight:600; transition:all .15s;
+  }
+  .company-chip:hover { border-color:var(--border-light); background:var(--bg-hover); }
+  .company-chip.active { border-color:var(--accent); background:var(--accent-glow); color:var(--accent); }
+  .company-chip img { width:16px; height:16px; object-fit:contain; border-radius:3px; }
+
+  /* MARK COMPLETE */
+  .complete-btn { display:flex; align-items:center; gap:6px; }
+  .checkbox-custom { width:18px; height:18px; border-radius:4px; border:2px solid var(--border-light); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s; flex-shrink:0; }
+  .checkbox-custom.checked { background:var(--accent); border-color:var(--accent); }
+  .checkbox-custom.checked::after { content:'✓'; font-size:11px; font-weight:700; color:#0a0e1a; }
+
+  /* GRADIENT COLORS FOR PLACEHOLDER THUMBS */
+  .grad-0 { background:linear-gradient(135deg,#1a2a4a,#0d3d2b); }
+  .grad-1 { background:linear-gradient(135deg,#2d1a4a,#1a0d3d); }
+  .grad-2 { background:linear-gradient(135deg,#4a1a1a,#3d0d0d); }
+  .grad-3 { background:linear-gradient(135deg,#1a4a2d,#0d3d1a); }
+  .grad-4 { background:linear-gradient(135deg,#4a3a1a,#3d2d0d); }
+  .grad-5 { background:linear-gradient(135deg,#1a3a4a,#0d2d3d); }
+
+  @media (max-width:768px) {
+    .course-index { width:220px; }
+    .notes-panel { width:240px; }
+    .courses-grid { grid-template-columns:1fr 1fr; }
+  }
+
+  /* ── iOS / MOBILE LAYOUT ── */
+  /* Bottom nav bar for mobile */
+  .mobile-bottom-nav {
+    display:none;
+    position:fixed; bottom:0; left:0; right:0;
+    background:var(--bg-sidebar); border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom);
+    z-index:200; flex-direction:row; align-items:stretch;
+    height:calc(56px + env(safe-area-inset-bottom));
+  }
+  .mobile-nav-item {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; cursor:pointer; padding:8px 4px; min-height:56px;
+    border:none; background:transparent; color:var(--text-muted); font-size:10px;
+    font-family:'DM Sans',sans-serif; font-weight:600; transition:color .15s;
+  }
+  .mobile-nav-item.active { color:var(--accent); }
+  .mobile-nav-item svg { flex-shrink:0; }
+  .mobile-nav-icon { font-size:20px; line-height:1; }
+
+  /* Mobile overlay panel for sidebar content */
+  .mobile-sidebar-sheet {
+    display:none;
+    position:fixed; inset:0; z-index:300;
+  }
+  .mobile-sidebar-sheet.open { display:flex; flex-direction:column; }
+  .mobile-sheet-backdrop {
+    position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px);
+  }
+  .mobile-sheet-panel {
+    position:absolute; top:0; bottom:0; left:0; width:80%; max-width:320px;
+    background:var(--bg-sidebar); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; overflow:hidden;
+    padding-top:env(safe-area-inset-top);
+    transform:translateX(-100%); transition:transform .25s ease;
+  }
+  .mobile-sidebar-sheet.open .mobile-sheet-panel { transform:translateX(0); }
+
+  /* Mobile notes bottom sheet */
+  .mobile-notes-sheet {
+    display:none;
+    position:fixed; inset:0; z-index:300;
+  }
+  .mobile-notes-sheet.open { display:flex; flex-direction:column; }
+  .mobile-notes-sheet-panel {
+    position:absolute; bottom:0; left:0; right:0;
+    background:var(--bg-card); border-radius:20px 20px 0 0; border-top:1px solid var(--border-light);
+    display:flex; flex-direction:column;
+    height:70vh; padding-bottom:env(safe-area-inset-bottom);
+    transform:translateY(100%); transition:transform .3s ease;
+  }
+  .mobile-notes-sheet.open .mobile-notes-sheet-panel { transform:translateY(0); }
+  .mobile-notes-handle {
+    width:36px; height:4px; background:var(--border-light); border-radius:2px;
+    margin:10px auto 6px; flex-shrink:0;
+  }
+
+  @media (max-width:640px) {
+    /* Hide desktop sidebar */
+    .sidebar { display:none !important; }
+    /* Show mobile bottom nav */
+    .mobile-bottom-nav { display:flex; }
+
+    /* Main area accounts for bottom nav */
+    .main { padding-bottom:calc(56px + env(safe-area-inset-bottom)); }
+
+    /* Topbar safe area */
+    .topbar {
+      padding-top:max(12px, env(safe-area-inset-top));
+      height:auto; min-height:56px; flex-wrap:wrap; gap:8px;
+      padding-left:16px; padding-right:16px; padding-bottom:10px;
+    }
+    .topbar-title { font-size:16px; flex:none; }
+
+    /* Topbar buttons — wrap and compress */
+    .topbar > .btn { padding:6px 10px; font-size:12px; }
+    .topbar .search-input-wrap { order:10; width:100%; flex-basis:100%; }
+    .topbar .search-input-wrap input { width:100% !important; }
+
+    /* Courses grid: single column on very small, 2 col on medium mobile */
+    .courses-grid { grid-template-columns:1fr; gap:14px; }
+
+    /* Bigger tap targets on cards */
+    .icon-btn { width:36px; height:36px; font-size:14px; }
+
+    /* Content padding */
+    .content { padding:16px; }
+
+    /* Course page: hide desktop panels, show stacked layout */
+    .course-page { flex-direction:column; }
+    .course-index { display:none !important; }
+    .notes-panel { display:none !important; }
+    .course-topbar {
+      padding:0 12px; flex-wrap:wrap; height:auto; min-height:52px; gap:8px;
+      padding-top:max(10px, env(safe-area-inset-top)); padding-bottom:10px;
+    }
+    .chapter-title-bar { font-size:13px; }
+    .course-viewer { padding:14px; }
+
+    /* Modal: full-screen on mobile */
+    .modal-backdrop { padding:0; align-items:flex-end; }
+    .modal {
+      max-width:100%; max-height:92vh; border-radius:20px 20px 0 0;
+      padding-bottom:env(safe-area-inset-bottom);
+    }
+    .modal-body { padding:16px; gap:14px; }
+    .modal-header { padding:16px 16px 12px; }
+    .modal-footer { padding:12px 16px; padding-bottom:max(16px, env(safe-area-inset-bottom)); }
+    .form-row { grid-template-columns:1fr; }
+
+    /* Chapter row: always show actions (no hover on touch) */
+    .crow-acts { opacity:1 !important; }
+    .crow-acts .icon-btn { width:32px; height:32px; }
+
+    /* Bigger buttons */
+    .btn { padding:10px 16px; font-size:14px; }
+    .btn-sm { padding:8px 12px; font-size:13px; }
+
+    /* Empty state */
+    .empty-state { padding:48px 20px; }
+
+    /* Company chips: horizontal scroll */
+    .company-chips { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
+    .company-chip { flex-shrink:0; }
+
+    /* Section header */
+    .section-header { margin-bottom:14px; }
+
+    /* Tabs in modal */
+    .tab-btn { padding:8px 10px; font-size:12px; }
+
+    /* Files/links list bigger touch targets */
+    .file-item { padding:12px; }
+    .link-item { padding:10px 0; }
+  }
+
+  @media (min-width:641px) and (max-width:768px) {
+    .sidebar { width:60px; }
+    .courses-grid { grid-template-columns:1fr 1fr; }
+    .course-index { width:220px; }
+    .notes-panel { width:240px; }
+    .topbar { padding:0 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2,10);
+const STORAGE_KEY = 'courseflow_v2';
+
+// ─── HARDCODED DEFAULT DATA ───────────────────────────────────────────────────
+// Edit this object to pre-load your courses on any new computer.
+// Your live changes are still saved to localStorage and take priority.
+const DEFAULT_DATA = {
+  "companies": [
+  ],
+  "courses": [
+  ]
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+const load = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+    // No localStorage found — seed with hardcoded default data
+    return JSON.parse(JSON.stringify(DEFAULT_DATA));
+  }
+  catch { return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
+};
+const save = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+const GRAD_COLORS = ['#10e68c','#4f8ef7','#f56565','#f6c90e','#a78bfa','#fb923c'];
+
+function getFaviconUrl(url) {
+  if (!url) return null;
+  try {
+    const hostname = new URL(url.startsWith('http') ? url : 'https://'+url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
+  } catch { return null; }
+}
+
+function CompanyIcon({ company, size=26 }) {
+  const [err, setErr] = useState(false);
+  const faviconUrl = company?.icon || getFaviconUrl(company?.url);
+  const color = GRAD_COLORS[(company?.name||'').charCodeAt(0) % GRAD_COLORS.length];
+  if (faviconUrl && !err) {
+    return <img src={faviconUrl} width={size} height={size} style={{borderRadius:5,objectFit:'contain'}} onError={()=>setErr(true)} />;
+  }
+  return (
+    <div className="favicon-placeholder" style={{width:size,height:size,background:color+'22',color,fontSize:size*.5,borderRadius:5}}>
+      {(company?.name||'?')[0].toUpperCase()}
+    </div>
+  );
+}
+
+// ─── EMBED HELPERS ────────────────────────────────────────────────────────────
+function getEmbedUrl(url) {
+  if (!url) return null;
+
+  // Vimeo
+  const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeoMatch)
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=0&muted=0&title=0&byline=0&portrait=0`;
+
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (ytMatch)
+    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&mute=0`;
+
+  // Wistia
+  if (url.includes('wistia')) {
+    const id = url.split('/').pop();
+    return `https://fast.wistia.net/embed/iframe/${id}?autoplay=0&muted=0`;
+  }
+
+  // Hotmart
+  if (url.includes('player.hotmart.com')) {
+  return url;
+  }
+
+  // fallback
+  if (url.includes('embed') || url.startsWith('https')) {
+    return url + (url.includes('?') ? '&autoplay=1' : '?autoplay=1');
+  }
+
+  return null;
+}
+
+// ─── ADD COURSE MODAL ────────────────────────────────────────────────────────
+function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
+  const [title, setTitle] = useState(editCourse?.title||'');
+  const [thumb, setThumb] = useState(editCourse?.thumbnail||'');
+  const [companyId, setCompanyId] = useState(editCourse?.companyId||'');
+  const [desc, setDesc] = useState(editCourse?.description||'');
+  const [newCompany, setNewCompany] = useState('');
+  const [newCompanyUrl, setNewCompanyUrl] = useState('');
+  const [newCompanyIcon, setNewCompanyIcon] = useState('');
+  const [addingCompany, setAddingCompany] = useState(false);
+  
+
+  const handleSave = () => {
+    if (!title.trim()) return;
+    onSave({ title, thumbnail:thumb, companyId, description:desc });
+  };
+
+  return (
+    <div className="modal-backdrop" onMouseDown={e => {
+  if (e.target === e.currentTarget) onClose();
+}}>
+      <div className="modal">
+        <div className="modal-header">
+          <span className="modal-title">{editCourse?'Edit Course':'Add New Course'}</span>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group">
+            <label className="form-label">Course Title *</label>
+            <input className="form-input" placeholder="e.g. Complete JavaScript Bootcamp" value={title} onChange={e=>setTitle(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Thumbnail URL</label>
+            <input className="form-input" placeholder="https://example.com/thumb.jpg" value={thumb} onChange={e=>setThumb(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Platform / Company</label>
+            {!addingCompany ? (
+              <div style={{display:'flex',gap:8}}>
+  <select
+    className="form-select"
+    style={{flex:1}}
+    value={companyId}
+    onChange={e=>setCompanyId(e.target.value)}
+  >
+    <option value="">— None —</option>
+    {companies.map(c=>(
+      <option key={c.id} value={c.id}>{c.name}</option>
+    ))}
+  </select>
+
+  {/* 🔥 DELETE BUTTON */}
+  {companyId && (
+    <button
+      className="btn btn-secondary"
+      style={{padding:'6px 10px'}}
+      onClick={()=>{
+        const isUsed = courses.some(c=>c.companyId === companyId);
+
+        if(isUsed){
+          alert('Cannot delete: platform is used by courses');
+          return;
+        }
+
+        const updatedCompanies = companies.filter(c=>c.id !== companyId);
+
+        onSave(null, null, updatedCompanies); // 👈 important
+
+        setCompanyId('');
+      }}
+    >
+      🗑
+    </button>
+  )}
+
+  <button className="btn btn-secondary" onClick={()=>setAddingCompany(true)}>
+    + New
+  </button>
+</div>
+            ) : (
+              <div style={{display:'flex',flexDirection:'column',gap:8,padding:12,background:'var(--bg-secondary)',borderRadius:8,border:'1px solid var(--border-light)'}}>
+                <input className="form-input" placeholder="Platform name (e.g. Udemy)" value={newCompany} onChange={e=>setNewCompany(e.target.value)} />
+                <input className="form-input" placeholder="Website URL (for favicon, e.g. udemy.com)" value={newCompanyUrl} onChange={e=>setNewCompanyUrl(e.target.value)} />
+                <input className="form-input" placeholder="Icon URL (optional)" value={newCompanyIcon}onChange={e=>setNewCompanyIcon(e.target.value)}/>
+                <div style={{display:'flex',gap:8}}>
+                  <button className="btn btn-primary btn-sm" onClick={()=>{
+  if(newCompany.trim()){
+    const nc={
+      id:uid(),
+      name:newCompany.trim(),
+      url:newCompanyUrl.trim(),
+      icon:newCompanyIcon.trim() || undefined
+    };
+    if (companies.some(c => c.name.toLowerCase() === newCompany.toLowerCase())) {
+  alert("Platform already exists");
+  return;
+}
+    // update parent
+    onSave(null,nc);
+setCompanyId(nc.id);
+
+
+    // reset UI
+    setAddingCompany(false);
+    setNewCompany('');
+    setNewCompanyUrl('');
+    setNewCompanyIcon('');
+  }
+}}>Add Platform</button>
+                  <button className="btn btn-secondary btn-sm" onClick={()=>setAddingCompany(false)}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="form-group">
+            <label className="form-label">Description (optional)</label>
+            <textarea className="form-textarea" placeholder="Brief overview of this course..." value={desc} onChange={e=>setDesc(e.target.value)} />
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={!title.trim()}>
+            {editCourse?'Save Changes':'Add Course'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CHAPTER MODAL ────────────────────────────────────────────────────────────
+function ChapterModal({ chapter, onClose, onSave }) {
+  const [name, setName] = useState(chapter?.name||'');
+  const [mod, setMod] = useState(chapter?.module||'');
+  const [type, setType] = useState(chapter?.type||'video');
+  const [dur, setDur] = useState(chapter?.duration||'');
+  const [videoUrl, setVideoUrl] = useState(chapter?.videoUrl||'');
+  const [desc, setDesc] = useState(chapter?.description||'');
+  const normalizeLinks = (arr = []) =>
+  arr.map(l =>
+    typeof l === 'string'
+      ? { label: l, url: l }
+      : l
+  );
+
+const normalizeFiles = (arr = []) =>
+  arr.map(f =>
+    typeof f === 'string'
+      ? { name: f, url: '' }
+      : f
+  );
+
+const [links, setLinks] = useState(normalizeLinks(chapter?.links));
+const [files, setFiles] = useState(normalizeFiles(chapter?.files));
+  const [tab, setTab] = useState('basic');
+
+  const handleSave = () => {
+    if (!name.trim()) return;
+    onSave({ name, module:mod, type, duration:dur, videoUrl, description:desc, links, files });
+  };
+
+  return (
+    <div className="modal-backdrop chapter-editor-modal" onMouseDown={e => {
+  if (e.target === e.currentTarget) onClose();
+}}>
+      <div className="modal" style={{maxWidth:620}}>
+        <div className="modal-header">
+          <span className="modal-title">{chapter?.id?'Edit Chapter':'Add Chapter'}</span>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="tabs">
+            {['basic','content','files'].map(t=>(
+              <button key={t} className={`tab-btn ${tab===t?'active':''}`} onClick={()=>setTab(t)}>
+                {t.charAt(0).toUpperCase()+t.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {tab==='basic' && <>
+            <div className="form-group">
+              <label className="form-label">Chapter Name *</label>
+              <input className="form-input" placeholder="e.g. Introduction to Variables" value={name} onChange={e=>setName(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Module / Section</label>
+              <input className="form-input" placeholder="e.g. Module 1: Foundations" value={mod} onChange={e=>setMod(e.target.value)} />
+              <span style={{fontSize:11,color:'var(--text-muted)',marginTop:3}}>Chapters with the same module name are grouped together in the sidebar index</span>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Chapter Type</label>
+              <div style={{display:'flex',gap:8}}>
+                {['video','text'].map(t=>(
+                  <button key={t} className={`btn ${type===t?'btn-primary':'btn-secondary'}`} style={{flex:1}} onClick={()=>setType(t)}>
+                    {t==='video'?'📹 Video':'📝 Text Only'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Duration (optional)</label>
+              <input className="form-input" placeholder="e.g. 6:30 or 15 min" value={dur} onChange={e=>setDur(e.target.value)} />
+            </div>
+          </>}
+
+          {tab==='content' && <>
+            {type==='video' && (
+              <div className="form-group">
+                <label className="form-label">Video URL / Embed Link</label>
+                <input className="form-input" placeholder="Vimeo, YouTube, Wistia, or direct embed URL" value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} />
+                <span style={{fontSize:11,color:'var(--text-muted)'}}>Supports: youtube.com, vimeo.com, wistia.com, or any iframe-compatible URL</span>
+              </div>
+            )}
+            <div className="form-group">
+              <label className="form-label">Description / Notes</label>
+              <textarea className="form-textarea" style={{minHeight:120}} placeholder="Chapter description, key points, code snippets..." value={desc} onChange={e=>setDesc(e.target.value)} />
+            </div>
+            
+              <div className="form-group">
+  <label className="form-label">Links</label>
+
+  <div style={{display:'flex',flexDirection:'column',gap:10}}>
+
+    {links.map((l, i) => (
+      <div key={i} style={{display:'flex', gap:8, alignItems:'center'}}>
+
+        <input
+          className="form-input"
+          placeholder="Label (e.g. Join Discord)"
+          value={l.label || ''}
+          onChange={e => {
+            const updated = [...links];
+            updated[i] = { ...updated[i], label: e.target.value };
+            setLinks(updated);
+          }}
+        />
+
+        <input
+          className="form-input"
+          placeholder="https://..."
+          value={l.url || ''}
+          onChange={e => {
+            const updated = [...links];
+            const url = e.target.value;
+
+updated[i] = {
+  ...updated[i],
+  url,
+  label: updated[i].label || url
+};
+            setLinks(updated);
+          }}
+        />
+
+        <button
+          className="btn btn-danger btn-sm"
+          onClick={() => {
+            setLinks(links.filter((_, idx) => idx !== i));
+          }}
+        >
+          ✕
+        </button>
+      </div>
+    ))}
+
+    <button
+      className="btn btn-secondary btn-sm"
+      onClick={() => setLinks([...links, { label:'', url:'' }])}
+      style={{alignSelf:'flex-start'}}
+    >
+      + Add Link
+    </button>
+
+  </div>
+</div> 
+
+            
+          </>}
+
+          {tab==='files' && (
+            
+             
+              <div className="form-group">
+  <label className="form-label">Files</label>
+
+  <div style={{display:'flex',flexDirection:'column',gap:10}}>
+
+    {files.map((f, i) => (
+      <div key={i} style={{display:'flex', gap:8, alignItems:'center'}}>
+
+        <input
+          className="form-input"
+          placeholder="File name"
+          value={f.name || ''}
+          onChange={e => {
+            const updated = [...files];
+            updated[i] = { ...updated[i], name: e.target.value };
+            setFiles(updated);
+          }}
+        />
+
+        <input
+          className="form-input"
+          placeholder="https://file-link.com"
+          value={f.url || ''}
+          onChange={e => {
+            const updated = [...files];
+            const url = e.target.value;
+
+updated[i] = {
+  ...updated[i],
+  url,
+  name: updated[i].name || url
+};
+            setFiles(updated);
+          }}
+        />
+
+        <button
+          className="btn btn-danger btn-sm"
+          onClick={() => {
+            setFiles(files.filter((_, idx) => idx !== i));
+          }}
+        >
+          ✕
+        </button>
+      </div>
+    ))}
+
+    <button
+      className="btn btn-secondary btn-sm"
+      onClick={() => setFiles([...files, { name:'', url:'' }])}
+      style={{alignSelf:'flex-start'}}
+    >
+      + Add File
+    </button>
+
+  </div>
+
+              <span style={{fontSize:11,color:'var(--text-muted)'}}>Add file names to list under chapter resources</span>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave} disabled={!name.trim()}>Save Chapter</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── HOMEPAGE ────────────────────────────────────────────────────────────────
+function HomePage({ data, onOpenCourse, onUpdate, filterCompany_ }) {
+  const [filterCompany, setFilterCompany] = useState(filterCompany_ || 'all');
+
+useEffect(()=>{
+  setFilterCompany(filterCompany_ || 'all');
+}, [filterCompany_]);
+  const [showAdd, setShowAdd] = useState(false);
+  const [editCourse, setEditCourse] = useState(null);
+  const [search, setSearch] = useState('');
+  const [menuOpen, setMenuOpen] = useState(null);
+  const [showImport, setShowImport] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+const [importError, setImportError] = useState('');
+
+  const companies = data.companies;
+  const courses = data.courses;
+
+const handleFileImport = (file) => {
+  if (!file) return;
+
+  if (!file.name.endsWith('.json')) {
+    setImportError("Please upload a valid JSON file.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+
+      if (!parsed.courses || !parsed.companies) {
+        setImportError("Invalid file format.");
+        return;
+      }
+
+      onUpdate({
+        courses: parsed.courses,
+        companies: parsed.companies
+      });
+
+      setShowImport(false);
+      setImportError('');
+
+    } catch {
+      setImportError("Invalid JSON file.");
+    }
+  };
+
+  reader.readAsText(file);
+};
+
+  const filtered = courses.filter(c => {
+    const matchCompany = filterCompany==='all' || c.companyId===filterCompany;
+    const matchSearch = !search || c.title.toLowerCase().includes(search.toLowerCase());
+    return matchCompany && matchSearch;
+  });
+
+  useEffect(() => {
+  const handler = () => setMenuOpen(null);
+  window.addEventListener('click', handler);
+  return () => window.removeEventListener('click', handler);
+}, []);
+
+const handleSaveCourse = (course, newCompany, updatedCompanies) => {
+
+  // 🔥 delete platform case
+  if(updatedCompanies){
+    onUpdate({...data, companies: updatedCompanies});
+    return;
+  }
+
+  // existing logic
+  if(newCompany){
+    const updated = { ...data, companies: [...data.companies, newCompany] };
+    onUpdate(updated);
+    return;
+  }
+
+ if(course){
+  if(editCourse){
+    // update existing course
+    const updatedCourses = data.courses.map(c =>
+      c.id === editCourse.id ? { ...c, ...course } : c
+    );
+
+    onUpdate({ ...data, courses: updatedCourses });
+  } else {
+    // add new course
+    const newCourse = {
+      id: uid(),
+      ...course,
+      chapters: [],
+      progress: 0
+    };
+
+    onUpdate({ ...data, courses: [...data.courses, newCourse] });
+  }
+}
+};
+
+ const handleDelete = (id, e) => {
+  e.stopPropagation();
+
+  const course = data.courses.find(c => c.id === id);
+
+  if (confirm(`Delete "${course?.title}"?`)) {
+
+    const newCourses = data.courses.filter(c => c.id !== id);
+
+    const usedCompanyIds = newCourses
+      .map(c => c.companyId)
+      .filter(Boolean);
+
+    const newCompanies = data.companies.filter(co =>
+      usedCompanyIds.includes(co.id)
+    );
+
+    onUpdate({
+      ...data,
+      courses: newCourses,
+      companies: newCompanies
+    });
+  }
+};
+
+  const handleEdit = (course, e) => { e.stopPropagation(); setEditCourse(course); setShowAdd(true); };
+
+  const getCompany = id => companies.find(c=>c.id===id);
+
+  const [toast, setToast] = useState(false);
+  const [copyToast, setCopyToast] = useState(false);
+
+const exportData = () => {
+  const dataToExport = {
+    companies: data.companies,
+    courses: data.courses
+  };
+
+  const json = JSON.stringify(dataToExport, null, 2);
+
+  // create file
+  const blob = new Blob([json], { type: "application/json" });
+
+  // create download link
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  const date = new Date().toISOString().replace(/[:.]/g,'-');
+
+  a.href = url;
+  a.download = `courseflow-backup-${date}.json`;
+
+  document.body.appendChild(a);
+  a.click();
+
+  // cleanup
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast();
+};
+
+const copyDataToClipboard = () => {
+  const dataToExport = {
+    companies: data.companies,
+    courses: data.courses
+  };
+  const json = JSON.stringify(dataToExport, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    setCopyToast(true);
+    setTimeout(() => setCopyToast(false), 2500);
+  });
+};
+
+
+
+const showToast = () => {
+  setToast(true);
+  setTimeout(() => setToast(false), 2500);
+};
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
+      <div className="topbar">
+        <span className="topbar-title">Course<span>Flow</span></span>
+        <div className="search-input-wrap">
+          <span className="search-icon">🔍</span>
+          <input className="form-input search-input" placeholder="Search courses..." value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}} />
+        </div>
+        <button
+  className="btn btn-secondary btn-sm"
+  onClick={()=>setShowImport(true)}
+>
+  📥 Import
+</button>
+        <button
+  className="btn btn-secondary btn-sm"
+  onClick={copyDataToClipboard}
+  title="Copy data JSON to clipboard — paste into DEFAULT_DATA in the HTML file to hardcode it"
+>
+  📋 Copy Data
+</button>
+        <button
+  className="btn btn-secondary btn-sm"
+  onClick={exportData}
+  title="Export all data as JSON file"
+>
+  💾 Export
+</button>
+        <button className="btn btn-primary" onClick={()=>{setEditCourse(null);setShowAdd(true);}}>+ Add Course</button>
+      </div>
+      <div className="content">
+        {companies.length>0 && (
+          <div className="company-chips">
+            <div className={`company-chip ${filterCompany==='all'?'active':''}`} onClick={()=>setFilterCompany('all')}>
+              <span>⬡</span> All ({courses.length})
+            </div>
+            {companies.filter(co => courses.some(c => c.companyId === co.id)).map(co=>(
+              <div key={co.id} className={`company-chip ${filterCompany===co.id?'active':''}`} onClick={()=>setFilterCompany(filterCompany===co.id?'all':co.id)}>
+                <CompanyIcon company={co} size={16} />
+                {co.name} ({courses.filter(c=>c.companyId===co.id).length})
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="section-header">
+          <div>
+            <span className="section-title">{filterCompany==='all'?'All Courses':getCompany(filterCompany)?.name||'Courses'}</span>
+            <span className="section-count">{filtered.length} course{filtered.length!==1?'s':''}</span>
+          </div>
+        </div>
+
+        {filtered.length===0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📚</div>
+            <div className="empty-title">{courses.length===0?'No courses yet':'No courses found'}</div>
+            <div className="empty-sub">{courses.length===0?'Start building your learning library by adding your first course.':'Try adjusting your search or filter.'}</div>
+            {courses.length===0 && <button className="btn btn-primary" onClick={()=>setShowAdd(true)}>Add Your First Course</button>}
+          </div>
+        ) : (
+          <div className="courses-grid">
+            {filtered.map((course,i)=>{
+              const company = getCompany(course.companyId);
+              const prog = course.progress||0;
+              const totalChaps = course.chapters?.length||0;
+              const doneChaps = course.chapters?.filter(c=>c.completed).length||0;
+              const pct = totalChaps>0?Math.round((doneChaps/totalChaps)*100):prog;
+              return (
+                <div key={course.id} className="course-card" onClick={()=>onOpenCourse(course.id)}>
+                  <div style={{position:'absolute', top:8, left:8, zIndex:50}}>
+  <div
+    className="icon-btn"
+    style={{fontSize:10, letterSpacing:2}}
+    onClick={(e)=>{
+      e.stopPropagation();
+      setMenuOpen(menuOpen===course.id?null:course.id);
+    }}
+  >
+    •••
+  </div>
+
+  {menuOpen===course.id && (
+    <div
+      onClick={e=>e.stopPropagation()}
+      style={{
+        position:'absolute',
+        top:34,
+        left:0,
+        background:'var(--bg-card)',
+        border:'1px solid var(--border-light)',
+        borderRadius:10,
+        padding:6,
+        display:'flex',
+        flexDirection:'column',
+        gap:4,
+        minWidth:130,
+        boxShadow:'0 10px 30px rgba(0,0,0,.5)'
+      }}
+    >
+      <div
+        style={{padding:'6px 10px',cursor:'pointer',borderRadius:6}}
+        onClick={(e)=>{handleEdit(course,e); setMenuOpen(null);}}
+      >
+        ✏️ Edit
+      </div>
+
+      <div
+        style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)'}}
+        onClick={(e)=>{handleDelete(course.id,e); setMenuOpen(null);}}
+      >
+        🗑 Delete
+      </div>
+    </div>
+  )}
+</div>
+                  {course.thumbnail ? (
+                    <div className="course-thumb">
+                      <img src={course.thumbnail} alt={course.title} onError={e=>{e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} />
+                      <div style={{display:'none',width:'100%',aspectRatio:'16/9',alignItems:'center',justifyContent:'center',fontSize:36}} className={`grad-${i%6}`}>📖</div>
+                      {company && <div className="company-badge"><CompanyIcon company={company} size={18}/></div>}
+                    </div>
+                  ) : (
+                    <div className={`course-thumb-placeholder grad-${i%6}`}>
+                      <span>📖</span>
+                      {company && <div className="company-badge"><CompanyIcon company={company} size={18}/></div>}
+                    </div>
+                  )}
+                  <div className="course-body">
+                    <div className="course-name">{course.title}</div>
+                    {course.description && <div className="course-desc">{course.description}</div>}
+                    <div className="progress-wrap">
+                      <div className="progress-label">
+                        <span>{totalChaps>0?`${doneChaps}/${totalChaps} chapters`:'No chapters'}</span>
+                        <span style={{color:'var(--accent)'}}>{pct}%</span>
+                      </div>
+                      <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {showAdd && (
+        <AddCourseModal
+          companies={companies}
+          courses={courses}
+          editCourse={editCourse}
+          onClose={()=>{setShowAdd(false);setEditCourse(null);}}
+          onSave={handleSaveCourse}
+        />
+      )}
+
+      {showImport && (
+  <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&setShowImport(false)}>
+    <div className="modal">
+      <div className="modal-header">
+        <span className="modal-title">Import Data</span>
+        <button className="close-btn" onClick={()=>setShowImport(false)}>×</button>
+      </div>
+
+      <div className="modal-body">
+        <div className="form-group">
+          <label className="form-label">Paste JSON</label>
+        
+<input
+  type="file"
+  id="fileInput"
+  accept=".json"
+  style={{display:'none'}}
+  onChange={(e)=>{
+    const file = e.target.files[0];
+    if(file){
+      setSelectedFile(file.name);
+      handleFileImport(file);
+    }
+  }}
+/>
+<label
+  htmlFor="fileInput"
+  onDrop={(e)=>{
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if(file){
+      setSelectedFile(file.name);
+      handleFileImport(file);
+    }
+  }}
+  onDragOver={(e)=>e.preventDefault()}
+  style={{
+    border:'2px dashed var(--border-light)',
+    borderRadius:10,
+    padding:20,
+    textAlign:'center',
+    cursor:'pointer',
+    display:'block'
+  }}
+>
+  <div style={{marginBottom:10}}>📁 Drag & drop JSON file</div>
+
+  <span className="btn btn-secondary btn-sm">
+    Choose File
+  </span>
+
+  {selectedFile && (
+    <div style={{marginTop:10,fontSize:12,color:'var(--text-secondary)'}}>
+      {selectedFile}
+    </div>
+  )}
+</label>
+
+  <div style={{fontSize:12,color:'var(--text-muted)'}}>
+    Upload a previously exported backup file
+  </div>
+</div>
+
+{importError && (
+  <div style={{color:'var(--red)', fontSize:13}}>
+    {importError}
+  </div>
+)}
+      </div>
+    </div>
+  </div>
+)}
+{toast && (
+  <div style={{
+    position:'fixed',
+    bottom:20,
+    left:'50%',
+    transform:'translateX(-50%)',
+    background:'var(--accent)',
+    color:'#0a0e1a',
+    padding:'10px 18px',
+    borderRadius:10,
+    fontSize:13,
+    fontWeight:700,
+    zIndex:2000
+  }}>
+    ✓ Backup downloaded successfully!
+  </div>
+)}
+{copyToast && (
+  <div style={{
+    position:'fixed',
+    bottom:20,
+    left:'50%',
+    transform:'translateX(-50%)',
+    background:'var(--accent-2)',
+    color:'#fff',
+    padding:'10px 18px',
+    borderRadius:10,
+    fontSize:13,
+    fontWeight:700,
+    zIndex:2000,
+    maxWidth:380,
+    textAlign:'center'
+  }}>
+    ✓ Data copied! Paste it into DEFAULT_DATA in the HTML file.
+  </div>
+)}
+    </div>
+  );
+
+
+}
+
+// ─── COURSE PAGE ─────────────────────────────────────────────────────────────
+function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobileNotesOpen }) {
+  const course = data.courses.find(c=>c.id===courseId);
+  const company = data.companies.find(c=>c.id===course?.companyId);
+  const [activeChapter, setActiveChapter] = useState(0);
+  const [showNotes, setShowNotes] = useState(true);
+  const [showAddChapter, setShowAddChapter] = useState(false);
+  const [editChapter, setEditChapter] = useState(null);
+  const [noteSaved, setNoteSaved] = useState(false);
+  const noteTimer = useRef(null);
+
+  
+  if (!course) return null;
+  const chapters = course.chapters||[];
+  const chapter = chapters[activeChapter];
+
+  const updateCourse = (updated) => {
+    const courses = data.courses.map(c=>c.id===courseId?updated:c);
+    onUpdate({...data, courses});
+  };
+
+
+
+  const saveNote = (val) => {
+    const newChapters = chapters.map((c,i)=>i===activeChapter?{...c,notes:val}:c);
+    updateCourse({...course,chapters:newChapters});
+    clearTimeout(noteTimer.current);
+    noteTimer.current = setTimeout(()=>setNoteSaved(true), 300);
+    setTimeout(()=>setNoteSaved(false),2000);
+  };
+
+  const toggleComplete = () => {
+    const newChapters = chapters.map((c,i)=>i===activeChapter?{...c,completed:!c.completed}:c);
+    updateCourse({...course,chapters:newChapters});
+  };
+
+  const handleSaveChapter = (data) => {
+    let newChapters;
+    if (editChapter!==null) {
+      newChapters = chapters.map((c,i)=>i===editChapter?{...c,...data}:c);
+      setEditChapter(null);
+    } else {
+      newChapters = [...chapters,{id:uid(),...data,completed:false,notes:''}];
+      setActiveChapter(newChapters.length-1);
+    }
+    updateCourse({...course,chapters:newChapters});
+    setShowAddChapter(false);
+  };
+
+  const handleDeleteChapter = (idx) => {
+    if (!confirm('Delete this chapter?')) return;
+    const newChapters = chapters.filter((_,i)=>i!==idx);
+    updateCourse({...course,chapters:newChapters});
+    if (activeChapter>=newChapters.length) setActiveChapter(Math.max(0,newChapters.length-1));
+  };
+
+  const embed = chapter ? getEmbedUrl(chapter.videoUrl) : null;
+  const doneCount = chapters.filter(c=>c.completed).length;
+  const pct = chapters.length>0?Math.round((doneCount/chapters.length)*100):0;
+
+  // Build module groups in order of first appearance
+  const modOrder = []; const modMap = {};
+  chapters.forEach((c,i) => {
+    const m = c.module || '__none__';
+    if (!modMap[m]) { modMap[m] = []; modOrder.push(m); }
+    modMap[m].push({c, i});
+  });
+
+
+
+  return (
+    <div className="course-page" style={{height:'100%'}}>
+      {/* LEFT INDEX */}
+      <div className="course-index">
+        <div className="course-index-header">
+          <button className="btn btn-secondary btn-sm" onClick={onBack} style={{marginBottom:10}}>← Back</button>
+          <div className="course-index-title">Course Index</div>
+          <div className="course-index-name">{course.title}</div>
+          <div className="progress-mini">
+            <div className="progress-label" style={{fontSize:11,color:'var(--text-muted)',display:'flex',justifyContent:'space-between',marginBottom:4}}>
+              <span>{doneCount}/{chapters.length} done</span>
+              <span style={{color:'var(--accent)'}}>{pct}%</span>
+            </div>
+            <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
+          </div>
+        </div>
+
+        <div className="course-index-list">
+          {chapters.length===0 && (
+            <div style={{padding:'28px 16px',color:'var(--text-muted)',fontSize:13,textAlign:'center',lineHeight:1.7}}>
+              No chapters yet.<br/>Add your first one below.
+            </div>
+          )}
+
+          {modOrder.map((mod, mi) => {
+            const items = modMap[mod];
+            const hasM = mod !== '__none__';
+            const mDone = items.filter(({c}) => c.completed).length;
+            return (
+              <div key={mod} className="modgrp">
+                {hasM && (
+                  <div className="modh">
+                    <span className="modlbl">{mod}</span>
+                    <span className="modcnt">{mDone}/{items.length}</span>
+                  </div>
+                )}
+                {items.map(({c, i}) => (
+                  <div
+                    key={c.id||i}
+                    className={`crow ${i===activeChapter?'on':''} ${c.completed?'done':''}`}
+                    onClick={()=>setActiveChapter(i)}
+                  >
+                    <div className="cnum">{c.completed?'✓':i+1}</div>
+                    <div className="cinfo">
+                      <div className="cchname">{c.name}</div>
+                      <div className="cmeta">
+                        <span className={`cbdg ${c.type==='video'?'bv':'bt'}`}>{c.type==='video'?'▶ Video':'✦ Text'}</span>
+                        {c.duration && <span className="cdur">{c.duration}</span>}
+                      </div>
+                    </div>
+                    <div className="crow-acts">
+                      <div
+                        className="icon-btn"
+                        style={{width:24,height:24,fontSize:11}}
+                        title="Edit"
+                        onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}
+                      >✏️</div>
+                      <div
+                        className="icon-btn"
+                        style={{width:24,height:24,fontSize:11}}
+                        title="Delete"
+                        onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}
+                      >🗑</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="add-chapter-row">
+          <button
+            className="btn btn-secondary"
+            style={{width:'100%',justifyContent:'center'}}
+            onClick={()=>{setEditChapter(null);setShowAddChapter(true);}}
+          >
+            + Add Chapter
+          </button>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="course-main">
+        <div className="course-topbar">
+          {company && <CompanyIcon company={company} size={22}/>}
+          <div className="chapter-title-bar">{chapter?.name||'Select a chapter'}</div>
+          {chapter && (
+            <div className="complete-btn" onClick={toggleComplete} style={{cursor:'pointer',display:'flex',alignItems:'center',gap:8}}>
+              <div className={`checkbox-custom ${chapter.completed?'checked':''}`}/>
+              <span style={{fontSize:13,color:chapter.completed?'var(--accent)':'var(--text-secondary)',fontWeight:600}}>
+                {chapter.completed?'Completed':'Mark Complete'}
+              </span>
+            </div>
+          )}
+          <button className="btn btn-secondary btn-sm" onClick={()=>{setShowNotes(!showNotes); if(setMobileNotesOpen) setMobileNotesOpen(o=>!o);}} title="Toggle Notes">
+            {showNotes?'◧ Hide Notes':'◨ Notes'}
+          </button>
+        </div>
+
+        <div className="course-content-area">
+          <div className="course-viewer">
+            {!chapter ? (
+              <div className="empty-state" style={{padding:'60px 20px'}}>
+                <div className="empty-icon">📖</div>
+                <div className="empty-title">No chapters yet</div>
+                <div className="empty-sub">Add chapters to start building your course content.</div>
+                <button className="btn btn-primary" onClick={()=>setShowAddChapter(true)}>Add First Chapter</button>
+              </div>
+            ) : (
+              <>
+                {/* VIDEO */}
+                {chapter.type==='video' && (
+                  embed ? (
+                    <div className="video-wrapper">
+  <iframe
+    key={embed}
+    src={embed}
+    allow="autoplay; fullscreen; picture-in-picture"
+    allowFullScreen
+  />
+</div>
+                  ) : (
+                    <div className="video-placeholder">
+                      <span style={{fontSize:40}}>▶</span>
+                      <span>{chapter.videoUrl?'Invalid video URL — try a Vimeo, YouTube, or Wistia link':'No video URL set for this chapter'}</span>
+                      <button className="btn btn-secondary btn-sm" onClick={()=>{setEditChapter(activeChapter);setShowAddChapter(true);}}>Add Video URL</button>
+                    </div>
+                  )
+                )}
+
+                {/* DESCRIPTION */}
+                {chapter.description && (
+                  <div className="desc-section">
+                    <div className="desc-section-title">📋 Description</div>
+                    <div className="desc-text">{chapter.description}</div>
+                  </div>
+                )}
+
+                {/* LINKS */}
+                {chapter.links?.length>0 && (
+                  <div className="desc-section">
+                    <div className="desc-section-title">🔗 Resources</div>
+                    <div className="links-list">
+  {chapter.links.map((l,i)=>{
+    const link = typeof l === 'string'
+      ? { label: l, url: l }
+      : l;
+
+    return (
+      <a
+        key={i}
+        href={link.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="link-item"
+      >
+        🔗 {link.label || link.url}
+      </a>
+    );
+  })}
+</div>
+                  </div>
+                )}
+
+                {/* FILES */}
+                {chapter.files?.length>0 && (
+                  <div className="desc-section">
+                    <div className="desc-section-title">📁 Files</div>
+                    <div className="files-list">
+  {chapter.files.map((f,i)=>{
+    const file = typeof f === 'string'
+      ? { name: f, url: '' }
+      : f;
+
+    const isLinkStyle = !file.name && file.url;
+
+    return (
+      <a
+        key={i}
+        href={file.url || '#'}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="file-item"
+        style={{
+          textDecoration:'none',
+          color: isLinkStyle ? 'var(--accent-2)' : 'inherit',
+          cursor: file.url ? 'pointer' : 'default'
+        }}
+      >
+        <span className="file-icon">
+          {isLinkStyle ? '🔗' : '📄'}
+        </span>
+
+        <span
+          className="file-name"
+          style={{
+            textDecoration: 'none'
+          }}
+        >
+          {file.name || file.url}
+        </span>
+      </a>
+    );
+  })}
+</div>
+                  </div>
+                )}
+
+                {/* EMPTY chapter hint */}
+                {!chapter.description && !chapter.links?.length && !chapter.files?.length && chapter.type==='text' && (
+                  <div className="desc-section" style={{textAlign:'center',padding:'40px 20px',color:'var(--text-muted)'}}>
+                    <div style={{fontSize:32,marginBottom:10}}>📝</div>
+                    <div style={{fontSize:14}}>No content for this chapter yet.</div>
+                    <button className="btn btn-secondary btn-sm" style={{marginTop:12}} onClick={()=>{setEditChapter(activeChapter);setShowAddChapter(true);}}>Add Content</button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* NOTES PANEL */}
+          <div className={`notes-panel ${showNotes?'':'hidden'}`}>
+            {showNotes && <>
+              <div className="notes-panel-header">
+                <span className="notes-panel-title">📓 My Notes</span>
+                <span style={{fontSize:11,color:'var(--text-muted)'}}>{chapter?.name}</span>
+              </div>
+              <div className="notes-area">
+                <textarea
+                  className="note-textarea"
+                  placeholder={`Notes for "${chapter?.name||'this chapter'}"...\n\nJot down key points, code snippets, questions — anything you want to remember.`}
+                  value={chapter?.notes||''}
+                  onChange={e=>saveNote(e.target.value)}
+                />
+                <div className="note-saved">{noteSaved?'✓ Saved':''}</div>
+              </div>
+            </>}
+          </div>
+        </div>
+      </div>
+
+      {/* MOBILE NOTES BOTTOM SHEET */}
+      <div className={`mobile-notes-sheet ${mobileNotesOpen?'open':''}`}>
+        <div className="mobile-sheet-backdrop" onClick={()=>setMobileNotesOpen&&setMobileNotesOpen(false)}/>
+        <div className="mobile-notes-sheet-panel">
+          <div className="mobile-notes-handle"/>
+          <div className="notes-panel-header" style={{padding:'8px 16px 12px'}}>
+            <span className="notes-panel-title">📓 My Notes</span>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span style={{fontSize:11,color:'var(--text-muted)'}}>{chapter?.name}</span>
+              <button className="close-btn" onClick={()=>setMobileNotesOpen&&setMobileNotesOpen(false)}>×</button>
+            </div>
+          </div>
+          <div className="notes-area" style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+            <textarea
+              className="note-textarea"
+              style={{flex:1,minHeight:0,fontSize:16}}
+              placeholder={`Notes for "${chapter?.name||'this chapter'}"...\n\nJot down key points, questions — anything to remember.`}
+              value={chapter?.notes||''}
+              onChange={e=>saveNote(e.target.value)}
+            />
+            <div className="note-saved" style={{textAlign:'right',padding:'4px 0'}}>{noteSaved?'✓ Saved':''}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* CHAPTER MODAL */}
+      {showAddChapter && (
+        <ChapterModal
+          chapter={editChapter!==null?chapters[editChapter]:null}
+          onClose={()=>{setShowAddChapter(false);setEditChapter(null);}}
+          onSave={handleSaveChapter}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── MOBILE COURSE INDEX ──────────────────────────────────────────────────────
+function MobileCourseIndex({ courseId, data, onUpdate, onClose }) {
+  const course = data.courses.find(c=>c.id===courseId);
+  const [activeChapter, setActiveChapter] = useState(0);
+  const [showAddChapter, setShowAddChapter] = useState(false);
+  const [editChapter, setEditChapter] = useState(null);
+
+  if (!course) return null;
+  const chapters = course.chapters||[];
+  const doneCount = chapters.filter(c=>c.completed).length;
+  const pct = chapters.length>0?Math.round((doneCount/chapters.length)*100):0;
+
+  const updateCourse = (updated) => {
+    const courses = data.courses.map(c=>c.id===courseId?updated:c);
+    onUpdate({...data, courses});
+  };
+
+  const handleSaveChapter = (chData) => {
+    let newChapters;
+    if (editChapter!==null) {
+      newChapters = chapters.map((c,i)=>i===editChapter?{...c,...chData}:c);
+      setEditChapter(null);
+    } else {
+      newChapters = [...chapters,{id:uid(),...chData,completed:false,notes:''}];
+    }
+    updateCourse({...course,chapters:newChapters});
+    setShowAddChapter(false);
+  };
+
+  const handleDeleteChapter = (idx) => {
+    if (!confirm('Delete this chapter?')) return;
+    const newChapters = chapters.filter((_,i)=>i!==idx);
+    updateCourse({...course,chapters:newChapters});
+  };
+
+  const handleToggleComplete = (idx) => {
+    const newChapters = chapters.map((c,i)=>i===idx?{...c,completed:!c.completed}:c);
+    updateCourse({...course,chapters:newChapters});
+  };
+
+  const modOrder = []; const modMap = {};
+  chapters.forEach((c,i) => {
+    const m = c.module || '__none__';
+    if (!modMap[m]) { modMap[m] = []; modOrder.push(m); }
+    modMap[m].push({c, i});
+  });
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
+      <div className="course-index-header" style={{padding:'14px 16px'}}>
+        <button className="btn btn-secondary btn-sm" onClick={onClose} style={{marginBottom:10}}>✕ Close</button>
+        <div className="course-index-title">Course Index</div>
+        <div className="course-index-name">{course.title}</div>
+        <div className="progress-mini">
+          <div className="progress-label" style={{fontSize:11,color:'var(--text-muted)',display:'flex',justifyContent:'space-between',marginBottom:4}}>
+            <span>{doneCount}/{chapters.length} done</span>
+            <span style={{color:'var(--accent)'}}>{pct}%</span>
+          </div>
+          <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
+        </div>
+      </div>
+      <div className="course-index-list" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch'}}>
+        {chapters.length===0 && (
+          <div style={{padding:'28px 16px',color:'var(--text-muted)',fontSize:13,textAlign:'center',lineHeight:1.7}}>
+            No chapters yet.<br/>Add your first one below.
+          </div>
+        )}
+        {modOrder.map((mod) => {
+          const items = modMap[mod];
+          const hasM = mod !== '__none__';
+          const mDone = items.filter(({c}) => c.completed).length;
+          return (
+            <div key={mod} className="modgrp">
+              {hasM && (
+                <div className="modh">
+                  <span className="modlbl">{mod}</span>
+                  <span className="modcnt">{mDone}/{items.length}</span>
+                </div>
+              )}
+              {items.map(({c, i}) => (
+                <div key={c.id||i} className={`crow ${c.completed?'done':''}`}
+                  style={{paddingRight:10}}
+                  onClick={()=>{handleToggleComplete(i); onClose();}}
+                >
+                  <div className="cnum">{c.completed?'✓':i+1}</div>
+                  <div className="cinfo">
+                    <div className="cchname">{c.name}</div>
+                    <div className="cmeta">
+                      <span className={`cbdg ${c.type==='video'?'bv':'bt'}`}>{c.type==='video'?'▶ Video':'✦ Text'}</span>
+                      {c.duration && <span className="cdur">{c.duration}</span>}
+                    </div>
+                  </div>
+                  <div className="crow-acts" style={{opacity:1}}>
+                    <div className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Edit"
+                      onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}>✏️</div>
+                    <div className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Delete"
+                      onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}>🗑</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+      <div className="add-chapter-row">
+        <button className="btn btn-secondary" style={{width:'100%',justifyContent:'center'}}
+          onClick={()=>{setEditChapter(null);setShowAddChapter(true);}}>
+          + Add Chapter
+        </button>
+      </div>
+      {showAddChapter && (
+        <ChapterModal
+          chapter={editChapter!==null?chapters[editChapter]:null}
+          onClose={()=>{setShowAddChapter(false);setEditChapter(null);}}
+          onSave={handleSaveChapter}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── APP ROOT ─────────────────────────────────────────────────────────────────
+function App() {
+  const [data, setData] = useState(load);
+  const [view, setView] = useState('home'); // 'home' | courseId
+  const [filterCompany, setFilterCompany] = useState('all');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false); // sidebar sheet on mobile
+  const [mobileNotesOpen, setMobileNotesOpen] = useState(false); // notes sheet on mobile
+
+  const activeCompanyId =
+  view === 'home'
+    ? filterCompany
+    : data.courses.find(c => c.id === view)?.companyId;
+
+  const handleUpdate = (newData) => { setData(newData); save(newData); };
+
+  const courseCompanies = data.companies.filter(co =>
+  data.courses.some(c => c.companyId === co.id)
+);
+
+  // Close mobile sheet on back-nav
+  const handleBack = () => { setView('home'); setMobileNavOpen(false); };
+
+  return (
+    <div style={{display:'flex',height:'100vh',height:'100dvh',width:'100vw',overflow:'hidden'}}>
+      {/* DESKTOP SIDEBAR */}
+      <div className="sidebar">
+        <div className="sidebar-logo" onClick={()=>setView('home')} title="CourseFlow">CF</div>
+        <div className="sidebar-divider"/>
+        <div className={`sidebar-item ${view==='home'&&filterCompany==='all'?'active':''}`} onClick={()=>{setView('home');setFilterCompany('all');}}>
+          <span style={{fontSize:18}}>⬡</span>
+          <span className="sidebar-tooltip">All Courses</span>
+        </div>
+        {courseCompanies.map(co=>(
+          <div
+            key={co.id}
+            className={`sidebar-item ${
+              (view !== 'home' && data.courses.find(c=>c.id===view)?.companyId === co.id) ||
+              (view === 'home' && filterCompany === co.id)
+                ? 'active'
+                : ''
+            }`} onClick={()=>{setView('home');setFilterCompany(co.id);}}>
+            <CompanyIcon company={co} size={26}/>
+            <span className="sidebar-tooltip">{co.name}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* MAIN */}
+      <div className="main">
+        {view==='home'
+          ? <HomePageWrapper
+              data={data}
+              onOpenCourse={id=>setView(id)}
+              onUpdate={handleUpdate}
+              initialFilter={filterCompany}
+            />
+          : <CoursePage
+              courseId={view}
+              data={data}
+              onBack={handleBack}
+              onUpdate={handleUpdate}
+              mobileNotesOpen={mobileNotesOpen}
+              setMobileNotesOpen={setMobileNotesOpen}
+            />
+        }
+      </div>
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="mobile-bottom-nav">
+        {view !== 'home' ? (
+          <>
+            <button className="mobile-nav-item" onClick={handleBack}>
+              <span className="mobile-nav-icon">←</span>
+              <span>Home</span>
+            </button>
+            <button className="mobile-nav-item" onClick={()=>setMobileNavOpen(true)}>
+              <span className="mobile-nav-icon">☰</span>
+              <span>Chapters</span>
+            </button>
+            <button className="mobile-nav-item" onClick={()=>setMobileNotesOpen(o=>!o)}>
+              <span className="mobile-nav-icon">📓</span>
+              <span>Notes</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button className={`mobile-nav-item ${filterCompany==='all'?'active':''}`} onClick={()=>setFilterCompany('all')}>
+              <span className="mobile-nav-icon">⬡</span>
+              <span>All</span>
+            </button>
+            {courseCompanies.slice(0,3).map(co=>(
+              <button key={co.id} className={`mobile-nav-item ${filterCompany===co.id?'active':''}`} onClick={()=>setFilterCompany(filterCompany===co.id?'all':co.id)}>
+                <span className="mobile-nav-icon"><CompanyIcon company={co} size={20}/></span>
+                <span style={{maxWidth:60,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{co.name}</span>
+              </button>
+            ))}
+          </>
+        )}
+      </nav>
+
+      {/* MOBILE SIDEBAR/CHAPTERS SHEET */}
+      <div className={`mobile-sidebar-sheet ${mobileNavOpen?'open':''}`}>
+        <div className="mobile-sheet-backdrop" onClick={()=>setMobileNavOpen(false)}/>
+        <div className="mobile-sheet-panel">
+          {view !== 'home' && (
+            <MobileCourseIndex
+              courseId={view}
+              data={data}
+              onUpdate={handleUpdate}
+              onClose={()=>setMobileNavOpen(false)}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Pass filterCompany to HomePage
+function HomePageWrapper({ data, onOpenCourse, onUpdate, initialFilter }) {
+  const [filterCompany, setFilterCompany] = useState(initialFilter||'all');
+  useEffect(()=>setFilterCompany(initialFilter||'all'),[initialFilter]);
+  // re-export
+  return <HomePage data={data} onOpenCourse={onOpenCourse} onUpdate={onUpdate} filterCompany_={filterCompany} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
