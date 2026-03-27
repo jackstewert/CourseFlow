@@ -37,12 +37,10 @@
   body { font-family:'DM Sans',sans-serif; background:var(--bg-primary); color:var(--text-primary); min-height:100vh; overflow-x:hidden; -webkit-text-size-adjust:100%; }
   #root { display:flex; height:100vh; height:100dvh; overflow:hidden; }
 
-  /* SCROLLBAR */
   ::-webkit-scrollbar { width:5px; height:5px; }
   ::-webkit-scrollbar-track { background:transparent; }
   ::-webkit-scrollbar-thumb { background:var(--border-light); border-radius:10px; }
 
-  /* SIDEBAR */
   .sidebar {
     width:68px; background:var(--bg-sidebar); border-right:1px solid var(--border);
     display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:6px;
@@ -74,7 +72,6 @@
   }
   .sidebar-item:hover .sidebar-tooltip { opacity:1; }
 
-  /* MAIN */
   .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
   .topbar {
     height:60px; background:var(--bg-secondary); border-bottom:1px solid var(--border);
@@ -95,10 +92,8 @@
   .btn-danger:hover { background:rgba(245,101,101,.1); }
   .btn-sm { padding:5px 12px; font-size:12px; }
 
-  /* CONTENT */
   .content { flex:1; overflow-y:auto; padding:28px; -webkit-overflow-scrolling:touch; }
 
-  /* COURSES GRID */
   .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
   .section-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; }
   .section-count { font-size:13px; color:var(--text-secondary); margin-left:8px; }
@@ -142,7 +137,6 @@
   }
   .icon-btn:hover { background:var(--bg-hover); }
 
-  /* MODAL */
   .modal-backdrop {
     position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px);
     display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;
@@ -175,13 +169,11 @@
   }
   .close-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
 
-  /* EMPTY STATE */
   .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; text-align:center; gap:16px; }
   .empty-icon { font-size:56px; opacity:.3; }
   .empty-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--text-secondary); }
   .empty-sub { font-size:14px; color:var(--text-muted); max-width:300px; line-height:1.6; }
 
-  /* COURSE PAGE */
   .course-page { display:flex; height:100%; overflow:hidden; }
   .course-index {
     width:280px; flex-shrink:0; background:var(--bg-sidebar); border-right:1px solid var(--border);
@@ -192,7 +184,6 @@
   .course-index-name { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; line-height:1.4; }
   .progress-mini { margin-top:12px; }
   .course-index-list { flex:1; overflow-y:auto; padding:10px 0; -webkit-overflow-scrolling:touch; }
-  /* ── MODULE HEADER ── */
   .modh {
     padding:20px 16px 6px;
     display:flex; align-items:center; justify-content:space-between;
@@ -202,7 +193,6 @@
   .modcnt { font-size:10px; color:var(--text-muted); }
   .modgrp:first-child .modh { padding-top:12px; }
 
-  /* ── CHAPTER ROW ── */
   .crow {
     display:flex; align-items:center; gap:12px;
     padding:11px 14px 11px 20px;
@@ -231,7 +221,6 @@
   .crow-acts { display:flex; gap:4px; opacity:0; transition:opacity .1s; flex-shrink:0; }
   .crow:hover .crow-acts { opacity:1; }
 
-  /* COURSE MAIN */
   .course-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
   .course-topbar {
     height:56px; background:var(--bg-secondary); border-bottom:1px solid var(--border);
@@ -255,7 +244,6 @@
   .link-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--accent-2); padding:6px 0; text-decoration:none; }
   .link-item:hover { color:var(--accent); }
 
-  /* NOTES PANEL */
   .notes-panel {
     width:300px; flex-shrink:0; background:var(--bg-card); border-left:1px solid var(--border);
     display:flex; flex-direction:column; overflow:hidden; transition:width .2s;
@@ -273,29 +261,23 @@
   .note-textarea:focus { border-color:var(--accent); }
   .note-saved { font-size:11px; color:var(--accent); text-align:right; height:14px; }
 
-  /* CHAPTER EDITOR (modal variant) */
   .chapter-editor-modal .modal { max-width:680px; }
   .tabs { display:flex; gap:2px; background:var(--bg-secondary); border-radius:8px; padding:3px; }
   .tab-btn { padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--text-secondary); transition:all .15s; }
   .tab-btn.active { background:var(--bg-card); color:var(--text-primary); }
 
-  /* BADGE */
   .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; }
   .badge-green { background:rgba(16,230,140,.12); color:var(--accent); }
   .badge-blue { background:rgba(79,142,247,.12); color:var(--accent-2); }
 
-  /* MANAGE CHAPTERS BTN */
   .add-chapter-row { padding:10px 16px; border-top:1px solid var(--border); flex-shrink:0; }
 
-  /* SEARCH */
   .search-input-wrap { position:relative; }
   .search-input { padding-left:34px !important; }
   .search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:14px; pointer-events:none; }
 
-  /* TAG */
   .tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:4px; font-size:11px; background:var(--bg-hover); color:var(--text-secondary); border:1px solid var(--border); }
 
-  /* CHIP */
   .company-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
   .company-chip {
     display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px;
@@ -306,13 +288,11 @@
   .company-chip.active { border-color:var(--accent); background:var(--accent-glow); color:var(--accent); }
   .company-chip img { width:16px; height:16px; object-fit:contain; border-radius:3px; }
 
-  /* MARK COMPLETE */
   .complete-btn { display:flex; align-items:center; gap:6px; }
   .checkbox-custom { width:18px; height:18px; border-radius:4px; border:2px solid var(--border-light); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s; flex-shrink:0; }
   .checkbox-custom.checked { background:var(--accent); border-color:var(--accent); }
   .checkbox-custom.checked::after { content:'✓'; font-size:11px; font-weight:700; color:#0a0e1a; }
 
-  /* GRADIENT COLORS FOR PLACEHOLDER THUMBS */
   .grad-0 { background:linear-gradient(135deg,#1a2a4a,#0d3d2b); }
   .grad-1 { background:linear-gradient(135deg,#2d1a4a,#1a0d3d); }
   .grad-2 { background:linear-gradient(135deg,#4a1a1a,#3d0d0d); }
@@ -326,8 +306,7 @@
     .courses-grid { grid-template-columns:1fr 1fr; }
   }
 
-  /* ── iOS / MOBILE LAYOUT ── */
-  /* Bottom nav bar for mobile */
+  /* ── MOBILE LAYOUT ── */
   .mobile-bottom-nav {
     display:none;
     position:fixed; bottom:0; left:0; right:0;
@@ -346,39 +325,49 @@
   .mobile-nav-item svg { flex-shrink:0; }
   .mobile-nav-icon { font-size:20px; line-height:1; }
 
-  /* Mobile overlay panel for sidebar content */
+  /* FIX: Mobile sidebar sheet — use mobileSidebarOpen consistently */
   .mobile-sidebar-sheet {
-    display:none;
-    position:fixed; inset:0; z-index:300;
+    position:fixed; inset:0; z-index:500;
+    pointer-events:none;
+    display:flex;
   }
-  .mobile-sidebar-sheet.open { display:flex; flex-direction:column; }
+  .mobile-sidebar-sheet.open {
+    pointer-events:all;
+  }
   .mobile-sheet-backdrop {
     position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px);
+    z-index:1;
+    opacity:0; transition:opacity .25s ease;
   }
+  .mobile-sidebar-sheet.open .mobile-sheet-backdrop { opacity:1; }
   .mobile-sheet-panel {
     position:absolute; top:0; bottom:0; left:0; width:80%; max-width:320px;
     background:var(--bg-sidebar); border-right:1px solid var(--border);
     display:flex; flex-direction:column; overflow:hidden;
     padding-top:env(safe-area-inset-top);
+    z-index:2;
     transform:translateX(-100%); transition:transform .25s ease;
   }
   .mobile-sidebar-sheet.open .mobile-sheet-panel { transform:translateX(0); }
 
-  .mobile-sheet-backdrop {
-  z-index: 1;
-}
-
-.mobile-sheet-panel {
-  z-index: 2;
-}
-  /* Mobile notes bottom sheet */
+  /* FIX: Mobile notes bottom sheet */
   .mobile-notes-sheet {
-    display:none;
-    position:fixed; inset:0; z-index:300;
+    position:fixed; inset:0; z-index:500;
+    pointer-events:none;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
   }
-  .mobile-notes-sheet.open { display:flex; flex-direction:column; }
+  .mobile-notes-sheet.open {
+    pointer-events:all;
+  }
+  .mobile-notes-backdrop {
+    position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px);
+    opacity:0; transition:opacity .3s ease;
+  }
+  .mobile-notes-sheet.open .mobile-notes-backdrop { opacity:1; }
   .mobile-notes-sheet-panel {
-    position:absolute; bottom:0; left:0; right:0;
+    position:relative; z-index:1;
     background:var(--bg-card); border-radius:20px 20px 0 0; border-top:1px solid var(--border-light);
     display:flex; flex-direction:column;
     height:70vh; padding-bottom:env(safe-area-inset-bottom);
@@ -391,42 +380,34 @@
   }
 
   @media (max-width:640px) {
-    /* Hide desktop sidebar */
     .sidebar { display:none !important; }
-    /* Hide Copy Data button */
     .mobile-hide { display: none !important; }
-    /* Show mobile bottom nav */
     .mobile-bottom-nav { display:flex; }
 
-    /* Main area accounts for bottom nav */
     .main { padding-bottom:calc(56px + env(safe-area-inset-bottom)); }
 
-    /* Topbar safe area */
     .topbar {
       padding-top:max(12px, env(safe-area-inset-top));
       height:auto; min-height:56px; flex-wrap:wrap; gap:8px;
       padding-left:16px; padding-right:16px; padding-bottom:10px;
     }
     .topbar-title { font-size:16px; flex:none; }
-
-    /* Topbar buttons — wrap and compress */
     .topbar > .btn { padding:6px 10px; font-size:12px; }
     .topbar .search-input-wrap { order:10; width:100%; flex-basis:100%; }
     .topbar .search-input-wrap input { width:100% !important; }
 
-    /* Courses grid: single column on very small, 2 col on medium mobile */
     .courses-grid { grid-template-columns:1fr; gap:14px; }
 
-    /* Bigger tap targets on cards */
     .icon-btn { width:36px; height:36px; font-size:14px; }
-
-    /* Content padding */
     .content { padding:16px; }
 
-    /* Course page: hide desktop panels, show stacked layout */
     .course-page { flex-direction:column; }
     .course-index { display:none !important; }
     .notes-panel { display:none !important; }
+
+    /* FIX: Hide desktop Notes button on mobile course topbar */
+    .desktop-notes-btn { display:none !important; }
+
     .course-topbar {
       padding:0 12px; flex-wrap:wrap; height:auto; min-height:52px; gap:8px;
       padding-top:max(10px, env(safe-area-inset-top)); padding-bottom:10px;
@@ -434,7 +415,6 @@
     .chapter-title-bar { font-size:13px; }
     .course-viewer { padding:14px; }
 
-    /* Modal: full-screen on mobile */
     .modal-backdrop { padding:0; align-items:flex-end; }
     .modal {
       max-width:100%; max-height:92vh; border-radius:20px 20px 0 0;
@@ -445,28 +425,20 @@
     .modal-footer { padding:12px 16px; padding-bottom:max(16px, env(safe-area-inset-bottom)); }
     .form-row { grid-template-columns:1fr; }
 
-    /* Chapter row: always show actions (no hover on touch) */
+    /* Always show chapter row actions on mobile */
     .crow-acts { opacity:1 !important; }
     .crow-acts .icon-btn { width:32px; height:32px; }
 
-    /* Bigger buttons */
     .btn { padding:10px 16px; font-size:14px; }
     .btn-sm { padding:8px 12px; font-size:13px; }
 
-    /* Empty state */
     .empty-state { padding:48px 20px; }
 
-    /* Company chips: horizontal scroll */
     .company-chips { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
     .company-chip { flex-shrink:0; }
 
-    /* Section header */
     .section-header { margin-bottom:14px; }
-
-    /* Tabs in modal */
     .tab-btn { padding:8px 10px; font-size:12px; }
-
-    /* Files/links list bigger touch targets */
     .file-item { padding:12px; }
     .link-item { padding:10px 0; }
   }
@@ -485,26 +457,18 @@
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
 
-// ─── UTILS ───────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2,10);
 const STORAGE_KEY = 'courseflow_v2';
 
-// ─── HARDCODED DEFAULT DATA ───────────────────────────────────────────────────
-// Edit this object to pre-load your courses on any new computer.
-// Your live changes are still saved to localStorage and take priority.
 const DEFAULT_DATA = {
-  "companies": [
-  ],
-  "courses": [
-  ]
+  "companies": [],
+  "courses": []
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 const load = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) return JSON.parse(stored);
-    // No localStorage found — seed with hardcoded default data
     return JSON.parse(JSON.stringify(DEFAULT_DATA));
   }
   catch { return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
@@ -557,12 +521,23 @@ function getEmbedUrl(url) {
 
   // Hotmart
   if (url.includes('player.hotmart.com')) {
-  return url;
+    return url;
   }
 
-  // fallback
+  // FIX: Google Drive — convert share/view links to embed links
+  // Formats:
+  //   https://drive.google.com/file/d/FILE_ID/view
+  //   https://drive.google.com/open?id=FILE_ID
+  const gdriveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+                      url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) ||
+                      url.match(/id=([a-zA-Z0-9_-]+)/);
+  if (url.includes('drive.google.com') && gdriveMatch) {
+    return `https://drive.google.com/file/d/${gdriveMatch[1]}/preview`;
+  }
+
+  // fallback — raw embed/iframe-compatible URLs
   if (url.includes('embed') || url.startsWith('https')) {
-    return url + (url.includes('?') ? '&autoplay=1' : '?autoplay=1');
+    return url;
   }
 
   return null;
@@ -578,17 +553,18 @@ function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
   const [newCompanyUrl, setNewCompanyUrl] = useState('');
   const [newCompanyIcon, setNewCompanyIcon] = useState('');
   const [addingCompany, setAddingCompany] = useState(false);
-  
 
   const handleSave = () => {
     if (!title.trim()) return;
+    // FIX: pass onClose callback so modal always closes after saving course
     onSave({ title, thumbnail:thumb, companyId, description:desc });
+    onClose();
   };
 
   return (
     <div className="modal-backdrop" onMouseDown={e => {
-  if (e.target === e.currentTarget) onClose();
-}}>
+      if (e.target === e.currentTarget) onClose();
+    }}>
       <div className="modal">
         <div className="modal-header">
           <span className="modal-title">{editCourse?'Edit Course':'Add New Course'}</span>
@@ -607,76 +583,67 @@ function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
             <label className="form-label">Platform / Company</label>
             {!addingCompany ? (
               <div style={{display:'flex',gap:8}}>
-  <select
-    className="form-select"
-    style={{flex:1}}
-    value={companyId}
-    onChange={e=>setCompanyId(e.target.value)}
-  >
-    <option value="">— None —</option>
-    {companies.map(c=>(
-      <option key={c.id} value={c.id}>{c.name}</option>
-    ))}
-  </select>
+                <select
+                  className="form-select"
+                  style={{flex:1}}
+                  value={companyId}
+                  onChange={e=>setCompanyId(e.target.value)}
+                >
+                  <option value="">— None —</option>
+                  {companies.map(c=>(
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
 
-  {/* 🔥 DELETE BUTTON */}
-  {companyId && (
-    <button
-      className="btn btn-secondary"
-      style={{padding:'6px 10px'}}
-      onClick={()=>{
-        const isUsed = courses.some(c=>c.companyId === companyId);
+                {companyId && (
+                  <button
+                    className="btn btn-secondary"
+                    style={{padding:'6px 10px'}}
+                    onClick={()=>{
+                      const isUsed = courses.some(c=>c.companyId === companyId);
+                      if(isUsed){
+                        alert('Cannot delete: platform is used by courses');
+                        return;
+                      }
+                      const updatedCompanies = companies.filter(c=>c.id !== companyId);
+                      onSave(null, null, updatedCompanies);
+                      setCompanyId('');
+                    }}
+                  >
+                    🗑
+                  </button>
+                )}
 
-        if(isUsed){
-          alert('Cannot delete: platform is used by courses');
-          return;
-        }
-
-        const updatedCompanies = companies.filter(c=>c.id !== companyId);
-
-        onSave(null, null, updatedCompanies); // 👈 important
-
-        setCompanyId('');
-      }}
-    >
-      🗑
-    </button>
-  )}
-
-  <button className="btn btn-secondary" onClick={()=>setAddingCompany(true)}>
-    + New
-  </button>
-</div>
+                <button className="btn btn-secondary" onClick={()=>setAddingCompany(true)}>
+                  + New
+                </button>
+              </div>
             ) : (
               <div style={{display:'flex',flexDirection:'column',gap:8,padding:12,background:'var(--bg-secondary)',borderRadius:8,border:'1px solid var(--border-light)'}}>
                 <input className="form-input" placeholder="Platform name (e.g. Udemy)" value={newCompany} onChange={e=>setNewCompany(e.target.value)} />
                 <input className="form-input" placeholder="Website URL (for favicon, e.g. udemy.com)" value={newCompanyUrl} onChange={e=>setNewCompanyUrl(e.target.value)} />
-                <input className="form-input" placeholder="Icon URL (optional)" value={newCompanyIcon}onChange={e=>setNewCompanyIcon(e.target.value)}/>
+                <input className="form-input" placeholder="Icon URL (optional)" value={newCompanyIcon} onChange={e=>setNewCompanyIcon(e.target.value)}/>
                 <div style={{display:'flex',gap:8}}>
                   <button className="btn btn-primary btn-sm" onClick={()=>{
-  if(newCompany.trim()){
-    const nc={
-      id:uid(),
-      name:newCompany.trim(),
-      url:newCompanyUrl.trim(),
-      icon:newCompanyIcon.trim() || undefined
-    };
-    if (companies.some(c => c.name.toLowerCase() === newCompany.toLowerCase())) {
-  alert("Platform already exists");
-  return;
-}
-    // update parent
-    onSave(null,nc);
-setCompanyId(nc.id);
-
-
-    // reset UI
-    setAddingCompany(false);
-    setNewCompany('');
-    setNewCompanyUrl('');
-    setNewCompanyIcon('');
-  }
-}}>Add Platform</button>
+                    if(newCompany.trim()){
+                      const nc={
+                        id:uid(),
+                        name:newCompany.trim(),
+                        url:newCompanyUrl.trim(),
+                        icon:newCompanyIcon.trim() || undefined
+                      };
+                      if (companies.some(c => c.name.toLowerCase() === newCompany.toLowerCase())) {
+                        alert("Platform already exists");
+                        return;
+                      }
+                      onSave(null, nc);
+                      setCompanyId(nc.id);
+                      setAddingCompany(false);
+                      setNewCompany('');
+                      setNewCompanyUrl('');
+                      setNewCompanyIcon('');
+                    }
+                  }}>Add Platform</button>
                   <button className="btn btn-secondary btn-sm" onClick={()=>setAddingCompany(false)}>Cancel</button>
                 </div>
               </div>
@@ -707,21 +674,11 @@ function ChapterModal({ chapter, onClose, onSave }) {
   const [videoUrl, setVideoUrl] = useState(chapter?.videoUrl||'');
   const [desc, setDesc] = useState(chapter?.description||'');
   const normalizeLinks = (arr = []) =>
-  arr.map(l =>
-    typeof l === 'string'
-      ? { label: l, url: l }
-      : l
-  );
-
-const normalizeFiles = (arr = []) =>
-  arr.map(f =>
-    typeof f === 'string'
-      ? { name: f, url: '' }
-      : f
-  );
-
-const [links, setLinks] = useState(normalizeLinks(chapter?.links));
-const [files, setFiles] = useState(normalizeFiles(chapter?.files));
+    arr.map(l => typeof l === 'string' ? { label: l, url: l } : l);
+  const normalizeFiles = (arr = []) =>
+    arr.map(f => typeof f === 'string' ? { name: f, url: '' } : f);
+  const [links, setLinks] = useState(normalizeLinks(chapter?.links));
+  const [files, setFiles] = useState(normalizeFiles(chapter?.files));
   const [tab, setTab] = useState('basic');
 
   const handleSave = () => {
@@ -731,8 +688,8 @@ const [files, setFiles] = useState(normalizeFiles(chapter?.files));
 
   return (
     <div className="modal-backdrop chapter-editor-modal" onMouseDown={e => {
-  if (e.target === e.currentTarget) onClose();
-}}>
+      if (e.target === e.currentTarget) onClose();
+    }}>
       <div className="modal" style={{maxWidth:620}}>
         <div className="modal-header">
           <span className="modal-title">{chapter?.id?'Edit Chapter':'Add Chapter'}</span>
@@ -777,136 +734,85 @@ const [files, setFiles] = useState(normalizeFiles(chapter?.files));
             {type==='video' && (
               <div className="form-group">
                 <label className="form-label">Video URL / Embed Link</label>
-                <input className="form-input" placeholder="Vimeo, YouTube, Wistia, or direct embed URL" value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} />
-                <span style={{fontSize:11,color:'var(--text-muted)'}}>Supports: youtube.com, vimeo.com, wistia.com, or any iframe-compatible URL</span>
+                <input className="form-input" placeholder="Vimeo, YouTube, Wistia, Google Drive, or direct embed URL" value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} />
+                <span style={{fontSize:11,color:'var(--text-muted)'}}>Supports: youtube.com, vimeo.com, wistia.com, drive.google.com, or any iframe-compatible URL</span>
               </div>
             )}
             <div className="form-group">
               <label className="form-label">Description / Notes</label>
               <textarea className="form-textarea" style={{minHeight:120}} placeholder="Chapter description, key points, code snippets..." value={desc} onChange={e=>setDesc(e.target.value)} />
             </div>
-            
-              <div className="form-group">
-  <label className="form-label">Links</label>
 
-  <div style={{display:'flex',flexDirection:'column',gap:10}}>
-
-    {links.map((l, i) => (
-      <div key={i} style={{display:'flex', gap:8, alignItems:'center'}}>
-
-        <input
-          className="form-input"
-          placeholder="Label (e.g. Join Discord)"
-          value={l.label || ''}
-          onChange={e => {
-            const updated = [...links];
-            updated[i] = { ...updated[i], label: e.target.value };
-            setLinks(updated);
-          }}
-        />
-
-        <input
-          className="form-input"
-          placeholder="https://..."
-          value={l.url || ''}
-          onChange={e => {
-            const updated = [...links];
-            const url = e.target.value;
-
-updated[i] = {
-  ...updated[i],
-  url,
-  label: updated[i].label || url
-};
-            setLinks(updated);
-          }}
-        />
-
-        <button
-          className="btn btn-danger btn-sm"
-          onClick={() => {
-            setLinks(links.filter((_, idx) => idx !== i));
-          }}
-        >
-          ✕
-        </button>
-      </div>
-    ))}
-
-    <button
-      className="btn btn-secondary btn-sm"
-      onClick={() => setLinks([...links, { label:'', url:'' }])}
-      style={{alignSelf:'flex-start'}}
-    >
-      + Add Link
-    </button>
-
-  </div>
-</div> 
-
-            
+            <div className="form-group">
+              <label className="form-label">Links</label>
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                {links.map((l, i) => (
+                  <div key={i} style={{display:'flex', gap:8, alignItems:'center'}}>
+                    <input
+                      className="form-input"
+                      placeholder="Label (e.g. Join Discord)"
+                      value={l.label || ''}
+                      onChange={e => {
+                        const updated = [...links];
+                        updated[i] = { ...updated[i], label: e.target.value };
+                        setLinks(updated);
+                      }}
+                    />
+                    <input
+                      className="form-input"
+                      placeholder="https://..."
+                      value={l.url || ''}
+                      onChange={e => {
+                        const updated = [...links];
+                        const url = e.target.value;
+                        updated[i] = { ...updated[i], url, label: updated[i].label || url };
+                        setLinks(updated);
+                      }}
+                    />
+                    <button className="btn btn-danger btn-sm" onClick={() => setLinks(links.filter((_, idx) => idx !== i))}>✕</button>
+                  </div>
+                ))}
+                <button className="btn btn-secondary btn-sm" onClick={() => setLinks([...links, { label:'', url:'' }])} style={{alignSelf:'flex-start'}}>
+                  + Add Link
+                </button>
+              </div>
+            </div>
           </>}
 
           {tab==='files' && (
-            
-             
-              <div className="form-group">
-  <label className="form-label">Files</label>
-
-  <div style={{display:'flex',flexDirection:'column',gap:10}}>
-
-    {files.map((f, i) => (
-      <div key={i} style={{display:'flex', gap:8, alignItems:'center'}}>
-
-        <input
-          className="form-input"
-          placeholder="File name"
-          value={f.name || ''}
-          onChange={e => {
-            const updated = [...files];
-            updated[i] = { ...updated[i], name: e.target.value };
-            setFiles(updated);
-          }}
-        />
-
-        <input
-          className="form-input"
-          placeholder="https://file-link.com"
-          value={f.url || ''}
-          onChange={e => {
-            const updated = [...files];
-            const url = e.target.value;
-
-updated[i] = {
-  ...updated[i],
-  url,
-  name: updated[i].name || url
-};
-            setFiles(updated);
-          }}
-        />
-
-        <button
-          className="btn btn-danger btn-sm"
-          onClick={() => {
-            setFiles(files.filter((_, idx) => idx !== i));
-          }}
-        >
-          ✕
-        </button>
-      </div>
-    ))}
-
-    <button
-      className="btn btn-secondary btn-sm"
-      onClick={() => setFiles([...files, { name:'', url:'' }])}
-      style={{alignSelf:'flex-start'}}
-    >
-      + Add File
-    </button>
-
-  </div>
-
+            <div className="form-group">
+              <label className="form-label">Files</label>
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                {files.map((f, i) => (
+                  <div key={i} style={{display:'flex', gap:8, alignItems:'center'}}>
+                    <input
+                      className="form-input"
+                      placeholder="File name"
+                      value={f.name || ''}
+                      onChange={e => {
+                        const updated = [...files];
+                        updated[i] = { ...updated[i], name: e.target.value };
+                        setFiles(updated);
+                      }}
+                    />
+                    <input
+                      className="form-input"
+                      placeholder="https://file-link.com"
+                      value={f.url || ''}
+                      onChange={e => {
+                        const updated = [...files];
+                        const url = e.target.value;
+                        updated[i] = { ...updated[i], url, name: updated[i].name || url };
+                        setFiles(updated);
+                      }}
+                    />
+                    <button className="btn btn-danger btn-sm" onClick={() => setFiles(files.filter((_, idx) => idx !== i))}>✕</button>
+                  </div>
+                ))}
+                <button className="btn btn-secondary btn-sm" onClick={() => setFiles([...files, { name:'', url:'' }])} style={{alignSelf:'flex-start'}}>
+                  + Add File
+                </button>
+              </div>
               <span style={{fontSize:11,color:'var(--text-muted)'}}>Add file names to list under chapter resources</span>
             </div>
           )}
@@ -923,60 +829,37 @@ updated[i] = {
 // ─── HOMEPAGE ────────────────────────────────────────────────────────────────
 function HomePage({ data, onOpenCourse, onUpdate, filterCompany_, showImportMobile, setShowImportMobile, showAddCourseMobile, setShowAddCourseMobile }) {
   const [filterCompany, setFilterCompany] = useState(filterCompany_ || 'all');
+  useEffect(()=>{ setFilterCompany(filterCompany_ || 'all'); }, [filterCompany_]);
 
-useEffect(()=>{
-  setFilterCompany(filterCompany_ || 'all');
-}, [filterCompany_]);
   const [showAdd, setShowAdd] = useState(false);
   const [editCourse, setEditCourse] = useState(null);
   const [search, setSearch] = useState('');
   const [menuOpen, setMenuOpen] = useState(null);
   const [showImport, setShowImport] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [importError, setImportError] = useState('');
 
-  // Sync mobile bottom-nav triggers into existing modal state
   useEffect(()=>{ if(showImportMobile){ setShowImport(true); if(setShowImportMobile) setShowImportMobile(false); } },[showImportMobile]);
   useEffect(()=>{ if(showAddCourseMobile){ setEditCourse(null); setShowAdd(true); if(setShowAddCourseMobile) setShowAddCourseMobile(false); } },[showAddCourseMobile]);
-
-const [importError, setImportError] = useState('');
 
   const companies = data.companies;
   const courses = data.courses;
 
-const handleFileImport = (file) => {
-  if (!file) return;
-
-  if (!file.name.endsWith('.json')) {
-    setImportError("Please upload a valid JSON file.");
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = (e) => {
-    try {
-      const parsed = JSON.parse(e.target.result);
-
-      if (!parsed.courses || !parsed.companies) {
-        setImportError("Invalid file format.");
-        return;
-      }
-
-      onUpdate({
-        courses: parsed.courses,
-        companies: parsed.companies
-      });
-
-      setShowImport(false);
-      setImportError('');
-
-    } catch {
-      setImportError("Invalid JSON file.");
-    }
+  const handleFileImport = (file) => {
+    if (!file) return;
+    if (!file.name.endsWith('.json')) { setImportError("Please upload a valid JSON file."); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (!parsed.courses || !parsed.companies) { setImportError("Invalid file format."); return; }
+        onUpdate({ courses: parsed.courses, companies: parsed.companies });
+        setShowImport(false);
+        setImportError('');
+      } catch { setImportError("Invalid JSON file."); }
+    };
+    reader.readAsText(file);
   };
-
-  reader.readAsText(file);
-};
 
   const filtered = courses.filter(c => {
     const matchCompany = filterCompany==='all' || c.companyId===filterCompany;
@@ -985,128 +868,71 @@ const handleFileImport = (file) => {
   });
 
   useEffect(() => {
-  const handler = () => setMenuOpen(null);
-  window.addEventListener('click', handler);
-  return () => window.removeEventListener('click', handler);
-}, []);
+    const handler = () => setMenuOpen(null);
+    window.addEventListener('click', handler);
+    return () => window.removeEventListener('click', handler);
+  }, []);
 
-const handleSaveCourse = (course, newCompany, updatedCompanies) => {
+  // FIX: handleSaveCourse now correctly handles all 3 cases without calling onClose
+  // The modal's own handleSave already calls onClose after calling this
+  const handleSaveCourse = (course, newCompany, updatedCompanies) => {
+    if (updatedCompanies) {
+      onUpdate({...data, companies: updatedCompanies});
+      return;
+    }
+    if (newCompany) {
+      onUpdate({ ...data, companies: [...data.companies, newCompany] });
+      return;
+    }
+    if (course) {
+      if (editCourse) {
+        const updatedCourses = data.courses.map(c => c.id === editCourse.id ? { ...c, ...course } : c);
+        onUpdate({ ...data, courses: updatedCourses });
+      } else {
+        const newCourse = { id: uid(), ...course, chapters: [], progress: 0 };
+        onUpdate({ ...data, courses: [...data.courses, newCourse] });
+      }
+      // FIX: close modal after saving course
+      setShowAdd(false);
+      setEditCourse(null);
+    }
+  };
 
-  // 🔥 delete platform case
-  if(updatedCompanies){
-    onUpdate({...data, companies: updatedCompanies});
-    return;
-  }
-
-  // existing logic
-  if(newCompany){
-    const updated = { ...data, companies: [...data.companies, newCompany] };
-    onUpdate(updated);
-    return;
-  }
-
- if(course){
-  if(editCourse){
-    // update existing course
-    const updatedCourses = data.courses.map(c =>
-      c.id === editCourse.id ? { ...c, ...course } : c
-    );
-
-    onUpdate({ ...data, courses: updatedCourses });
-  } else {
-    // add new course
-    const newCourse = {
-      id: uid(),
-      ...course,
-      chapters: [],
-      progress: 0
-    };
-
-    onUpdate({ ...data, courses: [...data.courses, newCourse] });
-  }
-}
-};
-
- const handleDelete = (id, e) => {
-  e.stopPropagation();
-
-  const course = data.courses.find(c => c.id === id);
-
-  if (confirm(`Delete "${course?.title}"?`)) {
-
-    const newCourses = data.courses.filter(c => c.id !== id);
-
-    const usedCompanyIds = newCourses
-      .map(c => c.companyId)
-      .filter(Boolean);
-
-    const newCompanies = data.companies.filter(co =>
-      usedCompanyIds.includes(co.id)
-    );
-
-    onUpdate({
-      ...data,
-      courses: newCourses,
-      companies: newCompanies
-    });
-  }
-};
+  const handleDelete = (id, e) => {
+    e.stopPropagation();
+    const course = data.courses.find(c => c.id === id);
+    if (confirm(`Delete "${course?.title}"?`)) {
+      const newCourses = data.courses.filter(c => c.id !== id);
+      const usedCompanyIds = newCourses.map(c => c.companyId).filter(Boolean);
+      const newCompanies = data.companies.filter(co => usedCompanyIds.includes(co.id));
+      onUpdate({ ...data, courses: newCourses, companies: newCompanies });
+    }
+  };
 
   const handleEdit = (course, e) => { e.stopPropagation(); setEditCourse(course); setShowAdd(true); };
-
   const getCompany = id => companies.find(c=>c.id===id);
 
   const [toast, setToast] = useState(false);
   const [copyToast, setCopyToast] = useState(false);
 
-const exportData = () => {
-  const dataToExport = {
-    companies: data.companies,
-    courses: data.courses
+  const exportData = () => {
+    const dataToExport = { companies: data.companies, courses: data.courses };
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = new Date().toISOString().replace(/[:.]/g,'-');
+    a.href = url; a.download = `courseflow-backup-${date}.json`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    setToast(true); setTimeout(() => setToast(false), 2500);
   };
 
-  const json = JSON.stringify(dataToExport, null, 2);
-
-  // create file
-  const blob = new Blob([json], { type: "application/json" });
-
-  // create download link
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-
-  const date = new Date().toISOString().replace(/[:.]/g,'-');
-
-  a.href = url;
-  a.download = `courseflow-backup-${date}.json`;
-
-  document.body.appendChild(a);
-  a.click();
-
-  // cleanup
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  showToast();
-};
-
-const copyDataToClipboard = () => {
-  const dataToExport = {
-    companies: data.companies,
-    courses: data.courses
+  const copyDataToClipboard = () => {
+    const dataToExport = { companies: data.companies, courses: data.courses };
+    navigator.clipboard.writeText(JSON.stringify(dataToExport, null, 2)).then(() => {
+      setCopyToast(true); setTimeout(() => setCopyToast(false), 2500);
+    });
   };
-  const json = JSON.stringify(dataToExport, null, 2);
-  navigator.clipboard.writeText(json).then(() => {
-    setCopyToast(true);
-    setTimeout(() => setCopyToast(false), 2500);
-  });
-};
-
-
-
-const showToast = () => {
-  setToast(true);
-  setTimeout(() => setToast(false), 2500);
-};
 
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
@@ -1116,26 +942,9 @@ const showToast = () => {
           <span className="search-icon">🔍</span>
           <input className="form-input search-input" placeholder="Search courses..." value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}} />
         </div>
-        <button
-  className="btn btn-secondary btn-sm mobile-hide"
-  onClick={()=>setShowImport(true)}
->
-  📥 Import
-</button>
-        <button
-  className="btn btn-secondary btn-sm mobile-hide"
-  onClick={copyDataToClipboard}
-  title="Copy data JSON to clipboard — paste into DEFAULT_DATA in the HTML file to hardcode it"
->
-  📋 Copy Data
-</button>
-        <button
-  className="btn btn-secondary btn-sm mobile-hide"
-  onClick={exportData}
-  title="Export all data as JSON file"
->
-  💾 Export
-</button>
+        <button className="btn btn-secondary btn-sm mobile-hide" onClick={()=>setShowImport(true)}>📥 Import</button>
+        <button className="btn btn-secondary btn-sm mobile-hide" onClick={copyDataToClipboard} title="Copy data JSON to clipboard">📋 Copy Data</button>
+        <button className="btn btn-secondary btn-sm mobile-hide" onClick={exportData} title="Export all data as JSON file">💾 Export</button>
         <button className="btn btn-primary mobile-hide" onClick={()=>{setEditCourse(null);setShowAdd(true);}}>+ Add Course</button>
       </div>
       <div className="content">
@@ -1178,51 +987,14 @@ const showToast = () => {
               return (
                 <div key={course.id} className="course-card" onClick={()=>onOpenCourse(course.id)}>
                   <div style={{position:'absolute', top:8, left:8, zIndex:50}}>
-  <div
-    className="icon-btn"
-    style={{fontSize:10, letterSpacing:2}}
-    onClick={(e)=>{
-      e.stopPropagation();
-      setMenuOpen(menuOpen===course.id?null:course.id);
-    }}
-  >
-    •••
-  </div>
-
-  {menuOpen===course.id && (
-    <div
-      onClick={e=>e.stopPropagation()}
-      style={{
-        position:'absolute',
-        top:34,
-        left:0,
-        background:'var(--bg-card)',
-        border:'1px solid var(--border-light)',
-        borderRadius:10,
-        padding:6,
-        display:'flex',
-        flexDirection:'column',
-        gap:4,
-        minWidth:130,
-        boxShadow:'0 10px 30px rgba(0,0,0,.5)'
-      }}
-    >
-      <div
-        style={{padding:'6px 10px',cursor:'pointer',borderRadius:6}}
-        onClick={(e)=>{handleEdit(course,e); setMenuOpen(null);}}
-      >
-        ✏️ Edit
-      </div>
-
-      <div
-        style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)'}}
-        onClick={(e)=>{handleDelete(course.id,e); setMenuOpen(null);}}
-      >
-        🗑 Delete
-      </div>
-    </div>
-  )}
-</div>
+                    <div className="icon-btn" style={{fontSize:10, letterSpacing:2}} onClick={(e)=>{ e.stopPropagation(); setMenuOpen(menuOpen===course.id?null:course.id); }}>•••</div>
+                    {menuOpen===course.id && (
+                      <div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:34,left:0,background:'var(--bg-card)',border:'1px solid var(--border-light)',borderRadius:10,padding:6,display:'flex',flexDirection:'column',gap:4,minWidth:130,boxShadow:'0 10px 30px rgba(0,0,0,.5)'}}>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6}} onClick={(e)=>{handleEdit(course,e); setMenuOpen(null);}}>✏️ Edit</div>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)'}} onClick={(e)=>{handleDelete(course.id,e); setMenuOpen(null);}}>🗑 Delete</div>
+                      </div>
+                    )}
+                  </div>
                   {course.thumbnail ? (
                     <div className="course-thumb">
                       <img src={course.thumbnail} alt={course.title} onError={e=>{e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} />
@@ -1264,131 +1036,65 @@ const showToast = () => {
       )}
 
       {showImport && (
-  <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&setShowImport(false)}>
-    <div className="modal">
-      <div className="modal-header">
-        <span className="modal-title">Import Data</span>
-        <button className="close-btn" onClick={()=>setShowImport(false)}>×</button>
-      </div>
+        <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&setShowImport(false)}>
+          <div className="modal">
+            <div className="modal-header">
+              <span className="modal-title">Import Data</span>
+              <button className="close-btn" onClick={()=>setShowImport(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">Upload JSON Backup</label>
+                <input type="file" id="fileInput" accept=".json" style={{display:'none'}}
+                  onChange={(e)=>{ const file = e.target.files[0]; if(file){ setSelectedFile(file.name); handleFileImport(file); } }}
+                />
+                <label htmlFor="fileInput"
+                  onDrop={(e)=>{ e.preventDefault(); const file = e.dataTransfer.files[0]; if(file){ setSelectedFile(file.name); handleFileImport(file); } }}
+                  onDragOver={(e)=>e.preventDefault()}
+                  style={{border:'2px dashed var(--border-light)',borderRadius:10,padding:20,textAlign:'center',cursor:'pointer',display:'block'}}
+                >
+                  <div style={{marginBottom:10}}>📁 Drag & drop JSON file</div>
+                  <span className="btn btn-secondary btn-sm">Choose File</span>
+                  {selectedFile && <div style={{marginTop:10,fontSize:12,color:'var(--text-secondary)'}}>{selectedFile}</div>}
+                </label>
+                <div style={{fontSize:12,color:'var(--text-muted)'}}>Upload a previously exported backup file</div>
+              </div>
+              {importError && <div style={{color:'var(--red)', fontSize:13}}>{importError}</div>}
+            </div>
+          </div>
+        </div>
+      )}
 
-      <div className="modal-body">
-        <div className="form-group">
-          <label className="form-label">Paste JSON</label>
-        
-<input
-  type="file"
-  id="fileInput"
-  accept=".json"
-  style={{display:'none'}}
-  onChange={(e)=>{
-    const file = e.target.files[0];
-    if(file){
-      setSelectedFile(file.name);
-      handleFileImport(file);
-    }
-  }}
-/>
-<label
-  htmlFor="fileInput"
-  onDrop={(e)=>{
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if(file){
-      setSelectedFile(file.name);
-      handleFileImport(file);
-    }
-  }}
-  onDragOver={(e)=>e.preventDefault()}
-  style={{
-    border:'2px dashed var(--border-light)',
-    borderRadius:10,
-    padding:20,
-    textAlign:'center',
-    cursor:'pointer',
-    display:'block'
-  }}
->
-  <div style={{marginBottom:10}}>📁 Drag & drop JSON file</div>
-
-  <span className="btn btn-secondary btn-sm">
-    Choose File
-  </span>
-
-  {selectedFile && (
-    <div style={{marginTop:10,fontSize:12,color:'var(--text-secondary)'}}>
-      {selectedFile}
-    </div>
-  )}
-</label>
-
-  <div style={{fontSize:12,color:'var(--text-muted)'}}>
-    Upload a previously exported backup file
-  </div>
-</div>
-
-{importError && (
-  <div style={{color:'var(--red)', fontSize:13}}>
-    {importError}
-  </div>
-)}
-      </div>
-    </div>
-  </div>
-)}
-{toast && (
-  <div style={{
-    position:'fixed',
-    bottom:20,
-    left:'50%',
-    transform:'translateX(-50%)',
-    background:'var(--accent)',
-    color:'#0a0e1a',
-    padding:'10px 18px',
-    borderRadius:10,
-    fontSize:13,
-    fontWeight:700,
-    zIndex:2000
-  }}>
-    ✓ Backup downloaded successfully!
-  </div>
-)}
-{copyToast && (
-  <div style={{
-    position:'fixed',
-    bottom:20,
-    left:'50%',
-    transform:'translateX(-50%)',
-    background:'var(--accent-2)',
-    color:'#fff',
-    padding:'10px 18px',
-    borderRadius:10,
-    fontSize:13,
-    fontWeight:700,
-    zIndex:2000,
-    maxWidth:380,
-    textAlign:'center'
-  }}>
-    ✓ Data copied! Paste it into DEFAULT_DATA in the HTML file.
-  </div>
-)}
+      {toast && (
+        <div style={{position:'fixed',bottom:20,left:'50%',transform:'translateX(-50%)',background:'var(--accent)',color:'#0a0e1a',padding:'10px 18px',borderRadius:10,fontSize:13,fontWeight:700,zIndex:2000}}>
+          ✓ Backup downloaded successfully!
+        </div>
+      )}
+      {copyToast && (
+        <div style={{position:'fixed',bottom:20,left:'50%',transform:'translateX(-50%)',background:'var(--accent-2)',color:'#fff',padding:'10px 18px',borderRadius:10,fontSize:13,fontWeight:700,zIndex:2000,maxWidth:380,textAlign:'center'}}>
+          ✓ Data copied! Paste it into DEFAULT_DATA in the HTML file.
+        </div>
+      )}
     </div>
   );
-
-
 }
 
 // ─── COURSE PAGE ─────────────────────────────────────────────────────────────
-function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobileNotesOpen }) {
+function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobileNotesOpen, externalActiveChapter }) {
   const course = data.courses.find(c=>c.id===courseId);
   const company = data.companies.find(c=>c.id===course?.companyId);
-  const [activeChapter, setActiveChapter] = useState(0);
+  const [activeChapter, setActiveChapter] = useState(externalActiveChapter || 0);
+
+  // FIX: sync when mobile index selects a chapter
+  useEffect(() => {
+    if (externalActiveChapter !== undefined) setActiveChapter(externalActiveChapter);
+  }, [externalActiveChapter]);
   const [showNotes, setShowNotes] = useState(false);
   const [showAddChapter, setShowAddChapter] = useState(false);
   const [editChapter, setEditChapter] = useState(null);
   const [noteSaved, setNoteSaved] = useState(false);
   const noteTimer = useRef(null);
 
-  
   if (!course) return null;
   const chapters = course.chapters||[];
   const chapter = chapters[activeChapter];
@@ -1397,8 +1103,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
     const courses = data.courses.map(c=>c.id===courseId?updated:c);
     onUpdate({...data, courses});
   };
-
-
 
   const saveNote = (val) => {
     const newChapters = chapters.map((c,i)=>i===activeChapter?{...c,notes:val}:c);
@@ -1413,13 +1117,13 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
     updateCourse({...course,chapters:newChapters});
   };
 
-  const handleSaveChapter = (data) => {
+  const handleSaveChapter = (chData) => {
     let newChapters;
     if (editChapter!==null) {
-      newChapters = chapters.map((c,i)=>i===editChapter?{...c,...data}:c);
+      newChapters = chapters.map((c,i)=>i===editChapter?{...c,...chData}:c);
       setEditChapter(null);
     } else {
-      newChapters = [...chapters,{id:uid(),...data,completed:false,notes:''}];
+      newChapters = [...chapters,{id:uid(),...chData,completed:false,notes:''}];
       setActiveChapter(newChapters.length-1);
     }
     updateCourse({...course,chapters:newChapters});
@@ -1437,7 +1141,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
   const doneCount = chapters.filter(c=>c.completed).length;
   const pct = chapters.length>0?Math.round((doneCount/chapters.length)*100):0;
 
-  // Build module groups in order of first appearance
   const modOrder = []; const modMap = {};
   chapters.forEach((c,i) => {
     const m = c.module || '__none__';
@@ -1445,11 +1148,9 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
     modMap[m].push({c, i});
   });
 
-
-
   return (
     <div className="course-page" style={{height:'100%'}}>
-      {/* LEFT INDEX */}
+      {/* LEFT INDEX (desktop only) */}
       <div className="course-index">
         <div className="course-index-header">
           <button className="btn btn-secondary btn-sm" onClick={onBack} style={{marginBottom:10}}>← Back</button>
@@ -1470,7 +1171,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
               No chapters yet.<br/>Add your first one below.
             </div>
           )}
-
           {modOrder.map((mod, mi) => {
             const items = modMap[mod];
             const hasM = mod !== '__none__';
@@ -1484,13 +1184,8 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
                   </div>
                 )}
                 {items.map(({c, i}) => (
-                  <div
-                    key={c.id||i}
-                    className={`crow ${i===activeChapter?'on':''} ${c.completed?'done':''}`}
-                    onClick={(e)=>{
-  e.stopPropagation();
-  setActiveChapter(i);
-}}
+                  <div key={c.id||i} className={`crow ${i===activeChapter?'on':''} ${c.completed?'done':''}`}
+                    onClick={()=>{ setActiveChapter(i); }}
                   >
                     <div className="cnum">{c.completed?'✓':i+1}</div>
                     <div className="cinfo">
@@ -1501,18 +1196,8 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
                       </div>
                     </div>
                     <div className="crow-acts">
-                      <div
-                        className="icon-btn"
-                        style={{width:24,height:24,fontSize:11}}
-                        title="Edit"
-                        onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}
-                      >✏️</div>
-                      <div
-                        className="icon-btn"
-                        style={{width:24,height:24,fontSize:11}}
-                        title="Delete"
-                        onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}
-                      >🗑</div>
+                      <div className="icon-btn" style={{width:24,height:24,fontSize:11}} title="Edit" onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}>✏️</div>
+                      <div className="icon-btn" style={{width:24,height:24,fontSize:11}} title="Delete" onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}>🗑</div>
                     </div>
                   </div>
                 ))}
@@ -1522,11 +1207,7 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
         </div>
 
         <div className="add-chapter-row">
-          <button
-            className="btn btn-secondary"
-            style={{width:'100%',justifyContent:'center'}}
-            onClick={()=>{setEditChapter(null);setShowAddChapter(true);}}
-          >
+          <button className="btn btn-secondary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{setEditChapter(null);setShowAddChapter(true);}}>
             + Add Chapter
           </button>
         </div>
@@ -1534,6 +1215,7 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
 
       {/* MAIN CONTENT */}
       <div className="course-main">
+        {/* FIX: Removed Notes button from topbar on mobile via .desktop-notes-btn class */}
         <div className="course-topbar">
           {company && <CompanyIcon company={company} size={22}/>}
           <div className="chapter-title-bar">{chapter?.name||'Select a chapter'}</div>
@@ -1545,7 +1227,8 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
               </span>
             </div>
           )}
-          <button className="btn btn-secondary btn-sm" onClick={()=>setShowNotes(v=>!v)} title="Toggle Notes">
+          {/* FIX: This button is hidden on mobile via CSS .desktop-notes-btn */}
+          <button className="btn btn-secondary btn-sm desktop-notes-btn" onClick={()=>setShowNotes(v=>!v)} title="Toggle Notes">
             {showNotes?'◧ Hide Notes':'◨ Notes'}
           </button>
         </div>
@@ -1561,27 +1244,20 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
               </div>
             ) : (
               <>
-                {/* VIDEO */}
                 {chapter.type==='video' && (
                   embed ? (
                     <div className="video-wrapper">
-  <iframe
-    key={embed}
-    src={embed}
-    allow="autoplay; fullscreen; picture-in-picture"
-    allowFullScreen
-  />
-</div>
+                      <iframe key={embed} src={embed} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
+                    </div>
                   ) : (
                     <div className="video-placeholder">
                       <span style={{fontSize:40}}>▶</span>
-                      <span>{chapter.videoUrl?'Invalid video URL — try a Vimeo, YouTube, or Wistia link':'No video URL set for this chapter'}</span>
+                      <span>{chapter.videoUrl?'Invalid video URL — try a Vimeo, YouTube, Google Drive, or Wistia link':'No video URL set for this chapter'}</span>
                       <button className="btn btn-secondary btn-sm" onClick={()=>{setEditChapter(activeChapter);setShowAddChapter(true);}}>Add Video URL</button>
                     </div>
                   )
                 )}
 
-                {/* DESCRIPTION */}
                 {chapter.description && (
                   <div className="desc-section">
                     <div className="desc-section-title">📋 Description</div>
@@ -1589,77 +1265,41 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
                   </div>
                 )}
 
-                {/* LINKS */}
                 {chapter.links?.length>0 && (
                   <div className="desc-section">
                     <div className="desc-section-title">🔗 Resources</div>
                     <div className="links-list">
-  {chapter.links.map((l,i)=>{
-    const link = typeof l === 'string'
-      ? { label: l, url: l }
-      : l;
-
-    return (
-      <a
-        key={i}
-        href={link.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="link-item"
-      >
-        🔗 {link.label || link.url}
-      </a>
-    );
-  })}
-</div>
+                      {chapter.links.map((l,i)=>{
+                        const link = typeof l === 'string' ? { label: l, url: l } : l;
+                        return (
+                          <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="link-item">
+                            🔗 {link.label || link.url}
+                          </a>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
-                {/* FILES */}
                 {chapter.files?.length>0 && (
                   <div className="desc-section">
                     <div className="desc-section-title">📁 Files</div>
                     <div className="files-list">
-  {chapter.files.map((f,i)=>{
-    const file = typeof f === 'string'
-      ? { name: f, url: '' }
-      : f;
-
-    const isLinkStyle = !file.name && file.url;
-
-    return (
-      <a
-        key={i}
-        href={file.url || '#'}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="file-item"
-        style={{
-          textDecoration:'none',
-          color: isLinkStyle ? 'var(--accent-2)' : 'inherit',
-          cursor: file.url ? 'pointer' : 'default'
-        }}
-      >
-        <span className="file-icon">
-          {isLinkStyle ? '🔗' : '📄'}
-        </span>
-
-        <span
-          className="file-name"
-          style={{
-            textDecoration: 'none'
-          }}
-        >
-          {file.name || file.url}
-        </span>
-      </a>
-    );
-  })}
-</div>
+                      {chapter.files.map((f,i)=>{
+                        const file = typeof f === 'string' ? { name: f, url: '' } : f;
+                        const isLinkStyle = !file.name && file.url;
+                        return (
+                          <a key={i} href={file.url || '#'} target="_blank" rel="noopener noreferrer" className="file-item"
+                            style={{textDecoration:'none',color: isLinkStyle ? 'var(--accent-2)' : 'inherit',cursor: file.url ? 'pointer' : 'default'}}>
+                            <span className="file-icon">{isLinkStyle ? '🔗' : '📄'}</span>
+                            <span className="file-name">{file.name || file.url}</span>
+                          </a>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
-                {/* EMPTY chapter hint */}
                 {!chapter.description && !chapter.links?.length && !chapter.files?.length && chapter.type==='text' && (
                   <div className="desc-section" style={{textAlign:'center',padding:'40px 20px',color:'var(--text-muted)'}}>
                     <div style={{fontSize:32,marginBottom:10}}>📝</div>
@@ -1671,7 +1311,7 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
             )}
           </div>
 
-          {/* NOTES PANEL */}
+          {/* DESKTOP NOTES PANEL */}
           <div className={`notes-panel ${showNotes?'':'hidden'}`}>
             {showNotes && <>
               <div className="notes-panel-header">
@@ -1681,7 +1321,7 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
               <div className="notes-area">
                 <textarea
                   className="note-textarea"
-                  placeholder={`Notes for "${chapter?.name||'this chapter'}"...\n\nJot down key points, code snippets, questions — anything you want to remember.`}
+                  placeholder={`Notes for "${chapter?.name||'this chapter'}"...\n\nJot down key points, code snippets, questions.`}
                   value={chapter?.notes||''}
                   onChange={e=>saveNote(e.target.value)}
                 />
@@ -1692,23 +1332,23 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
         </div>
       </div>
 
-      {/* MOBILE NOTES BOTTOM SHEET */}
+      {/* FIX: Mobile Notes Bottom Sheet — proper backdrop + panel structure */}
       <div className={`mobile-notes-sheet ${mobileNotesOpen?'open':''}`}>
-        <div className="mobile-sheet-backdrop" onClick={()=>{if(setMobileNotesOpen)setMobileNotesOpen(false); setShowNotes(false);}}/>
+        <div className="mobile-notes-backdrop" onClick={()=>{ if(setMobileNotesOpen) setMobileNotesOpen(false); }}/>
         <div className="mobile-notes-sheet-panel">
           <div className="mobile-notes-handle"/>
           <div className="notes-panel-header" style={{padding:'8px 16px 12px'}}>
             <span className="notes-panel-title">📓 My Notes</span>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               <span style={{fontSize:11,color:'var(--text-muted)'}}>{chapter?.name}</span>
-              <button className="close-btn" onClick={()=>{if(setMobileNotesOpen)setMobileNotesOpen(false); setShowNotes(false);}}>×</button>
+              <button className="close-btn" onClick={()=>{ if(setMobileNotesOpen) setMobileNotesOpen(false); }}>×</button>
             </div>
           </div>
           <div className="notes-area" style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
             <textarea
               className="note-textarea"
               style={{flex:1,minHeight:0,fontSize:16}}
-              placeholder={`Notes for "${chapter?.name||'this chapter'}"...\n\nJot down key points, questions — anything to remember.`}
+              placeholder={`Notes for "${chapter?.name||'this chapter'}"...\n\nJot down key points, questions.`}
               value={chapter?.notes||''}
               onChange={e=>saveNote(e.target.value)}
             />
@@ -1717,7 +1357,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
         </div>
       </div>
 
-      {/* CHAPTER MODAL */}
       {showAddChapter && (
         <ChapterModal
           chapter={editChapter!==null?chapters[editChapter]:null}
@@ -1730,9 +1369,8 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
 }
 
 // ─── MOBILE COURSE INDEX ──────────────────────────────────────────────────────
-function MobileCourseIndex({ courseId, data, onUpdate, onClose }) {
+function MobileCourseIndex({ courseId, data, onUpdate, onClose, onSelectChapter }) {
   const course = data.courses.find(c=>c.id===courseId);
-  const [activeChapter, setActiveChapter] = useState(0);
   const [showAddChapter, setShowAddChapter] = useState(false);
   const [editChapter, setEditChapter] = useState(null);
 
@@ -1764,11 +1402,6 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose }) {
     updateCourse({...course,chapters:newChapters});
   };
 
-  const handleToggleComplete = (idx) => {
-    const newChapters = chapters.map((c,i)=>i===idx?{...c,completed:!c.completed}:c);
-    updateCourse({...course,chapters:newChapters});
-  };
-
   const modOrder = []; const modMap = {};
   chapters.forEach((c,i) => {
     const m = c.module || '__none__';
@@ -1790,6 +1423,7 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose }) {
           <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
         </div>
       </div>
+
       <div className="course-index-list" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch'}}>
         {chapters.length===0 && (
           <div style={{padding:'28px 16px',color:'var(--text-muted)',fontSize:13,textAlign:'center',lineHeight:1.7}}>
@@ -1809,9 +1443,12 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose }) {
                 </div>
               )}
               {items.map(({c, i}) => (
-                <div key={c.id||i} className={`crow ${c.completed?'done':''}`}
-                  style={{paddingRight:10}}
-                  onClick={()=>{onClose();}}
+                <div key={c.id||i} className={`crow ${c.completed?'done':''}`} style={{paddingRight:10}}
+                  onClick={()=>{
+                    // FIX: actually select the chapter and close the panel
+                    if (onSelectChapter) onSelectChapter(i);
+                    onClose();
+                  }}
                 >
                   <div className="cnum">{c.completed?'✓':i+1}</div>
                   <div className="cinfo">
@@ -1833,12 +1470,14 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose }) {
           );
         })}
       </div>
+
       <div className="add-chapter-row">
         <button className="btn btn-secondary" style={{width:'100%',justifyContent:'center'}}
           onClick={()=>{setEditChapter(null);setShowAddChapter(true);}}>
           + Add Chapter
         </button>
       </div>
+
       {showAddChapter && (
         <ChapterModal
           chapter={editChapter!==null?chapters[editChapter]:null}
@@ -1853,14 +1492,15 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose }) {
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 function App() {
   const [data, setData] = useState(load);
-  const [view, setView] = useState('home'); // 'home' | courseId
+  const [view, setView] = useState('home');
   const [filterCompany, setFilterCompany] = useState('all');
-  const [mobileNavOpen, setMobileNavOpen] = useState(false); // sidebar sheet on mobile
-  const [mobileNotesOpen, setMobileNotesOpen] = useState(false); // notes sheet on mobile
-  const [mobileNotesState, setMobileNotesState] = useState(false); // syncs showNotes in CoursePage
+  const [mobileNotesOpen, setMobileNotesOpen] = useState(false);
   const [showImportMobile, setShowImportMobile] = useState(false);
   const [showAddCourseMobile, setShowAddCourseMobile] = useState(false);
+  // FIX: single, consistent state for the mobile chapters sidebar
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  // FIX: shared activeChapter state so MobileCourseIndex can update CoursePage
+  const [mobileActiveChapter, setMobileActiveChapter] = useState(0);
 
   const exportDataMobile = () => {
     const d = { companies: data.companies, courses: data.courses };
@@ -1872,19 +1512,9 @@ function App() {
     document.body.removeChild(a); URL.revokeObjectURL(url);
   };
 
-  const activeCompanyId =
-  view === 'home'
-    ? filterCompany
-    : data.courses.find(c => c.id === view)?.companyId;
-
+  const courseCompanies = data.companies.filter(co => data.courses.some(c => c.companyId === co.id));
   const handleUpdate = (newData) => { setData(newData); save(newData); };
-
-  const courseCompanies = data.companies.filter(co =>
-  data.courses.some(c => c.companyId === co.id)
-);
-
-  // Close mobile sheet on back-nav
-  const handleBack = () => { setView('home'); setMobileNavOpen(false); };
+  const handleBack = () => { setView('home'); setMobileSidebarOpen(false); };
 
   return (
     <div style={{display:'flex',height:'100vh',height:'100dvh',width:'100vw',overflow:'hidden'}}>
@@ -1897,14 +1527,12 @@ function App() {
           <span className="sidebar-tooltip">All Courses</span>
         </div>
         {courseCompanies.map(co=>(
-          <div
-            key={co.id}
+          <div key={co.id}
             className={`sidebar-item ${
               (view !== 'home' && data.courses.find(c=>c.id===view)?.companyId === co.id) ||
-              (view === 'home' && filterCompany === co.id)
-                ? 'active'
-                : ''
-            }`} onClick={()=>{setView('home');setFilterCompany(co.id);}}>
+              (view === 'home' && filterCompany === co.id) ? 'active' : ''
+            }`}
+            onClick={()=>{setView('home');setFilterCompany(co.id);}}>
             <CompanyIcon company={co} size={26}/>
             <span className="sidebar-tooltip">{co.name}</span>
           </div>
@@ -1916,7 +1544,7 @@ function App() {
         {view==='home'
           ? <HomePageWrapper
               data={data}
-              onOpenCourse={id=>setView(id)}
+              onOpenCourse={id=>{setView(id); setMobileActiveChapter(0);}}
               onUpdate={handleUpdate}
               initialFilter={filterCompany}
               showImportMobile={showImportMobile}
@@ -1931,8 +1559,7 @@ function App() {
               onUpdate={handleUpdate}
               mobileNotesOpen={mobileNotesOpen}
               setMobileNotesOpen={setMobileNotesOpen}
-              mobileNotesState={mobileNotesState}
-              setMobileNotesState={setMobileNotesState}
+              externalActiveChapter={mobileActiveChapter}
             />
         }
       </div>
@@ -1945,15 +1572,12 @@ function App() {
               <span className="mobile-nav-icon">←</span>
               <span>Home</span>
             </button>
-            <button className="mobile-nav-item" onClick={()=>setMobileNavOpen(true)}>
+            {/* FIX: use mobileSidebarOpen consistently */}
+            <button className={`mobile-nav-item ${mobileSidebarOpen?'active':''}`} onClick={()=>setMobileSidebarOpen(true)}>
               <span className="mobile-nav-icon">☰</span>
               <span>Chapters</span>
             </button>
-            <button className={`mobile-nav-item ${mobileNotesOpen?'active':''}`} onClick={()=>{
-              const opening = !mobileNotesOpen;
-              setMobileNotesOpen(opening);
-              setMobileNotesState(opening);
-            }}>
+            <button className={`mobile-nav-item ${mobileNotesOpen?'active':''}`} onClick={()=>setMobileNotesOpen(v=>!v)}>
               <span className="mobile-nav-icon">📓</span>
               <span>{mobileNotesOpen?'Hide Notes':'Notes'}</span>
             </button>
@@ -1976,22 +1600,17 @@ function App() {
         )}
       </nav>
 
-      {/* MOBILE SIDEBAR/CHAPTERS SHEET */}
+      {/* FIX: Mobile Chapters Sheet — uses mobileSidebarOpen, not mobileNavOpen */}
       <div className={`mobile-sidebar-sheet ${mobileSidebarOpen ? 'open' : ''}`}>
-        <div
-  className="mobile-sheet-backdrop"
-  onClick={() => setMobileSidebarOpen(false)}
-/>
-       <div
-  className="mobile-sheet-panel"
-  onClick={(e) => e.stopPropagation()}
->
+        <div className="mobile-sheet-backdrop" onClick={()=>setMobileSidebarOpen(false)} />
+        <div className="mobile-sheet-panel" onClick={(e)=>e.stopPropagation()}>
           {view !== 'home' && (
             <MobileCourseIndex
               courseId={view}
               data={data}
               onUpdate={handleUpdate}
-              onClose={()=>setMobileNavOpen(false)}
+              onClose={()=>setMobileSidebarOpen(false)}
+              onSelectChapter={(idx)=>{ setMobileActiveChapter(idx); setMobileSidebarOpen(false); }}
             />
           )}
         </div>
@@ -2004,7 +1623,6 @@ function App() {
 function HomePageWrapper({ data, onOpenCourse, onUpdate, initialFilter, showImportMobile, setShowImportMobile, showAddCourseMobile, setShowAddCourseMobile }) {
   const [filterCompany, setFilterCompany] = useState(initialFilter||'all');
   useEffect(()=>setFilterCompany(initialFilter||'all'),[initialFilter]);
-  // re-export
   return <HomePage data={data} onOpenCourse={onOpenCourse} onUpdate={onUpdate} filterCompany_={filterCompany}
     showImportMobile={showImportMobile} setShowImportMobile={setShowImportMobile}
     showAddCourseMobile={showAddCourseMobile} setShowAddCourseMobile={setShowAddCourseMobile}
