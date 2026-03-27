@@ -1967,8 +1967,8 @@ function App() {
 
       {/* MOBILE SIDEBAR/CHAPTERS SHEET */}
       <div className={`mobile-sidebar-sheet ${mobileNavOpen?'open':''}`}>
-        <div className="mobile-sheet-backdrop" onClick={()=>setMobileNavOpen(false)}/>
-        <div className="mobile-sheet-panel">
+        <div className="mobile-sheet-backdrop" onClick={() => setMobileSidebarOpen(false)}/>
+        <div className="mobile-sheet-panel" onClick={(e) => e.stopPropagation()}>
           {view !== 'home' && (
             <MobileCourseIndex
               courseId={view}
