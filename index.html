@@ -7,9 +7,74 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0e1a">
 <title>CourseFlow</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<!-- Primary CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"
+  onerror="window._reactLoadErr=true"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"
+  onerror="window._reactLoadErr=true"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"
+  onerror="window._babelLoadErr=true"></script>
+<!-- Fallback CDN (unpkg) — loaded if primary fails -->
+<script>
+(function(){
+  // Show a loading indicator immediately so there's never a pure black screen
+  document.addEventListener('DOMContentLoaded', function() {
+    var root = document.getElementById('root');
+    if (root && !root.hasChildNodes()) {
+      root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;font-family:sans-serif;color:#10e68c;background:#0a0e1a;">'
+        + '<div style="width:40px;height:40px;background:#10e68c;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#0a0e1a;">CF</div>'
+        + '<div style="color:#e8edf5;font-size:16px;font-weight:600;">Loading CourseFlow...</div>'
+        + '</div>';
+    }
+  });
+
+  function tryLoadScript(src, cb) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = cb;
+    s.onerror = function() { cb(new Error('failed')); };
+    document.head.appendChild(s);
+  }
+
+  window.addEventListener('load', function() {
+    // If primary scripts loaded fine, nothing to do
+    if (!window._reactLoadErr && !window._babelLoadErr && window.React && window.ReactDOM && window.Babel) return;
+
+    // Otherwise try unpkg fallbacks
+    console.warn('Primary CDN failed, trying unpkg fallbacks...');
+    var scripts = [];
+    if (!window.React) scripts.push('https://unpkg.com/react@18.2.0/umd/react.production.min.js');
+    if (!window.ReactDOM) scripts.push('https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js');
+    if (!window.Babel) scripts.push('https://unpkg.com/@babel/standalone@7.23.2/babel.min.js');
+
+    function loadNext(i) {
+      if (i >= scripts.length) {
+        // Re-run the app script after fallbacks loaded
+        var appScripts = document.querySelectorAll('script[type="text/babel"]');
+        appScripts.forEach(function(s) {
+          try { window.Babel && window.Babel.transformScriptTags(); } catch(e) {}
+        });
+        return;
+      }
+      tryLoadScript(scripts[i], function(err) {
+        if (err) {
+          // Both CDNs failed — show user-facing error
+          var root = document.getElementById('root');
+          if (root) root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;padding:24px;text-align:center;font-family:sans-serif;background:#0a0e1a;">'
+            + '<div style="font-size:36px;">⚠️</div>'
+            + '<div style="color:#e8edf5;font-size:16px;font-weight:700;">Could not load CourseFlow</div>'
+            + '<div style="color:#8b95a8;font-size:13px;max-width:280px;line-height:1.6;">Please check your internet connection and try again. CourseFlow requires a network connection to load.</div>'
+            + '<button onclick="location.reload()" style="margin-top:8px;padding:10px 20px;background:#10e68c;color:#0a0e1a;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Retry</button>'
+            + '</div>';
+        } else {
+          loadNext(i + 1);
+        }
+      });
+    }
+    loadNext(0);
+  });
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -34,8 +99,28 @@
     --radius-lg: 16px;
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  body { font-family:'DM Sans',sans-serif; background:var(--bg-primary); color:var(--text-primary); min-height:100vh; overflow-x:hidden; -webkit-text-size-adjust:100%; }
-  #root { display:flex; height:100vh; height:100dvh; overflow:hidden; }
+  html {
+    /* Lock html/body — prevents iOS from ever scrolling the document itself */
+    height: 100%; overflow: hidden; position: fixed; width: 100%;
+  }
+  body {
+    font-family:'DM Sans',sans-serif; background:var(--bg-primary); color:var(--text-primary);
+    -webkit-text-size-adjust:100%;
+    /* position:fixed on body is the key fix — it freezes the viewport so
+       iOS Safari's dynamic toolbar showing/hiding never shifts the layout */
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+    width: 100%; height: 100%;
+  }
+  /* Using position:fixed+inset instead of 100vh/100dvh.
+     100dvh still causes jumps when Safari chrome appears near the bottom edge. */
+  #root {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+  }
 
   ::-webkit-scrollbar { width:5px; height:5px; }
   ::-webkit-scrollbar-track { background:transparent; }
@@ -311,9 +396,10 @@
     display:none;
     position:fixed; bottom:0; left:0; right:0;
     background:var(--bg-sidebar); border-top:1px solid var(--border);
-    padding-bottom:env(safe-area-inset-bottom);
+    padding-bottom:max(env(safe-area-inset-bottom), 8px);
     z-index:200; flex-direction:row; align-items:stretch;
-    height:calc(56px + env(safe-area-inset-bottom));
+    /* min-height ensures it never collapses in standalone PWA where safe-area can be 0 */
+    min-height:calc(56px + max(env(safe-area-inset-bottom), 8px));
   }
   .mobile-nav-item {
     flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -384,7 +470,7 @@
     .mobile-hide { display: none !important; }
     .mobile-bottom-nav { display:flex; }
 
-    .main { padding-bottom:calc(56px + env(safe-area-inset-bottom)); }
+    .main { padding-bottom:calc(56px + max(env(safe-area-inset-bottom), 16px)); }
 
     .topbar {
       padding-top:max(12px, env(safe-area-inset-top));
@@ -1517,7 +1603,7 @@ function App() {
   const handleBack = () => { setView('home'); setMobileSidebarOpen(false); };
 
   return (
-    <div style={{display:'flex',height:'100vh',height:'100dvh',width:'100vw',overflow:'hidden'}}>
+    <div style={{display:'flex',position:'fixed',top:0,left:0,right:0,bottom:0,overflow:'hidden'}}>
       {/* DESKTOP SIDEBAR */}
       <div className="sidebar">
         <div className="sidebar-logo" onClick={()=>setView('home')} title="CourseFlow">CF</div>
