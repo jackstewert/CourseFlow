@@ -20,7 +20,6 @@
 <!-- Fallback CDN (unpkg) — loaded if primary fails -->
 <script>
 (function(){
-  // Show a loading indicator immediately so there's never a pure black screen
   document.addEventListener('DOMContentLoaded', function() {
     var root = document.getElementById('root');
     if (root && !root.hasChildNodes()) {
@@ -40,10 +39,7 @@
   }
 
   window.addEventListener('load', function() {
-    // If primary scripts loaded fine, nothing to do
     if (!window._reactLoadErr && !window._babelLoadErr && window.React && window.ReactDOM && window.Babel) return;
-
-    // Otherwise try unpkg fallbacks
     console.warn('Primary CDN failed, trying unpkg fallbacks...');
     var scripts = [];
     if (!window.React) scripts.push('https://unpkg.com/react@18.2.0/umd/react.production.min.js');
@@ -52,7 +48,6 @@
 
     function loadNext(i) {
       if (i >= scripts.length) {
-        // Re-run the app script after fallbacks loaded
         var appScripts = document.querySelectorAll('script[type="text/babel"]');
         appScripts.forEach(function(s) {
           try { window.Babel && window.Babel.transformScriptTags(); } catch(e) {}
@@ -61,12 +56,11 @@
       }
       tryLoadScript(scripts[i], function(err) {
         if (err) {
-          // Both CDNs failed — show user-facing error
           var root = document.getElementById('root');
           if (root) root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;padding:24px;text-align:center;font-family:sans-serif;background:#0a0e1a;">'
             + '<div style="font-size:36px;">⚠️</div>'
             + '<div style="color:#e8edf5;font-size:16px;font-weight:700;">Could not load CourseFlow</div>'
-            + '<div style="color:#8b95a8;font-size:13px;max-width:280px;line-height:1.6;">Please check your internet connection and try again. CourseFlow requires a network connection to load.</div>'
+            + '<div style="color:#8b95a8;font-size:13px;max-width:280px;line-height:1.6;">Please check your internet connection and try again.</div>'
             + '<button onclick="location.reload()" style="margin-top:8px;padding:10px 20px;background:#10e68c;color:#0a0e1a;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Retry</button>'
             + '</div>';
         } else {
@@ -103,21 +97,16 @@
   }
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html {
-    /* Lock html/body — prevents iOS from ever scrolling the document itself */
     height: 100%; overflow: hidden; position: fixed; width: 100%;
   }
   body {
     font-family:'DM Sans',sans-serif; background:var(--bg-primary); color:var(--text-primary);
     -webkit-text-size-adjust:100%;
-    /* position:fixed on body is the key fix — it freezes the viewport so
-       iOS Safari's dynamic toolbar showing/hiding never shifts the layout */
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     overflow: hidden;
     width: 100%; height: 100%;
   }
-  /* Using position:fixed+inset instead of 100vh/100dvh.
-     100dvh still causes jumps when Safari chrome appears near the bottom edge. */
   #root {
     display: flex;
     position: fixed;
@@ -272,14 +261,14 @@
   .course-index-name { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; line-height:1.4; }
   .progress-mini { margin-top:12px; }
   .course-index-list { flex:1; overflow-y:auto; padding:10px 0; -webkit-overflow-scrolling:touch; }
+
+  /* FIX: removed position:sticky — module headers are now simple dividers, no overflow */
   .modh {
     padding:20px 16px 6px;
     display:flex; align-items:center; justify-content:space-between;
-    position:sticky; top:0; background:var(--bg-sidebar); z-index:2;
   }
   .modlbl { font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); }
   .modcnt { font-size:10px; color:var(--text-muted); }
-  .modgrp:first-child .modh { padding-top:12px; }
 
   .crow {
     display:flex; align-items:center; gap:12px;
@@ -394,14 +383,12 @@
     .courses-grid { grid-template-columns:1fr 1fr; }
   }
 
-  /* ── MOBILE LAYOUT ── */
   .mobile-bottom-nav {
     display:none;
     position:fixed; bottom:0; left:0; right:0;
     background:var(--bg-sidebar); border-top:1px solid var(--border);
     padding-bottom:max(env(safe-area-inset-bottom), 8px);
     z-index:200; flex-direction:row; align-items:stretch;
-    /* min-height ensures it never collapses in standalone PWA where safe-area can be 0 */
     min-height:calc(56px + max(env(safe-area-inset-bottom), 8px));
   }
   .mobile-nav-item {
@@ -414,7 +401,6 @@
   .mobile-nav-item svg { flex-shrink:0; }
   .mobile-nav-icon { font-size:20px; line-height:1; }
 
-  /* FIX: Mobile sidebar sheet — use mobileSidebarOpen consistently */
   .mobile-sidebar-sheet {
     position:fixed; inset:0; z-index:500;
     pointer-events:none;
@@ -439,7 +425,6 @@
   }
   .mobile-sidebar-sheet.open .mobile-sheet-panel { transform:translateX(0); }
 
-  /* FIX: Mobile notes bottom sheet */
   .mobile-notes-sheet {
     position:fixed; inset:0; z-index:500;
     pointer-events:none;
@@ -494,7 +479,6 @@
     .course-index { display:none !important; }
     .notes-panel { display:none !important; }
 
-    /* FIX: Hide desktop Notes button on mobile course topbar */
     .desktop-notes-btn { display:none !important; }
 
     .course-topbar {
@@ -514,7 +498,6 @@
     .modal-footer { padding:12px 16px; padding-bottom:max(16px, env(safe-area-inset-bottom)); }
     .form-row { grid-template-columns:1fr; }
 
-    /* Always show chapter row actions on mobile */
     .crow-acts { opacity:1 !important; }
     .crow-acts .icon-btn { width:32px; height:32px; }
 
@@ -588,35 +571,26 @@ function CompanyIcon({ company, size=26 }) {
   );
 }
 
-// ─── EMBED HELPERS ────────────────────────────────────────────────────────────
 function getEmbedUrl(url) {
   if (!url) return null;
 
-  // Vimeo
   const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
   if (vimeoMatch)
     return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=0&muted=0&title=0&byline=0&portrait=0`;
 
-  // YouTube
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
   if (ytMatch)
     return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&mute=0`;
 
-  // Wistia
   if (url.includes('wistia')) {
     const id = url.split('/').pop();
     return `https://fast.wistia.net/embed/iframe/${id}?autoplay=0&muted=0`;
   }
 
-  // Hotmart
   if (url.includes('player.hotmart.com')) {
     return url;
   }
 
-  // FIX: Google Drive — convert share/view links to embed links
-  // Formats:
-  //   https://drive.google.com/file/d/FILE_ID/view
-  //   https://drive.google.com/open?id=FILE_ID
   const gdriveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) ||
                       url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) ||
                       url.match(/id=([a-zA-Z0-9_-]+)/);
@@ -624,7 +598,6 @@ function getEmbedUrl(url) {
     return `https://drive.google.com/file/d/${gdriveMatch[1]}/preview`;
   }
 
-  // fallback — raw embed/iframe-compatible URLs
   if (url.includes('embed') || url.startsWith('https')) {
     return url;
   }
@@ -645,7 +618,6 @@ function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
 
   const handleSave = () => {
     if (!title.trim()) return;
-    // FIX: pass onClose callback so modal always closes after saving course
     onSave({ title, thumbnail:thumb, companyId, description:desc });
     onClose();
   };
@@ -801,7 +773,7 @@ function ChapterModal({ chapter, onClose, onSave }) {
             <div className="form-group">
               <label className="form-label">Module / Section</label>
               <input className="form-input" placeholder="e.g. Module 1: Foundations" value={mod} onChange={e=>setMod(e.target.value)} />
-              <span style={{fontSize:11,color:'var(--text-muted)',marginTop:3}}>Chapters with the same module name are grouped together in the sidebar index</span>
+              <span style={{fontSize:11,color:'var(--text-muted)',marginTop:3}}>A module header appears above the chapter when the module name changes. Leave blank for no header.</span>
             </div>
             <div className="form-group">
               <label className="form-label">Chapter Type</label>
@@ -962,8 +934,6 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany_, showImportMobi
     return () => window.removeEventListener('click', handler);
   }, []);
 
-  // FIX: handleSaveCourse now correctly handles all 3 cases without calling onClose
-  // The modal's own handleSave already calls onClose after calling this
   const handleSaveCourse = (course, newCompany, updatedCompanies) => {
     if (updatedCompanies) {
       onUpdate({...data, companies: updatedCompanies});
@@ -981,7 +951,6 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany_, showImportMobi
         const newCourse = { id: uid(), ...course, chapters: [], progress: 0 };
         onUpdate({ ...data, courses: [...data.courses, newCourse] });
       }
-      // FIX: close modal after saving course
       setShowAdd(false);
       setEditCourse(null);
     }
@@ -1174,10 +1143,10 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
   const company = data.companies.find(c=>c.id===course?.companyId);
   const [activeChapter, setActiveChapter] = useState(externalActiveChapter || 0);
 
-  // FIX: sync when mobile index selects a chapter
   useEffect(() => {
     if (externalActiveChapter !== undefined) setActiveChapter(externalActiveChapter);
   }, [externalActiveChapter]);
+
   const [showNotes, setShowNotes] = useState(false);
   const [showAddChapter, setShowAddChapter] = useState(false);
   const [editChapter, setEditChapter] = useState(null);
@@ -1230,13 +1199,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
   const doneCount = chapters.filter(c=>c.completed).length;
   const pct = chapters.length>0?Math.round((doneCount/chapters.length)*100):0;
 
-  const modOrder = []; const modMap = {};
-  chapters.forEach((c,i) => {
-    const m = c.module || '__none__';
-    if (!modMap[m]) { modMap[m] = []; modOrder.push(m); }
-    modMap[m].push({c, i});
-  });
-
   return (
     <div className="course-page" style={{height:'100%'}}>
       {/* LEFT INDEX (desktop only) */}
@@ -1260,37 +1222,39 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
               No chapters yet.<br/>Add your first one below.
             </div>
           )}
-          {modOrder.map((mod, mi) => {
-            const items = modMap[mod];
-            const hasM = mod !== '__none__';
-            const mDone = items.filter(({c}) => c.completed).length;
+          {/* FIX: render chapters in their original chronological order.
+              A module header only appears when the module name changes from the previous chapter.
+              Chapters without a module name are simply rendered without any header — they
+              never get re-grouped or reordered. */}
+          {chapters.map((c, i) => {
+            const prevMod = i > 0 ? (chapters[i-1].module || '') : null;
+            const thisMod = c.module || '';
+            const showModHeader = thisMod && thisMod !== prevMod;
             return (
-              <div key={mod} className="modgrp">
-                {hasM && (
-                  <div className="modh">
-                    <span className="modlbl">{mod}</span>
-                    <span className="modcnt">{mDone}/{items.length}</span>
+              <React.Fragment key={c.id||i}>
+                {showModHeader && (
+                  <div className="modh" style={{paddingTop: i === 0 ? 12 : 20}}>
+                    <span className="modlbl">{thisMod}</span>
                   </div>
                 )}
-                {items.map(({c, i}) => (
-                  <div key={c.id||i} className={`crow ${i===activeChapter?'on':''} ${c.completed?'done':''}`}
-                    onClick={()=>{ setActiveChapter(i); }}
-                  >
-                    <div className="cnum">{c.completed?'✓':i+1}</div>
-                    <div className="cinfo">
-                      <div className="cchname">{c.name}</div>
-                      <div className="cmeta">
-                        <span className={`cbdg ${c.type==='video'?'bv':'bt'}`}>{c.type==='video'?'▶ Video':'✦ Text'}</span>
-                        {c.duration && <span className="cdur">{c.duration}</span>}
-                      </div>
-                    </div>
-                    <div className="crow-acts">
-                      <div className="icon-btn" style={{width:24,height:24,fontSize:11}} title="Edit" onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}>✏️</div>
-                      <div className="icon-btn" style={{width:24,height:24,fontSize:11}} title="Delete" onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}>🗑</div>
+                <div
+                  className={`crow ${i===activeChapter?'on':''} ${c.completed?'done':''}`}
+                  onClick={()=>{ setActiveChapter(i); }}
+                >
+                  <div className="cnum">{c.completed?'✓':i+1}</div>
+                  <div className="cinfo">
+                    <div className="cchname">{c.name}</div>
+                    <div className="cmeta">
+                      <span className={`cbdg ${c.type==='video'?'bv':'bt'}`}>{c.type==='video'?'▶ Video':'✦ Text'}</span>
+                      {c.duration && <span className="cdur">{c.duration}</span>}
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div className="crow-acts">
+                    <div className="icon-btn" style={{width:24,height:24,fontSize:11}} title="Edit" onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}>✏️</div>
+                    <div className="icon-btn" style={{width:24,height:24,fontSize:11}} title="Delete" onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}>🗑</div>
+                  </div>
+                </div>
+              </React.Fragment>
             );
           })}
         </div>
@@ -1304,7 +1268,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
 
       {/* MAIN CONTENT */}
       <div className="course-main">
-        {/* FIX: Removed Notes button from topbar on mobile via .desktop-notes-btn class */}
         <div className="course-topbar">
           {company && <CompanyIcon company={company} size={22}/>}
           <div className="chapter-title-bar">{chapter?.name||'Select a chapter'}</div>
@@ -1316,7 +1279,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
               </span>
             </div>
           )}
-          {/* FIX: This button is hidden on mobile via CSS .desktop-notes-btn */}
           <button className="btn btn-secondary btn-sm desktop-notes-btn" onClick={()=>setShowNotes(v=>!v)} title="Toggle Notes">
             {showNotes?'◧ Hide Notes':'◨ Notes'}
           </button>
@@ -1421,7 +1383,7 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
         </div>
       </div>
 
-      {/* FIX: Mobile Notes Bottom Sheet — proper backdrop + panel structure */}
+      {/* Mobile Notes Bottom Sheet */}
       <div className={`mobile-notes-sheet ${mobileNotesOpen?'open':''}`}>
         <div className="mobile-notes-backdrop" onClick={()=>{ if(setMobileNotesOpen) setMobileNotesOpen(false); }}/>
         <div className="mobile-notes-sheet-panel">
@@ -1491,13 +1453,6 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose, onSelectChapter 
     updateCourse({...course,chapters:newChapters});
   };
 
-  const modOrder = []; const modMap = {};
-  chapters.forEach((c,i) => {
-    const m = c.module || '__none__';
-    if (!modMap[m]) { modMap[m] = []; modOrder.push(m); }
-    modMap[m].push({c, i});
-  });
-
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
       <div className="course-index-header" style={{padding:'14px 16px'}}>
@@ -1519,43 +1474,42 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose, onSelectChapter 
             No chapters yet.<br/>Add your first one below.
           </div>
         )}
-        {modOrder.map((mod) => {
-          const items = modMap[mod];
-          const hasM = mod !== '__none__';
-          const mDone = items.filter(({c}) => c.completed).length;
+        {/* FIX: same chronological render as desktop — no reordering, header on module change only */}
+        {chapters.map((c, i) => {
+          const prevMod = i > 0 ? (chapters[i-1].module || '') : null;
+          const thisMod = c.module || '';
+          const showModHeader = thisMod && thisMod !== prevMod;
           return (
-            <div key={mod} className="modgrp">
-              {hasM && (
-                <div className="modh">
-                  <span className="modlbl">{mod}</span>
-                  <span className="modcnt">{mDone}/{items.length}</span>
+            <React.Fragment key={c.id||i}>
+              {showModHeader && (
+                <div className="modh" style={{paddingTop: i === 0 ? 12 : 20}}>
+                  <span className="modlbl">{thisMod}</span>
                 </div>
               )}
-              {items.map(({c, i}) => (
-                <div key={c.id||i} className={`crow ${c.completed?'done':''}`} style={{paddingRight:10}}
-                  onClick={()=>{
-                    // FIX: actually select the chapter and close the panel
-                    if (onSelectChapter) onSelectChapter(i);
-                    onClose();
-                  }}
-                >
-                  <div className="cnum">{c.completed?'✓':i+1}</div>
-                  <div className="cinfo">
-                    <div className="cchname">{c.name}</div>
-                    <div className="cmeta">
-                      <span className={`cbdg ${c.type==='video'?'bv':'bt'}`}>{c.type==='video'?'▶ Video':'✦ Text'}</span>
-                      {c.duration && <span className="cdur">{c.duration}</span>}
-                    </div>
-                  </div>
-                  <div className="crow-acts" style={{opacity:1}}>
-                    <div className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Edit"
-                      onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}>✏️</div>
-                    <div className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Delete"
-                      onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}>🗑</div>
+              <div
+                className={`crow ${c.completed?'done':''}`}
+                style={{paddingRight:10}}
+                onClick={()=>{
+                  if (onSelectChapter) onSelectChapter(i);
+                  onClose();
+                }}
+              >
+                <div className="cnum">{c.completed?'✓':i+1}</div>
+                <div className="cinfo">
+                  <div className="cchname">{c.name}</div>
+                  <div className="cmeta">
+                    <span className={`cbdg ${c.type==='video'?'bv':'bt'}`}>{c.type==='video'?'▶ Video':'✦ Text'}</span>
+                    {c.duration && <span className="cdur">{c.duration}</span>}
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="crow-acts" style={{opacity:1}}>
+                  <div className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Edit"
+                    onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}>✏️</div>
+                  <div className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Delete"
+                    onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}>🗑</div>
+                </div>
+              </div>
+            </React.Fragment>
           );
         })}
       </div>
@@ -1586,9 +1540,7 @@ function App() {
   const [mobileNotesOpen, setMobileNotesOpen] = useState(false);
   const [showImportMobile, setShowImportMobile] = useState(false);
   const [showAddCourseMobile, setShowAddCourseMobile] = useState(false);
-  // FIX: single, consistent state for the mobile chapters sidebar
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  // FIX: shared activeChapter state so MobileCourseIndex can update CoursePage
   const [mobileActiveChapter, setMobileActiveChapter] = useState(0);
 
   const exportDataMobile = () => {
@@ -1661,7 +1613,6 @@ function App() {
               <span className="mobile-nav-icon">←</span>
               <span>Home</span>
             </button>
-            {/* FIX: use mobileSidebarOpen consistently */}
             <button className={`mobile-nav-item ${mobileSidebarOpen?'active':''}`} onClick={()=>setMobileSidebarOpen(true)}>
               <span className="mobile-nav-icon">☰</span>
               <span>Chapters</span>
@@ -1689,7 +1640,7 @@ function App() {
         )}
       </nav>
 
-      {/* FIX: Mobile Chapters Sheet — uses mobileSidebarOpen, not mobileNavOpen */}
+      {/* Mobile Chapters Sheet */}
       <div className={`mobile-sidebar-sheet ${mobileSidebarOpen ? 'open' : ''}`}>
         <div className="mobile-sheet-backdrop" onClick={()=>setMobileSidebarOpen(false)} />
         <div className="mobile-sheet-panel" onClick={(e)=>e.stopPropagation()}>
@@ -1708,7 +1659,6 @@ function App() {
   );
 }
 
-// Pass filterCompany to HomePage
 function HomePageWrapper({ data, onOpenCourse, onUpdate, initialFilter, showImportMobile, setShowImportMobile, showAddCourseMobile, setShowAddCourseMobile }) {
   const [filterCompany, setFilterCompany] = useState(initialFilter||'all');
   useEffect(()=>setFilterCompany(initialFilter||'all'),[initialFilter]);
