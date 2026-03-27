@@ -364,6 +364,13 @@
   }
   .mobile-sidebar-sheet.open .mobile-sheet-panel { transform:translateX(0); }
 
+  .mobile-sheet-backdrop {
+  z-index: 1;
+}
+
+.mobile-sheet-panel {
+  z-index: 2;
+}
   /* Mobile notes bottom sheet */
   .mobile-notes-sheet {
     display:none;
@@ -1977,8 +1984,14 @@ function App() {
 
       {/* MOBILE SIDEBAR/CHAPTERS SHEET */}
       <div className={`mobile-sidebar-sheet ${mobileSidebarOpen ? 'open' : ''}`}>
-        <div className="mobile-sheet-backdrop" onClick={() => setMobileSidebarOpen(false)}/>
-        <div className="mobile-sheet-panel" onClick={(e) => e.stopPropagation()}>
+        <div
+  className="mobile-sheet-backdrop"
+  onClick={() => setMobileSidebarOpen(false)}
+/>
+       <div
+  className="mobile-sheet-panel"
+  onClick={(e) => e.stopPropagation()}
+>
           {view !== 'home' && (
             <MobileCourseIndex
               courseId={view}
