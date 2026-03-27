@@ -1489,13 +1489,7 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
                     className={`crow ${i===activeChapter?'on':''} ${c.completed?'done':''}`}
                     onClick={(e)=>{
   e.stopPropagation();
-
   setActiveChapter(i);
-
-  // 🔥 force update before closing UI
-  requestAnimationFrame(() => {
-    setMobileSidebarOpen(false);
-  });
 }}
                   >
                     <div className="cnum">{c.completed?'✓':i+1}</div>
