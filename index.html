@@ -1480,7 +1480,16 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
                   <div
                     key={c.id||i}
                     className={`crow ${i===activeChapter?'on':''} ${c.completed?'done':''}`}
-                    onClick={()=>setActiveChapter(i)}
+                    onClick={(e)=>{
+  e.stopPropagation();
+
+  setActiveChapter(i);
+
+  // 🔥 force update before closing UI
+  requestAnimationFrame(() => {
+    setMobileSidebarOpen(false);
+  });
+}}
                   >
                     <div className="cnum">{c.completed?'✓':i+1}</div>
                     <div className="cinfo">
@@ -1850,6 +1859,7 @@ function App() {
   const [mobileNotesState, setMobileNotesState] = useState(false); // syncs showNotes in CoursePage
   const [showImportMobile, setShowImportMobile] = useState(false);
   const [showAddCourseMobile, setShowAddCourseMobile] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const exportDataMobile = () => {
     const d = { companies: data.companies, courses: data.courses };
@@ -1966,7 +1976,7 @@ function App() {
       </nav>
 
       {/* MOBILE SIDEBAR/CHAPTERS SHEET */}
-      <div className={`mobile-sidebar-sheet ${mobileNavOpen?'open':''}`}>
+      <div className={`mobile-sidebar-sheet ${mobileSidebarOpen ? 'open' : ''}`}>
         <div className="mobile-sheet-backdrop" onClick={() => setMobileSidebarOpen(false)}/>
         <div className="mobile-sheet-panel" onClick={(e) => e.stopPropagation()}>
           {view !== 'home' && (
