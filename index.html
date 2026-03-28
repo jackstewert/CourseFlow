@@ -306,10 +306,18 @@ const SORTS = [
   { k:'added',    l:'Date Added' },
   { k:'recent',   l:'\u23f1 Recent'  },
   { k:'az',       l:'A\u2013Z'       },
-  { k:'progress', l:'% Done'    },
+  { k:'progress', l:'Completed'    },
 ];
 
-const loadData   = () => { try { const s=localStorage.getItem(SK);  return s ? JSON.parse(s) : { ...EMP }; } catch { return { ...EMP }; } };
+const loadData = () => {
+  try {
+    const s = localStorage.getItem(SK);
+    const parsed = s ? JSON.parse(s) : null;
+    return parsed && parsed.courses ? parsed : { ...EMP };
+  } catch {
+    return { ...EMP };
+  }
+};
 const saveData   = d  => { try { localStorage.setItem(SK, JSON.stringify(d)); } catch {} };
 const loadResume = () => { try { return JSON.parse(localStorage.getItem(RK)||'{}'); } catch { return {}; } };
 const saveResume = (map) => { try { localStorage.setItem(RK, JSON.stringify(map)); } catch {} };
@@ -317,12 +325,12 @@ const saveResume = (map) => { try { localStorage.setItem(RK, JSON.stringify(map)
 const uid     = () => Math.random().toString(36).slice(2,10);
 const haptic  = (t='light') => { try { navigator.vibrate?.(t==='medium'?[30,20,30]:t==='heavy'?[50,30,80]:50); } catch {} };
 const favicon = url => { if(!url)return null; try{ return `https://www.google.com/s2/favicons?domain=${new URL(url.startsWith('http')?url:'https://'+url).hostname}&sz=64`; }catch{ return null; } };
-const pct     = c => { const t=c.chapters?.length||0, d=c.chapters?.filter(x=>x.completed).length||0; return t>0?Math.round(d/t*100):c.progress||0; };
+const pct     = c => { const t=c.chapters?.length||0, d=c.chapters?.filter(x=>x.completed).length||0; return t > 0 ? Math.round(d/t*100) : 0; };
 
 // FIX: "has resume" means the course has been opened before (key exists),
 // regardless of which chapter index is stored (including 0).
 const hasResume = (resumeMap, courseId) => {
-  return (resumeMap[courseId] ?? 0) > 0;
+  return resumeMap.hasOwnProperty(courseId);
 };
 
 function embedUrl(url) {
@@ -433,7 +441,7 @@ function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
     if (!title.trim()) return;
     onSave({ title, thumbnail:thumb, companyId:coId, description:desc });
     onClose();
-  }, [title, thumb, coId, desc]);
+  }, [title, thumb, coId, desc, onSave, onClose]);
 
   const addPlatform = useCallback(() => {
     if (!newCo.trim()) return;
@@ -625,14 +633,19 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
   const [impErr,     setImpErr]     = useState('');
   const [sortBy,     setSortBy]     = useState('added');
   const [toast,      setToast]      = useState('');
-  const [filterStatus, setFilterStatus] = useState('all'); 
-// 'all' | 'done'
+
 
   useEffect(() => { if (showImportMobile)    { setShowImport(true);                setShowImportMobile(false);    } }, [showImportMobile]);
   useEffect(() => { if (showAddCourseMobile) { setEditCourse(null); setShowAdd(true); setShowAddCourseMobile(false); } }, [showAddCourseMobile]);
 
   const closeMenu = useCallback(() => setMenuOpen(null), []);
-  useEffect(() => { window.addEventListener('click', closeMenu); return () => window.removeEventListener('click', closeMenu); }, [closeMenu]);
+  useEffect(() => {
+  const handler = (e) => {
+    if (!e.target.closest('.menu')) closeMenu();
+  };
+  window.addEventListener('click', handler);
+  return () => window.removeEventListener('click', handler);
+}, []);
 
   const { companies, courses } = data;
 
@@ -645,13 +658,10 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
   const matchesSearch =
     !sq || c.title.toLowerCase().includes(sq);
 
-  const matchesStatus =
-    filterStatus === 'all' || pct(c) === 100;
-
-  return matchesCompany && matchesSearch && matchesStatus;
+  return matchesCompany && matchesSearch;
 });
     if (sortBy === 'az')            list = [...list].sort((a,b)=>a.title.localeCompare(b.title));
-    else if (sortBy === 'progress') list = [...list].sort((a,b)=>pct(b)-pct(a));
+    else if (sortBy === 'progress') list = list.filter(c => pct(c) === 100);
     else if (sortBy === 'recent')   list = [...list].sort((a,b)=>(b.lastAccessed||0)-(a.lastAccessed||0));
     return list;
   }, [courses, filterCompany, search, sortBy]);
@@ -702,7 +712,10 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
       try {
         const p = JSON.parse(e.target.result);
         if (!p.courses||!p.companies) { setImpErr('Invalid format.'); return; }
-        onUpdate({ courses:p.courses, companies:p.companies });
+        onUpdate({
+  courses: [...data.courses, ...p.courses],
+  companies: [...data.companies, ...p.companies]
+});
         setShowImport(false); setImpErr('');
       } catch { setImpErr('Invalid JSON.'); }
     };
@@ -757,23 +770,6 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
       </button>
     ))}
   </div>
-
-  {/* 🔥 ADD THIS HERE */}
-  <div className="sort-row">
-    <button 
-      className={`sk ${filterStatus==='all'?'on':''}`}
-      onClick={() => setFilterStatus('all')}
-    >
-      All
-    </button>
-
-    <button 
-      className={`sk ${filterStatus==='done'?'on':''}`}
-      onClick={() => setFilterStatus('done')}
-    >
-      Done
-    </button>
-  </div>
 </div>
 
         {filtered.length === 0 ? (
@@ -790,7 +786,8 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
               // FIX: use key-existence check so index 0 also triggers the badge
               const res   = hasResume(resumeMap, course.id);
               const rIdx  = resumeMap[course.id] ?? 0;
-              const rName = res ? course.chapters?.[rIdx]?.name : null;
+              const chapters = course.chapters || [];
+              const rName = chapters[rIdx]?.name;
               return (
                 <div key={course.id} className="card" onClick={() => onOpenCourse(course.id, resumeMap[course.id] ?? 0)}>
                   <div style={{position:'absolute',top:8,left:8,zIndex:50}}>
@@ -892,15 +889,17 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
     onUpdate({ ...data, courses: data.courses.map(c=>c.id===courseId ? updated : c) });
   }, [data, courseId]);
 
-  const setActiveIdx = useCallback((idx) => {
-    setActiveIdxRaw(idx);
-    onChapterChange && onChapterChange(idx);
-    const newMap = { ...resumeMap, [courseId]: idx };
-    onResumeUpdate(newMap);
-    if ((Date.now() - (course.lastAccessed||0)) > 5000) {
-      updateCourse({ ...course, lastAccessed:Date.now() });
-    }
-  }, [courseId, resumeMap, course, onChapterChange]);
+const setActiveIdx = useCallback((idx) => {
+  setActiveIdxRaw(idx);
+
+  const updatedResume = {
+    ...resumeMap,
+    [courseId]: idx
+  };
+
+  onResumeUpdate(updatedResume);
+  onChapterChange?.(idx);
+}, [resumeMap, courseId, onResumeUpdate, onChapterChange]);
 
   const saveNote = useCallback((val) => {
     const nc = chapters.map((c,i)=>i===activeIdx?{...c,notes:val}:c);
