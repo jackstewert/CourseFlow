@@ -22,7 +22,7 @@
   document.addEventListener('DOMContentLoaded', function(){
     var r = document.getElementById('root');
     if (r && !r.hasChildNodes())
-      r.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;font-family:sans-serif;color:#10e68c;background:#0a0e1a"><div style="width:40px;height:40px;background:#10e68c;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#0a0e1a">CF</div><div style="color:#e8edf5;font-size:16px;font-weight:600">Loading CourseFlow…</div></div>';
+      r.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;font-family:sans-serif;color:#10e68c;background:#0a0e1a"><div style="width:40px;height:40px;background:#10e68c;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#0a0e1a">CF</div><div style="color:#e8edf5;font-size:16px;font-weight:600">Loading CourseFlow\u2026</div></div>';
   });
   window.addEventListener('load', function(){
     if (!window._RE && !window._BE && window.React && window.ReactDOM && window.Babel) return;
@@ -35,7 +35,7 @@
       var s = document.createElement('script'); s.src = q[i];
       s.onload = function(){ run(i+1); };
       s.onerror = function(){
-        document.getElementById('root').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;padding:24px;text-align:center;font-family:sans-serif;background:#0a0e1a"><div style="font-size:36px">⚠️</div><div style="color:#e8edf5;font-size:16px;font-weight:700">Could not load CourseFlow</div><button onclick="location.reload()" style="margin-top:8px;padding:10px 20px;background:#10e68c;color:#0a0e1a;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Retry</button></div>';
+        document.getElementById('root').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;padding:24px;text-align:center;font-family:sans-serif;background:#0a0e1a"><div style="font-size:36px">\u26a0\ufe0f</div><div style="color:#e8edf5;font-size:16px;font-weight:700">Could not load CourseFlow</div><button onclick="location.reload()" style="margin-top:8px;padding:10px 20px;background:#10e68c;color:#0a0e1a;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Retry</button></div>';
       };
       document.head.appendChild(s);
     })(0);
@@ -196,7 +196,7 @@ body {
 .cbtn { display:flex; align-items:center; gap:6px; cursor:pointer; }
 .chk { width:18px; height:18px; border-radius:4px; border:2px solid var(--bdl); display:flex; align-items:center; justify-content:center; transition:all .12s; flex-shrink:0; }
 .chk.on { background:var(--ac); border-color:var(--ac); }
-.chk.on::after { content:'✓'; font-size:11px; font-weight:700; color:#0a0e1a; }
+.chk.on::after { content:'checkmark'; font-size:11px; font-weight:700; color:#0a0e1a; }
 @keyframes pop { 0%{transform:scale(1)} 40%{transform:scale(1.3)} 70%{transform:scale(.92)} 100%{transform:scale(1)} }
 .chk.pop { animation:pop .32s ease; }
 
@@ -304,8 +304,8 @@ const GC  = ['#10e68c','#4f8ef7','#f56565','#f6c90e','#a78bfa','#fb923c'];
 const EMP = { companies:[], courses:[] };
 const SORTS = [
   { k:'added',    l:'Date Added' },
-  { k:'recent',   l:'⏱ Recent'  },
-  { k:'az',       l:'A–Z'       },
+  { k:'recent',   l:'\u23f1 Recent'  },
+  { k:'az',       l:'A\u2013Z'       },
   { k:'progress', l:'% Done'    },
 ];
 
@@ -318,6 +318,10 @@ const uid     = () => Math.random().toString(36).slice(2,10);
 const haptic  = (t='light') => { try { navigator.vibrate?.(t==='medium'?[30,20,30]:t==='heavy'?[50,30,80]:50); } catch {} };
 const favicon = url => { if(!url)return null; try{ return `https://www.google.com/s2/favicons?domain=${new URL(url.startsWith('http')?url:'https://'+url).hostname}&sz=64`; }catch{ return null; } };
 const pct     = c => { const t=c.chapters?.length||0, d=c.chapters?.filter(x=>x.completed).length||0; return t>0?Math.round(d/t*100):c.progress||0; };
+
+// FIX: "has resume" means the course has been opened before (key exists),
+// regardless of which chapter index is stored (including 0).
+const hasResume = (resumeMap, courseId) => courseId in resumeMap;
 
 function embedUrl(url) {
   if (!url) return null;
@@ -349,17 +353,17 @@ const ChapterRow = React.memo(function ChapterRow({ ch, idx, isActive, onSelect,
     <div className={`cr ${isActive?'on':''} ${ch.completed?'dn':''}`}
       style={mobileSize?{paddingRight:10}:{}}
       onClick={onSelect}>
-      <div className="cn">{ch.completed?'✓':idx+1}</div>
+      <div className="cn">{ch.completed?'\u2713':idx+1}</div>
       <div className="ci2">
         <div className="cn2">{ch.name}</div>
         <div className="cm">
-          <span className={`cbv ${ch.type==='video'?'bv':'bt'}`}>{ch.type==='video'?'▶ Video':'✦ Text'}</span>
+          <span className={`cbv ${ch.type==='video'?'bv':'bt'}`}>{ch.type==='video'?'\u25b6 Video':'\u2726 Text'}</span>
           {ch.duration && <span className="cd">{ch.duration}</span>}
         </div>
       </div>
       <div className="cr-acts" style={mobileSize?{opacity:1}:{}}>
-        <div className="ib" style={{width:sz,height:sz,fontSize:11}} onClick={e=>{e.stopPropagation();onEdit(idx);}}>✏️</div>
-        <div className="ib" style={{width:sz,height:sz,fontSize:11}} onClick={e=>{e.stopPropagation();onDelete(idx);}}>🗑</div>
+        <div className="ib" style={{width:sz,height:sz,fontSize:11}} onClick={e=>{e.stopPropagation();onEdit(idx);}}>&#x270F;&#xFE0F;</div>
+        <div className="ib" style={{width:sz,height:sz,fontSize:11}} onClick={e=>{e.stopPropagation();onDelete(idx);}}>&#x1F5D1;</div>
       </div>
     </div>
   );
@@ -413,7 +417,6 @@ function Toast({ msg }) {
   return <div style={{position:'fixed',bottom:20,left:'50%',transform:'translateX(-50%)',background:'var(--ac)',color:'#0a0e1a',padding:'10px 18px',borderRadius:10,fontSize:13,fontWeight:700,zIndex:2000,whiteSpace:'nowrap'}}>{msg}</div>;
 }
 
-// ── ADD COURSE MODAL ──────────────────────────────────────────────────────────
 function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
   const [title, setTitle] = useState(editCourse?.title||'');
   const [thumb, setThumb] = useState(editCourse?.thumbnail||'');
@@ -441,7 +444,7 @@ function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
   return (
     <div className="mbk" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="mo">
-        <div className="mh"><span className="mt">{editCourse?'Edit Course':'Add New Course'}</span><button className="xb" onClick={onClose}>×</button></div>
+        <div className="mh"><span className="mt">{editCourse?'Edit Course':'Add New Course'}</span><button className="xb" onClick={onClose}>&times;</button></div>
         <div className="mb">
           <div className="fg"><label className="fl">Course Title *</label><input className="fi" placeholder="e.g. Complete JavaScript Bootcamp" value={title} onChange={e=>setTitle(e.target.value)}/></div>
           <div className="fg"><label className="fl">Thumbnail URL</label><input className="fi" placeholder="https://..." value={thumb} onChange={e=>setThumb(e.target.value)}/></div>
@@ -450,10 +453,10 @@ function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
             {!addingCo ? (
               <div style={{display:'flex',gap:8}}>
                 <select className="fsel" style={{flex:1}} value={coId} onChange={e=>setCoId(e.target.value)}>
-                  <option value="">— None —</option>
+                  <option value="">&mdash; None &mdash;</option>
                   {companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                {coId && <button className="btn btn-s btn-sm" onClick={()=>{if(courses.some(c=>c.companyId===coId)){alert('Cannot delete: in use');return;}onSave(null,null,companies.filter(c=>c.id!==coId));setCoId('');}}>🗑</button>}
+                {coId && <button className="btn btn-s btn-sm" onClick={()=>{if(courses.some(c=>c.companyId===coId)){alert('Cannot delete: in use');return;}onSave(null,null,companies.filter(c=>c.id!==coId));setCoId('');}}>&#x1F5D1;</button>}
                 <button className="btn btn-s" onClick={()=>setAddingCo(true)}>+ New</button>
               </div>
             ) : (
@@ -468,7 +471,7 @@ function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
               </div>
             )}
           </div>
-          <div className="fg"><label className="fl">Description (optional)</label><textarea className="fta" placeholder="Brief overview…" value={desc} onChange={e=>setDesc(e.target.value)}/></div>
+          <div className="fg"><label className="fl">Description (optional)</label><textarea className="fta" placeholder="Brief overview\u2026" value={desc} onChange={e=>setDesc(e.target.value)}/></div>
         </div>
         <div className="mf">
           <button className="btn btn-s" onClick={onClose}>Cancel</button>
@@ -479,7 +482,6 @@ function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
   );
 }
 
-// ── CHAPTER MODAL ─────────────────────────────────────────────────────────────
 function ChapterModal({ chapter, onClose, onSave }) {
   const nl = arr => (arr||[]).map(l=>typeof l==='string'?{label:l,url:l}:l);
   const nf = arr => (arr||[]).map(f=>typeof f==='string'?{name:f,url:''}:f);
@@ -504,7 +506,7 @@ function ChapterModal({ chapter, onClose, onSave }) {
   return (
     <div className="mbk" style={{zIndex:1100}} onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="mo" style={{maxWidth:620}}>
-        <div className="mh"><span className="mt">{chapter?.id?'Edit Chapter':'Add Chapter'}</span><button className="xb" onClick={onClose}>×</button></div>
+        <div className="mh"><span className="mt">{chapter?.id?'Edit Chapter':'Add Chapter'}</span><button className="xb" onClick={onClose}>&times;</button></div>
         <div className="mb">
           <div className="tabs">
             {['basic','content','files'].map(t=><button key={t} className={`tabk ${tab===t?'on':''}`} onClick={()=>setTab(t)}>{t[0].toUpperCase()+t.slice(1)}</button>)}
@@ -512,7 +514,7 @@ function ChapterModal({ chapter, onClose, onSave }) {
           {tab==='basic' && <>
             <div className="fg"><label className="fl">Chapter Name *</label><input className="fi" placeholder="e.g. Introduction to Variables" value={name} onChange={e=>setName(e.target.value)}/></div>
             <div className="fg"><label className="fl">Module / Section</label><input className="fi" placeholder="e.g. Module 1: Foundations" value={mod} onChange={e=>setMod(e.target.value)}/><span style={{fontSize:11,color:'var(--tm)',marginTop:3}}>Header appears when module name changes. Leave blank for no header.</span></div>
-            <div className="fg"><label className="fl">Chapter Type</label><div style={{display:'flex',gap:8}}>{['video','text'].map(t=><button key={t} className={`btn ${type===t?'btn-p':'btn-s'}`} style={{flex:1}} onClick={()=>setType(t)}>{t==='video'?'📹 Video':'📝 Text Only'}</button>)}</div></div>
+            <div className="fg"><label className="fl">Chapter Type</label><div style={{display:'flex',gap:8}}>{['video','text'].map(t=><button key={t} className={`btn ${type===t?'btn-p':'btn-s'}`} style={{flex:1}} onClick={()=>setType(t)}>{t==='video'?'\ud83d\udcf9 Video':'\ud83d\udcdd Text Only'}</button>)}</div></div>
             <div className="fg"><label className="fl">Duration (optional)</label><input className="fi" placeholder="e.g. 6:30 or 15 min" value={dur} onChange={e=>setDur(e.target.value)}/></div>
           </>}
           {tab==='content' && <>
@@ -523,8 +525,8 @@ function ChapterModal({ chapter, onClose, onSave }) {
                 {links.map((l,i)=>(
                   <div key={i} style={{display:'flex',gap:8,alignItems:'center'}}>
                     <input className="fi" placeholder="Label" value={l.label||''} onChange={e=>updLink(i,'label',e.target.value)}/>
-                    <input className="fi" placeholder="https://…" value={l.url||''} onChange={e=>{ updLink(i,'url',e.target.value); if(!links[i].label)updLink(i,'label',e.target.value); }}/>
-                    <button className="btn btn-d btn-sm" onClick={()=>setLinks(p=>p.filter((_,x)=>x!==i))}>✕</button>
+                    <input className="fi" placeholder="https://\u2026" value={l.url||''} onChange={e=>{ updLink(i,'url',e.target.value); if(!links[i].label)updLink(i,'label',e.target.value); }}/>
+                    <button className="btn btn-d btn-sm" onClick={()=>setLinks(p=>p.filter((_,x)=>x!==i))}>&times;</button>
                   </div>
                 ))}
                 <button className="btn btn-s btn-sm" style={{alignSelf:'flex-start'}} onClick={()=>setLinks(p=>[...p,{label:'',url:''}])}>+ Add Link</button>
@@ -537,8 +539,8 @@ function ChapterModal({ chapter, onClose, onSave }) {
                 {files.map((f,i)=>(
                   <div key={i} style={{display:'flex',gap:8,alignItems:'center'}}>
                     <input className="fi" placeholder="File name" value={f.name||''} onChange={e=>updFile(i,'name',e.target.value)}/>
-                    <input className="fi" placeholder="https://…" value={f.url||''} onChange={e=>{ updFile(i,'url',e.target.value); if(!files[i].name)updFile(i,'name',e.target.value); }}/>
-                    <button className="btn btn-d btn-sm" onClick={()=>setFiles(p=>p.filter((_,x)=>x!==i))}>✕</button>
+                    <input className="fi" placeholder="https://\u2026" value={f.url||''} onChange={e=>{ updFile(i,'url',e.target.value); if(!files[i].name)updFile(i,'name',e.target.value); }}/>
+                    <button className="btn btn-d btn-sm" onClick={()=>setFiles(p=>p.filter((_,x)=>x!==i))}>&times;</button>
                   </div>
                 ))}
                 <button className="btn btn-s btn-sm" style={{alignSelf:'flex-start'}} onClick={()=>setFiles(p=>[...p,{name:'',url:''}])}>+ Add File</button>
@@ -552,7 +554,6 @@ function ChapterModal({ chapter, onClose, onSave }) {
   );
 }
 
-// ── GLOBAL NOTES PAGE ─────────────────────────────────────────────────────────
 function GlobalNotesPage({ data, onOpenCourse }) {
   const [search, setSearch] = useState('');
   const q = search.trim().toLowerCase();
@@ -582,25 +583,25 @@ function GlobalNotesPage({ data, onOpenCourse }) {
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
       <div className="topbar">
-        <span className="topbar-title">📓 <span>My Notes</span></span>
+        <span className="topbar-title">&#x1F4D3; <span>My Notes</span></span>
         <div className="si-wrap">
-          <span className="si-ico">🔍</span>
-          <input className="fi si" placeholder="Search notes…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
+          <span className="si-ico">&#x1F50D;</span>
+          <input className="fi si" placeholder="Search notes\u2026" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
         </div>
       </div>
       <div className="content">
         {allNotes.length === 0 ? (
-          <div className="es"><div className="es-ico">📓</div><div className="es-t">No notes yet</div><div className="es-s">Open any course chapter and start writing — notes appear here.</div></div>
+          <div className="es"><div className="es-ico">&#x1F4D3;</div><div className="es-t">No notes yet</div><div className="es-s">Open any course chapter and start writing &mdash; notes appear here.</div></div>
         ) : filtered.length === 0 ? (
-          <div className="es"><div className="es-ico">🔍</div><div className="es-t">No matches</div><div className="es-s">No notes match "{search}".</div></div>
+          <div className="es"><div className="es-ico">&#x1F50D;</div><div className="es-t">No matches</div><div className="es-s">No notes match &ldquo;{search}&rdquo;.</div></div>
         ) : (
           <>
-            <div style={{marginBottom:16,fontSize:13,color:'var(--tm)'}}>{filtered.length} note{filtered.length!==1?'s':''}{q?` matching "${search}"`:''} — click to jump</div>
+            <div style={{marginBottom:16,fontSize:13,color:'var(--tm)'}}>{filtered.length} note{filtered.length!==1?'s':''}{q?` matching "${search}"`:''} &mdash; click to jump</div>
             <div className="ngl">
               {filtered.map(({course,chapter,idx}) => (
                 <div key={`${course.id}-${idx}`} className="nc" onClick={()=>onOpenCourse(course.id,idx)}>
                   <div className="nc-co">{course.title}</div>
-                  <div className="nc-ch">Ch.{idx+1} — {chapter.name}</div>
+                  <div className="nc-ch">Ch.{idx+1} &mdash; {chapter.name}</div>
                   <div className="nc-pv">{hl(chapter.notes)}</div>
                 </div>
               ))}
@@ -612,7 +613,6 @@ function GlobalNotesPage({ data, onOpenCourse }) {
   );
 }
 
-// ── HOME PAGE ─────────────────────────────────────────────────────────────────
 function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompany, resumeMap, showImportMobile, setShowImportMobile, showAddCourseMobile, setShowAddCourseMobile }) {
   const [showAdd,    setShowAdd]    = useState(false);
   const [editCourse, setEditCourse] = useState(null);
@@ -645,7 +645,6 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
   }, [courses, filterCompany, search, sortBy]);
 
   const coMap = useMemo(() => Object.fromEntries(companies.map(c=>[c.id,c])), [companies]);
-
   const showToast = useCallback((msg) => { setToast(msg); setTimeout(()=>setToast(''), 2500); }, []);
 
   const handleSaveCourse = useCallback((course, newCo, updCos) => {
@@ -675,12 +674,12 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
     const a    = document.createElement('a');
     a.href = url; a.download = `courseflow-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    showToast('✓ Backup downloaded!');
+    showToast('\u2713 Backup downloaded!');
   }, [companies, courses]);
 
   const doCopy = useCallback(() => {
     navigator.clipboard.writeText(JSON.stringify({companies,courses},null,2))
-      .then(()=>showToast('✓ Data copied to clipboard!'));
+      .then(()=>showToast('\u2713 Data copied to clipboard!'));
   }, [companies, courses]);
 
   const handleFileImport = (file) => {
@@ -705,19 +704,19 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
       <div className="topbar">
         <span className="topbar-title">Course<span>Flow</span></span>
         <div className="si-wrap">
-          <span className="si-ico">🔍</span>
-          <input className="fi si" placeholder="Search courses…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
+          <span className="si-ico">&#x1F50D;</span>
+          <input className="fi si" placeholder="Search courses\u2026" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
         </div>
-        <button className="btn btn-s btn-sm dsk" onClick={()=>setShowImport(true)}>📥 Import</button>
-        <button className="btn btn-s btn-sm dsk" onClick={doCopy}>📋 Copy Data</button>
-        <button className="btn btn-s btn-sm dsk" onClick={doExport}>💾 Export</button>
+        <button className="btn btn-s btn-sm dsk" onClick={()=>setShowImport(true)}>&#x1F4E5; Import</button>
+        <button className="btn btn-s btn-sm dsk" onClick={doCopy}>&#x1F4CB; Copy Data</button>
+        <button className="btn btn-s btn-sm dsk" onClick={doExport}>&#x1F4BE; Export</button>
         <button className="btn btn-p dsk" onClick={()=>{setEditCourse(null);setShowAdd(true);}}>+ Add Course</button>
       </div>
 
       <div className="content">
         {visibleCos.length > 0 && (
           <div className="chips">
-            <div className={`chip ${filterCompany==='all'?'on':''}`} onClick={()=>setFilterCompany('all')}>⬡ All ({courses.length})</div>
+            <div className={`chip ${filterCompany==='all'?'on':''}`} onClick={()=>setFilterCompany('all')}>&#x2B21; All ({courses.length})</div>
             {visibleCos.map(co => (
               <div key={co.id} className={`chip ${filterCompany===co.id?'on':''}`} onClick={()=>setFilterCompany(filterCompany===co.id?'all':co.id)}>
                 <CompanyIcon company={co} size={16}/> {co.name} ({courses.filter(c=>c.companyId===co.id).length})
@@ -738,7 +737,7 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
 
         {filtered.length === 0 ? (
           <div className="es">
-            <div className="es-ico">📚</div>
+            <div className="es-ico">&#x1F4DA;</div>
             <div className="es-t">{courses.length===0?'No courses yet':'No courses found'}</div>
             <div className="es-s">{courses.length===0?'Start by adding your first course.':'Try adjusting your search or filter.'}</div>
             {courses.length===0 && <button className="btn btn-p" onClick={()=>setShowAdd(true)}>Add Your First Course</button>}
@@ -746,44 +745,43 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
         ) : (
           <div className="grid">
             {filtered.map((course,i) => {
-              const company  = coMap[course.companyId];
-              const done     = course.chapters?.filter(c=>c.completed).length||0;
-              const total    = course.chapters?.length||0;
-              const rIdx     = resumeMap[course.id];
-              const hasRes   = rIdx !== undefined && rIdx > 0;
-              const rName    = hasRes ? course.chapters?.[rIdx]?.name : null;
+              const company = coMap[course.companyId];
+              // FIX: use key-existence check so index 0 also triggers the badge
+              const res   = hasResume(resumeMap, course.id);
+              const rIdx  = resumeMap[course.id] ?? 0;
+              const rName = res ? course.chapters?.[rIdx]?.name : null;
               return (
                 <div key={course.id} className="card" onClick={()=>onOpenCourse(course.id)}>
                   <div style={{position:'absolute',top:8,left:8,zIndex:50}}>
-                    <div className="ib" style={{fontSize:10,letterSpacing:2}} onClick={e=>{e.stopPropagation();setMenuOpen(menuOpen===course.id?null:course.id);}}>•••</div>
+                    <div className="ib" style={{fontSize:10,letterSpacing:2}} onClick={e=>{e.stopPropagation();setMenuOpen(menuOpen===course.id?null:course.id);}}>&#x2022;&#x2022;&#x2022;</div>
                     {menuOpen===course.id && (
                       <div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:34,left:0,background:'var(--bgc)',border:'1px solid var(--bdl)',borderRadius:10,padding:6,display:'flex',flexDirection:'column',gap:4,minWidth:130,boxShadow:'0 10px 30px rgba(0,0,0,.5)'}}>
-                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6}} onClick={e=>{e.stopPropagation();setEditCourse(course);setShowAdd(true);setMenuOpen(null);}}>✏️ Edit</div>
-                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)'}} onClick={e=>{handleDelete(course.id,e);setMenuOpen(null);}}>🗑 Delete</div>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6}} onClick={e=>{e.stopPropagation();setEditCourse(course);setShowAdd(true);setMenuOpen(null);}}>&#x270F;&#xFE0F; Edit</div>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)'}} onClick={e=>{handleDelete(course.id,e);setMenuOpen(null);}}>&#x1F5D1; Delete</div>
                       </div>
                     )}
                   </div>
                   {course.thumbnail ? (
                     <div className="c-thumb">
                       <img src={course.thumbnail} alt={course.title} loading="lazy" onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex';}}/>
-                      <div style={{display:'none',width:'100%',aspectRatio:'16/9',alignItems:'center',justifyContent:'center',fontSize:36}} className={`g${i%6}`}>📖</div>
-                      {company  && <div className="c-badge"><CompanyIcon company={company} size={18}/></div>}
-                      {hasRes   && <div className="c-resume">▶ Resume</div>}
+                      <div style={{display:'none',width:'100%',aspectRatio:'16/9',alignItems:'center',justifyContent:'center',fontSize:36}} className={`g${i%6}`}>&#x1F4D6;</div>
+                      {company && <div className="c-badge"><CompanyIcon company={company} size={18}/></div>}
+                      {res     && <div className="c-resume">&#x25B6; Resume</div>}
                     </div>
                   ) : (
                     <div className={`c-ph g${i%6}`}>
-                      <span>📖</span>
+                      <span>&#x1F4D6;</span>
                       {company && <div className="c-badge"><CompanyIcon company={company} size={18}/></div>}
-                      {hasRes  && <div className="c-resume">▶ Resume</div>}
+                      {res     && <div className="c-resume">&#x25B6; Resume</div>}
                     </div>
                   )}
                   <div className="c-body">
                     <div className="c-name">{course.title}</div>
-                    {hasRes && rName
-                      ? <div className="c-desc" style={{color:'var(--ac)',opacity:.9}}>▶ Continue: {rName}</div>
+                    {res && rName
+                      ? <div className="c-desc" style={{color:'var(--ac)',opacity:.9}}>&#x25B6; Continue: {rName}</div>
                       : course.description && <div className="c-desc">{course.description}</div>
                     }
-                    <ProgBar done={done} total={total} />
+                    <ProgBar done={course.chapters?.filter(c=>c.completed).length||0} total={course.chapters?.length||0} />
                   </div>
                 </div>
               );
@@ -797,7 +795,7 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
       {showImport && (
         <div className="mbk" onClick={e=>e.target===e.currentTarget&&setShowImport(false)}>
           <div className="mo">
-            <div className="mh"><span className="mt">Import Data</span><button className="xb" onClick={()=>setShowImport(false)}>×</button></div>
+            <div className="mh"><span className="mt">Import Data</span><button className="xb" onClick={()=>setShowImport(false)}>&times;</button></div>
             <div className="mb">
               <div className="fg">
                 <label className="fl">Upload JSON Backup</label>
@@ -806,7 +804,7 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
                   onDrop={e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f){setSelFile(f.name);handleFileImport(f);}}}
                   onDragOver={e=>e.preventDefault()}
                   style={{border:'2px dashed var(--bdl)',borderRadius:10,padding:20,textAlign:'center',cursor:'pointer',display:'block'}}>
-                  <div style={{marginBottom:10}}>📁 Drag & drop JSON file</div>
+                  <div style={{marginBottom:10}}>&#x1F4C1; Drag &amp; drop JSON file</div>
                   <span className="btn btn-s btn-sm">Choose File</span>
                   {selFile && <div style={{marginTop:10,fontSize:12,color:'var(--t2)'}}>{selFile}</div>}
                 </label>
@@ -822,23 +820,21 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
   );
 }
 
-// ── COURSE PAGE ───────────────────────────────────────────────────────────────
 function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdate, mobileNotesOpen, setMobileNotesOpen, initChapterIdx, onChapterChange }) {
   const course  = useMemo(() => data.courses.find(c=>c.id===courseId), [data.courses, courseId]);
   const company = useMemo(() => data.companies.find(c=>c.id===course?.companyId), [data.companies, course?.companyId]);
   const chapters = course?.chapters || [];
 
-  const [activeIdx,    setActiveIdxRaw] = useState(initChapterIdx ?? 0);
-  const [showNotes,    setShowNotes]    = useState(false);
-  const [showModal,    setShowModal]    = useState(false);
-  const [editIdx,      setEditIdx]      = useState(null);
-  const [noteSaved,    setNoteSaved]    = useState(false);
-  const [popAnim,      setPopAnim]      = useState(false);
+  const [activeIdx,  setActiveIdxRaw] = useState(initChapterIdx ?? 0);
+  const [showNotes,  setShowNotes]    = useState(false);
+  const [showModal,  setShowModal]    = useState(false);
+  const [editIdx,    setEditIdx]      = useState(null);
+  const [noteSaved,  setNoteSaved]    = useState(false);
+  const [popAnim,    setPopAnim]      = useState(false);
 
   const noteTimer   = useRef(null);
   const noteHideRef = useRef(null);
 
-  // ── FIX: respond to external chapter-jump requests (from mobile index sheet) ─
   useEffect(() => {
     if (initChapterIdx !== undefined && initChapterIdx !== activeIdx) {
       setActiveIdxRaw(initChapterIdx);
@@ -857,7 +853,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
 
   const setActiveIdx = useCallback((idx) => {
     setActiveIdxRaw(idx);
-    // Notify parent so it can sync initChapterIdx (needed for mobile sheet round-trip)
     onChapterChange && onChapterChange(idx);
     const newMap = { ...resumeMap, [courseId]: idx };
     onResumeUpdate(newMap);
@@ -918,14 +913,13 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
   }, [chapters, activeIdx, course]);
 
   const doneCount = useMemo(() => chapters.filter(c=>c.completed).length, [chapters]);
-
   const listProps = { chapters, activeIdx, onSelect:setActiveIdx, onEdit:(i)=>{setEditIdx(i);setShowModal(true);}, onDelete:handleDeleteChapter };
 
   return (
     <div className="cp" style={{height:'100%'}}>
       <div className="ci">
         <div className="ci-hd">
-          <button className="btn btn-s btn-sm" onClick={onBack} style={{marginBottom:10}}>← Back</button>
+          <button className="btn btn-s btn-sm" onClick={onBack} style={{marginBottom:10}}>&larr; Back</button>
           <div className="ci-lbl">Course Index</div>
           <div className="ci-ttl">{course.title}</div>
           <ProgBar done={doneCount} total={chapters.length} showLabel={false}/>
@@ -947,7 +941,7 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
             </div>
           )}
           <button className="btn btn-s btn-sm dsk" onClick={()=>setShowNotes(v=>!v)}>
-            {showNotes?'◧ Hide Notes':'◨ Notes'}
+            {showNotes?'\u25a7 Hide Notes':'\u25a8 Notes'}
           </button>
         </div>
 
@@ -955,7 +949,7 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
           <div className="cv">
             {!chapter ? (
               <div className="es" style={{padding:'60px 20px'}}>
-                <div className="es-ico">📖</div><div className="es-t">No chapters yet</div>
+                <div className="es-ico">&#x1F4D6;</div><div className="es-t">No chapters yet</div>
                 <div className="es-s">Add chapters to start building your course content.</div>
                 <button className="btn btn-p" onClick={()=>setShowModal(true)}>Add First Chapter</button>
               </div>
@@ -963,22 +957,22 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
               <>
                 {chapter.type==='video' && (embed
                   ? <div className="vw"><iframe key={`${embed}-${activeIdx}`} src={embed} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen/></div>
-                  : <div className="vph"><span style={{fontSize:40}}>▶</span><span>{chapter.videoUrl?'Invalid video URL':'No video URL set'}</span><button className="btn btn-s btn-sm" onClick={()=>{setEditIdx(activeIdx);setShowModal(true);}}>Add Video URL</button></div>
+                  : <div className="vph"><span style={{fontSize:40}}>&#x25B6;</span><span>{chapter.videoUrl?'Invalid video URL':'No video URL set'}</span><button className="btn btn-s btn-sm" onClick={()=>{setEditIdx(activeIdx);setShowModal(true);}}>Add Video URL</button></div>
                 )}
-                {chapter.description && <div className="ds"><div className="ds-t">📋 Description</div><div className="ds-p">{chapter.description}</div></div>}
+                {chapter.description && <div className="ds"><div className="ds-t">&#x1F4CB; Description</div><div className="ds-p">{chapter.description}</div></div>}
                 {chapter.links?.length > 0 && (
-                  <div className="ds"><div className="ds-t">🔗 Resources</div><div className="ll">
-                    {chapter.links.map((l,i)=>{const lk=typeof l==='string'?{label:l,url:l}:l;return<a key={i} href={lk.url} target="_blank" rel="noopener noreferrer" className="li">🔗 {lk.label||lk.url}</a>;})}
+                  <div className="ds"><div className="ds-t">&#x1F517; Resources</div><div className="ll">
+                    {chapter.links.map((l,i)=>{const lk=typeof l==='string'?{label:l,url:l}:l;return<a key={i} href={lk.url} target="_blank" rel="noopener noreferrer" className="li">&#x1F517; {lk.label||lk.url}</a>;})}
                   </div></div>
                 )}
                 {chapter.files?.length > 0 && (
-                  <div className="ds"><div className="ds-t">📁 Files</div><div className="fl2">
-                    {chapter.files.map((f,i)=>{const fi=typeof f==='string'?{name:f,url:''}:f;const il=!fi.name&&fi.url;return<a key={i} href={fi.url||'#'} target="_blank" rel="noopener noreferrer" className="fi2" style={{color:il?'var(--ac2)':'inherit',cursor:fi.url?'pointer':'default'}}><span style={{fontSize:18}}>{il?'🔗':'📄'}</span><span className="fi2-n">{fi.name||fi.url}</span></a>;})}
+                  <div className="ds"><div className="ds-t">&#x1F4C1; Files</div><div className="fl2">
+                    {chapter.files.map((f,i)=>{const fi=typeof f==='string'?{name:f,url:''}:f;const il=!fi.name&&fi.url;return<a key={i} href={fi.url||'#'} target="_blank" rel="noopener noreferrer" className="fi2" style={{color:il?'var(--ac2)':'inherit',cursor:fi.url?'pointer':'default'}}><span style={{fontSize:18}}>{il?'&#x1F517;':'&#x1F4C4;'}</span><span className="fi2-n">{fi.name||fi.url}</span></a>;})}
                   </div></div>
                 )}
                 {!chapter.description && !chapter.links?.length && !chapter.files?.length && chapter.type==='text' && (
                   <div className="ds" style={{textAlign:'center',padding:'40px 20px',color:'var(--tm)'}}>
-                    <div style={{fontSize:32,marginBottom:10}}>📝</div><div>No content yet.</div>
+                    <div style={{fontSize:32,marginBottom:10}}>&#x1F4DD;</div><div>No content yet.</div>
                     <button className="btn btn-s btn-sm" style={{marginTop:12}} onClick={()=>{setEditIdx(activeIdx);setShowModal(true);}}>Add Content</button>
                   </div>
                 )}
@@ -988,31 +982,30 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
 
           <div className={`np ${showNotes?'':'hide'}`}>
             {showNotes && <>
-              <div className="np-hd"><span className="np-t">📓 My Notes</span><span style={{fontSize:11,color:'var(--tm)'}}>{chapter?.name}</span></div>
+              <div className="np-hd"><span className="np-t">&#x1F4D3; My Notes</span><span style={{fontSize:11,color:'var(--tm)'}}>{chapter?.name}</span></div>
               <div className="na">
-                <textarea className="nta" placeholder={`Notes for "${chapter?.name||'this chapter'}"…\n\nKey points, code, questions.`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
-                <div className="nsv">{noteSaved?'✓ Saved':''}</div>
+                <textarea className="nta" placeholder={`Notes for "${chapter?.name||'this chapter'}"\u2026\n\nKey points, code, questions.`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
+                <div className="nsv">{noteSaved?'\u2713 Saved':''}</div>
               </div>
             </>}
           </div>
         </div>
       </div>
 
-      {/* Mobile notes sheet */}
       <div className={`mns ${mobileNotesOpen?'open':''}`}>
         <div className="mns-bk" onClick={()=>setMobileNotesOpen&&setMobileNotesOpen(false)}/>
         <div className="mns-pn">
           <div className="mns-hnd"/>
           <div className="np-hd" style={{padding:'8px 16px 12px'}}>
-            <span className="np-t">📓 My Notes</span>
+            <span className="np-t">&#x1F4D3; My Notes</span>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               <span style={{fontSize:11,color:'var(--tm)'}}>{chapter?.name}</span>
-              <button className="xb" onClick={()=>setMobileNotesOpen&&setMobileNotesOpen(false)}>×</button>
+              <button className="xb" onClick={()=>setMobileNotesOpen&&setMobileNotesOpen(false)}>&times;</button>
             </div>
           </div>
           <div className="na" style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
-            <textarea className="nta" style={{flex:1,minHeight:0,fontSize:16}} placeholder={`Notes for "${chapter?.name||'this chapter'}"…`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
-            <div className="nsv" style={{textAlign:'right',padding:'4px 0'}}>{noteSaved?'✓ Saved':''}</div>
+            <textarea className="nta" style={{flex:1,minHeight:0,fontSize:16}} placeholder={`Notes for "${chapter?.name||'this chapter'}"\u2026`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
+            <div className="nsv" style={{textAlign:'right',padding:'4px 0'}}>{noteSaved?'\u2713 Saved':''}</div>
           </div>
         </div>
       </div>
@@ -1028,7 +1021,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
   );
 }
 
-// ── MOBILE COURSE INDEX SHEET ─────────────────────────────────────────────────
 function MobileCourseIndex({ courseId, data, onUpdate, onClose, activeChapterIdx, onSelectChapter }) {
   const course   = useMemo(() => data.courses.find(c=>c.id===courseId), [data.courses, courseId]);
   const [showModal, setShowModal] = useState(false);
@@ -1057,7 +1049,7 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose, activeChapterIdx
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
       <div className="ci-hd" style={{padding:'14px 16px'}}>
-        <button className="btn btn-s btn-sm" onClick={onClose} style={{marginBottom:10}}>✕ Close</button>
+        <button className="btn btn-s btn-sm" onClick={onClose} style={{marginBottom:10}}>&times; Close</button>
         <div className="ci-lbl">Course Index</div>
         <div className="ci-ttl">{course.title}</div>
         <ProgBar done={done} total={chapters.length} showLabel={false}/>
@@ -1066,10 +1058,7 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose, activeChapterIdx
         <ChapterList
           chapters={chapters}
           activeIdx={activeChapterIdx}
-          onSelect={(i) => {
-            onSelectChapter(i);  // tell CoursePage which chapter to show
-            onClose();           // close the sheet
-          }}
+          onSelect={(i) => { onSelectChapter(i); onClose(); }}
           onEdit={(i)=>{setEditIdx(i);setShowModal(true);}}
           onDelete={handleDelete}
           mobile={true}
@@ -1087,7 +1076,6 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose, activeChapterIdx
   );
 }
 
-// ── APP ROOT ──────────────────────────────────────────────────────────────────
 function App() {
   const [data,    setData]    = useState(loadData);
   const [view,    setView]    = useState('home');
@@ -1097,10 +1085,6 @@ function App() {
   const [mobileSidebar, setMobileSidebar] = useState(false);
   const [showImportMob, setShowImportMob] = useState(false);
   const [showAddMob,    setShowAddMob]    = useState(false);
-
-  // ── FIX: single source of truth for the active chapter index ─────────────────
-  // initChapterIdx seeds CoursePage on first open; activeChapterIdx tracks it
-  // as navigation happens (so the mobile sheet can highlight the right row).
   const [activeChapterIdx, setActiveChapterIdx] = useState(0);
 
   const updateResume = useCallback((newMap) => {
@@ -1112,17 +1096,21 @@ function App() {
   const handleBack   = useCallback(() => { setView('home'); setMobileSidebar(false); }, []);
 
   const handleOpenCourse = useCallback((id, chIdx) => {
-    const idx = chIdx !== undefined ? chIdx : (resumeMap[id] ?? 0);
+    const savedIdx = resumeMap[id] ?? 0;
+    const idx = chIdx !== undefined ? chIdx : savedIdx;
     setActiveChapterIdx(idx);
+    // FIX: Write the resume entry immediately on open so hasResume() returns
+    // true the moment the user navigates back to the home screen.
+    const newMap = { ...resumeMap, [id]: idx };
+    setResumeMapRaw(newMap);
+    saveResume(newMap);
     setView(id);
   }, [resumeMap]);
 
-  // Called by CoursePage whenever the user navigates between chapters
   const handleChapterChange = useCallback((idx) => {
     setActiveChapterIdx(idx);
   }, []);
 
-  // Called by mobile index sheet when user taps a chapter
   const handleMobileSelectChapter = useCallback((idx) => {
     setActiveChapterIdx(idx);
     setMobileSidebar(false);
@@ -1138,21 +1126,19 @@ function App() {
   }, [data]);
 
   const isCourse = view !== 'home' && view !== 'notes';
-
   const sidebarCos = useMemo(() => data.companies.filter(co=>data.courses.some(c=>c.companyId===co.id)), [data.companies, data.courses]);
   const activeCourseCoId = useMemo(() => isCourse ? data.courses.find(c=>c.id===view)?.companyId : null, [isCourse, data.courses, view]);
 
   return (
     <div style={{display:'flex',position:'fixed',inset:0,overflow:'hidden'}}>
-
       <div className="sb">
         <div className="sb-logo" onClick={()=>setView('home')} title="CourseFlow">CF</div>
         <div className="sb-div"/>
         <div className={`sb-item ${view==='home'&&filter==='all'?'on':''}`} onClick={()=>{setView('home');setFilter('all');}}>
-          <span style={{fontSize:18}}>⬡</span><span className="sb-tip">All Courses</span>
+          <span style={{fontSize:18}}>&#x2B21;</span><span className="sb-tip">All Courses</span>
         </div>
         <div className={`sb-item ${view==='notes'?'on':''}`} onClick={()=>setView('notes')}>
-          <span style={{fontSize:18}}>📓</span><span className="sb-tip">My Notes</span>
+          <span style={{fontSize:18}}>&#x1F4D3;</span><span className="sb-tip">My Notes</span>
         </div>
         <div className="sb-div"/>
         {sidebarCos.map(co => (
@@ -1188,22 +1174,21 @@ function App() {
       <nav className="mbn">
         {isCourse ? (
           <>
-            <button className="mni" onClick={handleBack}><span className="mni-i">←</span><span>Home</span></button>
-            <button className={`mni ${mobileSidebar?'on':''}`} onClick={()=>setMobileSidebar(true)}><span className="mni-i">☰</span><span>Chapters</span></button>
-            <button className={`mni ${mobileNotes?'on':''}`} onClick={()=>setMobileNotes(v=>!v)}><span className="mni-i">📓</span><span>{mobileNotes?'Hide':'Notes'}</span></button>
+            <button className="mni" onClick={handleBack}><span className="mni-i">&larr;</span><span>Home</span></button>
+            <button className={`mni ${mobileSidebar?'on':''}`} onClick={()=>setMobileSidebar(true)}><span className="mni-i">&#x2630;</span><span>Chapters</span></button>
+            <button className={`mni ${mobileNotes?'on':''}`} onClick={()=>setMobileNotes(v=>!v)}><span className="mni-i">&#x1F4D3;</span><span>{mobileNotes?'Hide':'Notes'}</span></button>
           </>
         ) : (
           <>
-            <button className={`mni ${view==='home'?'on':''}`} onClick={()=>setView('home')}><span className="mni-i">⬡</span><span>Courses</span></button>
-            <button className={`mni ${view==='notes'?'on':''}`} onClick={()=>setView('notes')}><span className="mni-i">📓</span><span>Notes</span></button>
-            <button className="mni" onClick={()=>setShowAddMob(true)}><span className="mni-i">＋</span><span>Add</span></button>
-            <button className="mni" onClick={()=>setShowImportMob(true)}><span className="mni-i">📥</span><span>Import</span></button>
-            <button className="mni" onClick={exportMobile}><span className="mni-i">💾</span><span>Export</span></button>
+            <button className={`mni ${view==='home'?'on':''}`} onClick={()=>setView('home')}><span className="mni-i">&#x2B21;</span><span>Courses</span></button>
+            <button className={`mni ${view==='notes'?'on':''}`} onClick={()=>setView('notes')}><span className="mni-i">&#x1F4D3;</span><span>Notes</span></button>
+            <button className="mni" onClick={()=>setShowAddMob(true)}><span className="mni-i">&#xFF0B;</span><span>Add</span></button>
+            <button className="mni" onClick={()=>setShowImportMob(true)}><span className="mni-i">&#x1F4E5;</span><span>Import</span></button>
+            <button className="mni" onClick={exportMobile}><span className="mni-i">&#x1F4BE;</span><span>Export</span></button>
           </>
         )}
       </nav>
 
-      {/* Mobile Chapters Sheet */}
       <div className={`mss ${mobileSidebar?'open':''}`}>
         <div className="mss-bk" onClick={()=>setMobileSidebar(false)}/>
         <div className="mss-pn" onClick={e=>e.stopPropagation()}>
@@ -1218,7 +1203,6 @@ function App() {
         </div>
       </div>
 
-      {/* Mobile Notes Sheet */}
       <div className={`mns ${mobileNotes?'open':''}`}>
         <div className="mns-bk" onClick={()=>setMobileNotes(false)}/>
       </div>
