@@ -8,1073 +8,852 @@
 <meta name="theme-color" content="#0a0e1a">
 <link rel="icon" href="favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <title>CourseFlow</title>
-<!-- Primary CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"
-  onerror="window._reactLoadErr=true"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"
-  onerror="window._reactLoadErr=true"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"
-  onerror="window._babelLoadErr=true"></script>
-<!-- Fallback CDN (unpkg) — loaded if primary fails -->
+
+<!-- FIX: preconnect first so font fetch starts in parallel, not after parse -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- FIX: font-display:swap via &display=swap — text renders immediately in fallback font -->
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- React + Babel — production builds only -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" onerror="window._RE=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" onerror="window._RE=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js" onerror="window._BE=1"></script>
 <script>
 (function(){
-  document.addEventListener('DOMContentLoaded', function() {
-    var root = document.getElementById('root');
-    if (root && !root.hasChildNodes()) {
-      root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;font-family:sans-serif;color:#10e68c;background:#0a0e1a;">'
-        + '<div style="width:40px;height:40px;background:#10e68c;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#0a0e1a;">CF</div>'
-        + '<div style="color:#e8edf5;font-size:16px;font-weight:600;">Loading CourseFlow...</div>'
-        + '</div>';
-    }
+  // Show splash immediately — never a blank screen
+  document.addEventListener('DOMContentLoaded', function(){
+    var r = document.getElementById('root');
+    if (r && !r.hasChildNodes())
+      r.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;font-family:sans-serif;color:#10e68c;background:#0a0e1a"><div style="width:40px;height:40px;background:#10e68c;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#0a0e1a">CF</div><div style="color:#e8edf5;font-size:16px;font-weight:600">Loading CourseFlow…</div></div>';
   });
-
-  function tryLoadScript(src, cb) {
-    var s = document.createElement('script');
-    s.src = src;
-    s.onload = cb;
-    s.onerror = function() { cb(new Error('failed')); };
-    document.head.appendChild(s);
-  }
-
-  window.addEventListener('load', function() {
-    if (!window._reactLoadErr && !window._babelLoadErr && window.React && window.ReactDOM && window.Babel) return;
-    console.warn('Primary CDN failed, trying unpkg fallbacks...');
-    var scripts = [];
-    if (!window.React) scripts.push('https://unpkg.com/react@18.2.0/umd/react.production.min.js');
-    if (!window.ReactDOM) scripts.push('https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js');
-    if (!window.Babel) scripts.push('https://unpkg.com/@babel/standalone@7.23.2/babel.min.js');
-
-    function loadNext(i) {
-      if (i >= scripts.length) {
-        var appScripts = document.querySelectorAll('script[type="text/babel"]');
-        appScripts.forEach(function(s) {
-          try { window.Babel && window.Babel.transformScriptTags(); } catch(e) {}
-        });
-        return;
-      }
-      tryLoadScript(scripts[i], function(err) {
-        if (err) {
-          var root = document.getElementById('root');
-          if (root) root.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;padding:24px;text-align:center;font-family:sans-serif;background:#0a0e1a;">'
-            + '<div style="font-size:36px;">⚠️</div>'
-            + '<div style="color:#e8edf5;font-size:16px;font-weight:700;">Could not load CourseFlow</div>'
-            + '<div style="color:#8b95a8;font-size:13px;max-width:280px;line-height:1.6;">Please check your internet connection and try again.</div>'
-            + '<button onclick="location.reload()" style="margin-top:8px;padding:10px 20px;background:#10e68c;color:#0a0e1a;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Retry</button>'
-            + '</div>';
-        } else {
-          loadNext(i + 1);
-        }
-      });
-    }
-    loadNext(0);
+  // CDN fallback — only fires if primary scripts failed
+  window.addEventListener('load', function(){
+    if (!window._RE && !window._BE && window.React && window.ReactDOM && window.Babel) return;
+    var q = [];
+    if (!window.React)   q.push('https://unpkg.com/react@18.2.0/umd/react.production.min.js');
+    if (!window.ReactDOM)q.push('https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js');
+    if (!window.Babel)   q.push('https://unpkg.com/@babel/standalone@7.23.2/babel.min.js');
+    (function run(i){
+      if (i >= q.length) { try { Babel.transformScriptTags(); } catch(e){} return; }
+      var s = document.createElement('script'); s.src = q[i];
+      s.onload = function(){ run(i+1); };
+      s.onerror = function(){
+        document.getElementById('root').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;padding:24px;text-align:center;font-family:sans-serif;background:#0a0e1a"><div style="font-size:36px">⚠️</div><div style="color:#e8edf5;font-size:16px;font-weight:700">Could not load CourseFlow</div><button onclick="location.reload()" style="margin-top:8px;padding:10px 20px;background:#10e68c;color:#0a0e1a;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Retry</button></div>';
+      };
+      document.head.appendChild(s);
+    })(0);
   });
 })();
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <style>
-  :root {
-    --bg-primary: #0a0e1a;
-    --bg-secondary: #111827;
-    --bg-card: #161d2e;
-    --bg-hover: #1e2740;
-    --bg-sidebar: #0d1220;
-    --accent: #10e68c;
-    --accent-dim: #0bbf76;
-    --accent-glow: rgba(16,230,140,0.15);
-    --accent-2: #4f8ef7;
-    --text-primary: #e8edf5;
-    --text-secondary: #8b95a8;
-    --text-muted: #4a5568;
-    --border: #1e2d45;
-    --border-light: #263548;
-    --red: #f56565;
-    --yellow: #f6c90e;
-    --purple: #a78bfa;
-    --radius: 10px;
-    --radius-lg: 16px;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html {
-    height: 100%; overflow: hidden; position: fixed; width: 100%;
-  }
-  body {
-    font-family:'DM Sans',sans-serif; background:var(--bg-primary); color:var(--text-primary);
-    -webkit-text-size-adjust:100%;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    overflow: hidden;
-    width: 100%; height: 100%;
-  }
-  #root {
-    display: flex;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    overflow: hidden;
-  }
+/* ── DESIGN TOKENS ─────────────────────────────────────────────────────────── */
+:root {
+  --bg:    #0a0e1a; --bg2: #111827; --bgc: #161d2e; --bgh: #1e2740; --bgs: #0d1220;
+  --ac:    #10e68c; --acd: #0bbf76; --acg: rgba(16,230,140,.15); --ac2: #4f8ef7;
+  --t1:    #e8edf5; --t2:  #8b95a8; --tm: #4a5568;
+  --bd:    #1e2d45; --bdl: #263548;
+  --red:   #f56565; --pur: #a78bfa;
+  --r:     10px;    --rl:  16px;
+}
 
-  ::-webkit-scrollbar { width:5px; height:5px; }
-  ::-webkit-scrollbar-track { background:transparent; }
-  ::-webkit-scrollbar-thumb { background:var(--border-light); border-radius:10px; }
+/* ── RESET & BASE ───────────────────────────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; overflow:hidden; }
+body {
+  font-family:'DM Sans', system-ui, sans-serif;
+  background:var(--bg); color:var(--t1);
+  -webkit-text-size-adjust:100%;
+  /* position:fixed stops iOS viewport-shift on keyboard open */
+  position:fixed; inset:0;
+}
+#root { display:flex; position:fixed; inset:0; overflow:hidden; }
 
-  .sidebar {
-    width:68px; background:var(--bg-sidebar); border-right:1px solid var(--border);
-    display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:6px;
-    flex-shrink:0; z-index:10; overflow-y:auto;
-  }
-  .sidebar-logo {
-    width:40px; height:40px; background:var(--accent); border-radius:10px;
-    display:flex; align-items:center; justify-content:center; margin-bottom:12px;
-    font-family:'Syne',sans-serif; font-weight:800; font-size:15px; color:#0a0e1a; cursor:pointer;
-    flex-shrink:0;
-  }
-  .sidebar-divider { width:32px; height:1px; background:var(--border); margin:6px 0; flex-shrink:0; }
-  .sidebar-item {
-    width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center;
-    cursor:pointer; transition:all .15s; position:relative; flex-shrink:0; overflow:hidden;
-    border:2px solid transparent;
-  }
-  .sidebar-item:hover { background:var(--bg-hover); }
-  .sidebar-item.active { background:var(--accent-glow); border-color:var(--accent); }
-  .sidebar-item img { width:26px; height:26px; object-fit:contain; border-radius:5px; }
-  .sidebar-item .favicon-placeholder {
-    width:26px; height:26px; border-radius:5px; display:flex; align-items:center; justify-content:center;
-    font-size:13px; font-weight:700; font-family:'Syne',sans-serif;
-  }
-  .sidebar-tooltip {
-    position:absolute; left:56px; background:#1e2740; color:var(--text-primary); font-size:12px;
-    padding:4px 10px; border-radius:6px; white-space:nowrap; pointer-events:none;
-    opacity:0; transition:opacity .15s; border:1px solid var(--border-light); z-index:100;
-  }
-  .sidebar-item:hover .sidebar-tooltip { opacity:1; }
+/* ── SCROLLBAR ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--bdl); border-radius:4px; }
 
-  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-  .topbar {
-    height:60px; background:var(--bg-secondary); border-bottom:1px solid var(--border);
-    display:flex; align-items:center; padding:0 24px; gap:16px; flex-shrink:0;
-    padding-top:env(safe-area-inset-top, 0px);
-  }
-  .topbar-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; flex:1; }
-  .topbar-title span { color:var(--accent); }
-  .btn {
-    display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px;
-    font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .15s; font-family:'DM Sans',sans-serif;
-  }
-  .btn-primary { background:var(--accent); color:#0a0e1a; }
-  .btn-primary:hover { background:var(--accent-dim); transform:translateY(-1px); }
-  .btn-secondary { background:transparent; color:var(--text-secondary); border:1px solid var(--border-light); }
-  .btn-secondary:hover { background:var(--bg-hover); color:var(--text-primary); }
-  .btn-danger { background:transparent; color:var(--red); border:1px solid rgba(245,101,101,.3); }
-  .btn-danger:hover { background:rgba(245,101,101,.1); }
-  .btn-sm { padding:5px 12px; font-size:12px; }
+/* ── SIDEBAR ────────────────────────────────────────────────────────────────── */
+.sb { width:68px; background:var(--bgs); border-right:1px solid var(--bd); display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:6px; flex-shrink:0; z-index:10; overflow-y:auto; }
+.sb-logo { width:40px; height:40px; background:var(--ac); border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; font-family:'Syne',sans-serif; font-weight:800; font-size:15px; color:#0a0e1a; cursor:pointer; flex-shrink:0; }
+.sb-div  { width:32px; height:1px; background:var(--bd); margin:6px 0; flex-shrink:0; }
+.sb-item { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s,border-color .15s; position:relative; flex-shrink:0; border:2px solid transparent; }
+.sb-item:hover  { background:var(--bgh); }
+.sb-item.on     { background:var(--acg); border-color:var(--ac); }
+.sb-tip { position:absolute; left:56px; background:#1e2740; color:var(--t1); font-size:12px; padding:4px 10px; border-radius:6px; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .15s; border:1px solid var(--bdl); z-index:100; }
+.sb-item:hover .sb-tip { opacity:1; }
+/* FIX: favicon placeholder — no backdrop-filter cost */
+.fp { width:26px; height:26px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
 
-  .content { flex:1; overflow-y:auto; padding:28px; -webkit-overflow-scrolling:touch; }
+/* ── LAYOUT ─────────────────────────────────────────────────────────────────── */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.topbar { height:60px; background:var(--bg2); border-bottom:1px solid var(--bd); display:flex; align-items:center; padding:0 24px; gap:12px; flex-shrink:0; padding-top:env(safe-area-inset-top,0); }
+.topbar-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; flex:1; }
+.topbar-title span { color:var(--ac); }
+.content { flex:1; overflow-y:auto; padding:28px; -webkit-overflow-scrolling:touch; }
 
-  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-  .section-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; }
-  .section-count { font-size:13px; color:var(--text-secondary); margin-left:8px; }
+/* ── BUTTONS ────────────────────────────────────────────────────────────────── */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:background .12s,transform .12s; font-family:inherit; }
+.btn-p  { background:var(--ac);  color:#0a0e1a; }
+.btn-p:hover { background:var(--acd); transform:translateY(-1px); }
+.btn-s  { background:transparent; color:var(--t2); border:1px solid var(--bdl); }
+.btn-s:hover { background:var(--bgh); color:var(--t1); }
+.btn-d  { background:transparent; color:var(--red); border:1px solid rgba(245,101,101,.3); }
+.btn-d:hover { background:rgba(245,101,101,.1); }
+.btn-sm { padding:5px 12px; font-size:12px; }
+/* FIX: removed backdrop-filter from icon-btn — was compositing a GPU layer per icon */
+.ib { width:28px; height:28px; border-radius:6px; background:rgba(10,14,26,.7); border:1px solid var(--bd); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; transition:background .12s; }
+.ib:hover { background:var(--bgh); }
+.xb { width:28px; height:28px; border-radius:6px; background:transparent; border:none; color:var(--t2); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:background .12s; }
+.xb:hover { background:var(--bgh); color:var(--t1); }
 
-  .courses-grid {
-    display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:20px;
-  }
+/* ── FORMS ──────────────────────────────────────────────────────────────────── */
+.fg { display:flex; flex-direction:column; gap:6px; }
+.fl { font-size:12px; font-weight:600; color:var(--t2); letter-spacing:.04em; text-transform:uppercase; }
+.fi, .fta, .fsel {
+  background:var(--bg2); border:1px solid var(--bdl); border-radius:8px;
+  color:var(--t1); font-family:inherit; font-size:16px; padding:10px 12px;
+  outline:none; transition:border-color .12s; width:100%; -webkit-appearance:none; appearance:none;
+}
+.fi:focus, .fta:focus, .fsel:focus { border-color:var(--ac); }
+.fta { resize:vertical; min-height:80px; }
+.fsel { cursor:pointer; }
+.si-wrap { position:relative; }
+.si { padding-left:34px !important; }
+.si-ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--tm); font-size:14px; pointer-events:none; }
 
-  .course-card {
-    background:var(--bg-card); border-radius:var(--radius-lg); overflow:hidden; cursor:pointer;
-    border:1px solid var(--border); transition:all .2s; position:relative;
-  }
-  .course-card:hover { border-color:var(--border-light); transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,.4); }
-  .course-thumb {
-    width:100%; aspect-ratio:16/9; object-fit:cover; background:var(--bg-hover);
-    display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
-  }
-  .course-thumb img { width:100%; height:100%; object-fit:cover; }
-  .course-thumb-placeholder {
-    width:100%; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center;
-    font-size:36px; position:relative; overflow:hidden;
-  }
-  .company-badge {
-    position:absolute; bottom:8px; right:8px; width:28px; height:28px; border-radius:6px;
-    background:rgba(10,14,26,.85); backdrop-filter:blur(4px); border:1px solid var(--border);
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
-  }
-  .company-badge img { width:18px; height:18px; object-fit:contain; }
-  .company-badge .mini-placeholder { font-size:10px; font-weight:700; }
-  .course-body { padding:14px 16px 16px; }
-  .course-name { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:5px; line-height:1.3; }
-  .course-desc { font-size:12.5px; color:var(--text-secondary); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:12px; }
-  .progress-wrap { margin-top:4px; }
-  .progress-label { display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:5px; }
-  .progress-bar { height:3px; background:var(--border); border-radius:10px; overflow:hidden; }
-  .progress-fill { height:100%; background:var(--accent); border-radius:10px; transition:width .3s; }
-  .icon-btn {
-    width:28px; height:28px; border-radius:6px; background:rgba(10,14,26,.85); backdrop-filter:blur(4px);
-    border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
-    cursor:pointer; font-size:13px; transition:all .15s;
-  }
-  .icon-btn:hover { background:var(--bg-hover); }
+/* ── MODAL ──────────────────────────────────────────────────────────────────── */
+.mbk { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; }
+.mo  { background:var(--bgc); border-radius:var(--rl); border:1px solid var(--bdl); width:100%; max-width:520px; max-height:90vh; overflow-y:auto; box-shadow:0 24px 80px rgba(0,0,0,.6); }
+.mh  { padding:20px 24px 16px; border-bottom:1px solid var(--bd); display:flex; align-items:center; justify-content:space-between; }
+.mt  { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; }
+.mb  { padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+.mf  { padding:16px 24px; border-top:1px solid var(--bd); display:flex; justify-content:flex-end; gap:10px; }
 
-  .modal-backdrop {
-    position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px);
-    display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px;
-  }
-  .modal {
-    background:var(--bg-card); border-radius:var(--radius-lg); border:1px solid var(--border-light);
-    width:100%; max-width:520px; max-height:90vh; overflow-y:auto;
-    box-shadow:0 24px 80px rgba(0,0,0,.6); -webkit-overflow-scrolling:touch;
-  }
-  .modal-header { padding:20px 24px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-  .modal-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; }
-  .modal-body { padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
-  .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
-  .form-group { display:flex; flex-direction:column; gap:6px; }
-  .form-label { font-size:12.5px; font-weight:600; color:var(--text-secondary); letter-spacing:.03em; text-transform:uppercase; }
-  .form-input, .form-textarea, .form-select {
-    background:var(--bg-secondary); border:1px solid var(--border-light); border-radius:8px;
-    color:var(--text-primary); font-family:'DM Sans',sans-serif; font-size:16px; padding:10px 12px;
-    outline:none; transition:border-color .15s; width:100%;
-    -webkit-appearance:none; appearance:none;
-  }
-  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color:var(--accent); }
-  .form-textarea { resize:vertical; min-height:80px; }
-  .form-select { cursor:pointer; appearance:none; }
-  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .close-btn {
-    width:28px; height:28px; border-radius:6px; background:transparent; border:none;
-    color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center;
-    font-size:18px; transition:all .15s;
-  }
-  .close-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
+/* ── TABS ───────────────────────────────────────────────────────────────────── */
+.tabs { display:flex; gap:2px; background:var(--bg2); border-radius:8px; padding:3px; }
+.tabk { padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--t2); transition:background .12s,color .12s; }
+.tabk.on { background:var(--bgc); color:var(--t1); }
 
-  .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; text-align:center; gap:16px; }
-  .empty-icon { font-size:56px; opacity:.3; }
-  .empty-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--text-secondary); }
-  .empty-sub { font-size:14px; color:var(--text-muted); max-width:300px; line-height:1.6; }
+/* ── HOME ───────────────────────────────────────────────────────────────────── */
+.sh  { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+.st  { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; }
+.sc  { font-size:13px; color:var(--t2); margin-left:8px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:20px; }
 
-  .course-page { display:flex; height:100%; overflow:hidden; }
-  .course-index {
-    width:280px; flex-shrink:0; background:var(--bg-sidebar); border-right:1px solid var(--border);
-    display:flex; flex-direction:column; overflow:hidden;
-  }
-  .course-index-header { padding:16px; border-bottom:1px solid var(--border); }
-  .course-index-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); margin-bottom:10px; }
-  .course-index-name { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; line-height:1.4; }
-  .progress-mini { margin-top:12px; }
-  .course-index-list { flex:1; overflow-y:auto; padding:10px 0; -webkit-overflow-scrolling:touch; }
+/* Course card */
+.card { background:var(--bgc); border-radius:var(--rl); overflow:hidden; cursor:pointer; border:1px solid var(--bd); transition:border-color .15s,transform .15s,box-shadow .15s; position:relative; }
+.card:hover { border-color:var(--bdl); transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,.4); }
+.c-thumb { width:100%; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+.c-thumb img { width:100%; height:100%; object-fit:cover; }
+.c-ph { width:100%; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; font-size:36px; position:relative; overflow:hidden; }
+.c-badge { position:absolute; bottom:8px; right:8px; width:28px; height:28px; border-radius:6px; background:rgba(10,14,26,.8); border:1px solid var(--bd); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.c-resume{ position:absolute; bottom:8px; left:8px; background:rgba(16,230,140,.92); color:#0a0e1a; font-size:10px; font-weight:800; padding:3px 8px; border-radius:5px; letter-spacing:.04em; }
+.c-body  { padding:14px 16px 16px; }
+.c-name  { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; margin-bottom:5px; line-height:1.3; }
+.c-desc  { font-size:12.5px; color:var(--t2); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:12px; }
+.pw { margin-top:4px; }
+.pl { display:flex; justify-content:space-between; font-size:11px; color:var(--tm); margin-bottom:5px; }
+.pb { height:3px; background:var(--bd); border-radius:10px; overflow:hidden; }
+.pf { height:100%; background:var(--ac); border-radius:10px; transition:width .3s; }
 
-  /* FIX: removed position:sticky — module headers are now simple dividers, no overflow */
-  .modh {
-    padding:20px 16px 6px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .modlbl { font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); }
-  .modcnt { font-size:10px; color:var(--text-muted); }
+/* Sort */
+.sort-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.sk { display:flex; align-items:center; gap:5px; padding:5px 10px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid var(--bdl); background:transparent; color:var(--t2); transition:all .12s; font-family:inherit; }
+.sk.on { border-color:var(--ac); color:var(--ac); background:var(--acg); }
+.sk:hover:not(.on) { background:var(--bgh); color:var(--t1); }
 
-  .crow {
-    display:flex; align-items:center; gap:12px;
-    padding:11px 14px 11px 20px;
-    cursor:pointer; transition:background .12s;
-    border-left:3px solid transparent;
-  }
-  .crow:hover { background:var(--bg-hover); }
-  .crow.on { background:var(--accent-glow); border-left-color:var(--accent); }
-  .cnum {
-    width:28px; height:28px; border-radius:50%;
-    background:rgba(255,255,255,.05); border:1.5px solid var(--border-light);
-    display:flex; align-items:center; justify-content:center;
-    font-size:12px; font-weight:700; flex-shrink:0; color:var(--text-secondary);
-    transition:all .15s;
-  }
-  .crow.on .cnum { background:var(--accent); border-color:var(--accent); color:#0a0e1a; }
-  .crow.done .cnum { background:var(--accent-dim); border-color:var(--accent-dim); color:#0a0e1a; }
-  .cinfo { flex:1; min-width:0; }
-  .cchname { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-secondary); line-height:1.3; }
-  .crow.on .cchname { color:var(--text-primary); }
-  .cmeta { display:flex; align-items:center; gap:6px; margin-top:3px; }
-  .cbdg { font-size:9px; padding:2px 6px; border-radius:4px; font-weight:800; letter-spacing:.04em; }
-  .bv { background:rgba(79,142,247,.18); color:var(--accent-2); }
-  .bt { background:rgba(167,139,250,.18); color:var(--purple); }
-  .cdur { font-size:10.5px; color:var(--text-muted); }
-  .crow-acts { display:flex; gap:4px; opacity:0; transition:opacity .1s; flex-shrink:0; }
-  .crow:hover .crow-acts { opacity:1; }
+/* Platform chips */
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.chip { display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px; cursor:pointer; border:1.5px solid var(--bd); background:var(--bgc); font-size:12.5px; font-weight:600; transition:all .12s; }
+.chip:hover { border-color:var(--bdl); background:var(--bgh); }
+.chip.on { border-color:var(--ac); background:var(--acg); color:var(--ac); }
 
-  .course-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-  .course-topbar {
-    height:56px; background:var(--bg-secondary); border-bottom:1px solid var(--border);
-    display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0;
-  }
-  .chapter-title-bar { flex:1; font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
-  .course-content-area { flex:1; display:flex; overflow:hidden; }
-  .course-viewer { flex:1; overflow-y:auto; padding:24px; -webkit-overflow-scrolling:touch; }
-  .video-wrapper { width:100%; aspect-ratio:16/9; background:#000; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:20px; position:relative; }
-  .video-wrapper iframe { width:100%; height:100%; border:none; }
-  .video-placeholder { width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; background:var(--bg-card); border-radius:var(--radius-lg); color:var(--text-muted); font-size:14px; aspect-ratio:16/9; margin-bottom:20px; border:2px dashed var(--border-light); }
+/* Empty state */
+.es { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 20px; text-align:center; gap:16px; }
+.es-ico { font-size:56px; opacity:.3; }
+.es-t   { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; color:var(--t2); }
+.es-s   { font-size:14px; color:var(--tm); max-width:300px; line-height:1.6; }
 
-  .desc-section { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; margin-bottom:20px; }
-  .desc-section-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:12px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:.05em; }
-  .desc-text { font-size:14px; color:var(--text-secondary); line-height:1.7; white-space:pre-wrap; }
-  .files-list { display:flex; flex-direction:column; gap:8px; }
-  .file-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-hover); border-radius:8px; border:1px solid var(--border); }
-  .file-icon { font-size:18px; }
-  .file-name { font-size:13px; flex:1; }
-  .links-list { display:flex; flex-direction:column; gap:6px; }
-  .link-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--accent-2); padding:6px 0; text-decoration:none; }
-  .link-item:hover { color:var(--accent); }
+/* ── COURSE PAGE ────────────────────────────────────────────────────────────── */
+.cp { display:flex; height:100%; overflow:hidden; }
 
-  .notes-panel {
-    width:300px; flex-shrink:0; background:var(--bg-card); border-left:1px solid var(--border);
-    display:flex; flex-direction:column; overflow:hidden; transition:width .2s;
-  }
-  .notes-panel.hidden { width:0; overflow:hidden; }
-  .notes-panel-header { padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-  .notes-panel-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-secondary); }
-  .notes-area { flex:1; padding:12px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
-  .note-textarea {
-    width:100%; flex:1; background:var(--bg-secondary); border:1px solid var(--border-light); border-radius:8px;
-    color:var(--text-primary); font-family:'DM Sans',sans-serif; font-size:16px; padding:12px;
-    outline:none; resize:none; transition:border-color .15s; min-height:200px;
-    -webkit-appearance:none;
-  }
-  .note-textarea:focus { border-color:var(--accent); }
-  .note-saved { font-size:11px; color:var(--accent); text-align:right; height:14px; }
+/* Index panel */
+.ci { width:280px; flex-shrink:0; background:var(--bgs); border-right:1px solid var(--bd); display:flex; flex-direction:column; overflow:hidden; }
+.ci-hd { padding:16px; border-bottom:1px solid var(--bd); }
+.ci-lbl { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--t2); margin-bottom:10px; }
+.ci-ttl { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; line-height:1.4; }
+.ci-list { flex:1; overflow-y:auto; padding:10px 0; -webkit-overflow-scrolling:touch; }
+.modh { padding:20px 16px 6px; display:flex; align-items:center; justify-content:space-between; }
+.modlbl { font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--tm); }
 
-  .chapter-editor-modal .modal { max-width:680px; }
-  .tabs { display:flex; gap:2px; background:var(--bg-secondary); border-radius:8px; padding:3px; }
-  .tab-btn { padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--text-secondary); transition:all .15s; }
-  .tab-btn.active { background:var(--bg-card); color:var(--text-primary); }
+/* Chapter row */
+.cr { display:flex; align-items:center; gap:12px; padding:11px 14px 11px 20px; cursor:pointer; transition:background .1s; border-left:3px solid transparent; }
+.cr:hover { background:var(--bgh); }
+.cr.on { background:var(--acg); border-left-color:var(--ac); }
+.cr.dn .cn { background:var(--acd); border-color:var(--acd); color:#0a0e1a; }
+.cn { width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,.05); border:1.5px solid var(--bdl); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; color:var(--t2); transition:all .12s; }
+.cr.on .cn { background:var(--ac); border-color:var(--ac); color:#0a0e1a; }
+.ci2 { flex:1; min-width:0; }
+.cn2 { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--t2); line-height:1.3; }
+.cr.on .cn2 { color:var(--t1); }
+.cm { display:flex; align-items:center; gap:6px; margin-top:3px; }
+.cbv { font-size:9px; padding:2px 6px; border-radius:4px; font-weight:800; letter-spacing:.04em; }
+.bv { background:rgba(79,142,247,.18); color:var(--ac2); }
+.bt { background:rgba(167,139,250,.18); color:var(--pur); }
+.cd { font-size:10.5px; color:var(--tm); }
+.cr-acts { display:flex; gap:4px; opacity:0; transition:opacity .1s; flex-shrink:0; }
+.cr:hover .cr-acts { opacity:1; }
+.acr { padding:10px 16px; border-top:1px solid var(--bd); flex-shrink:0; }
 
-  .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; }
-  .badge-green { background:rgba(16,230,140,.12); color:var(--accent); }
-  .badge-blue { background:rgba(79,142,247,.12); color:var(--accent-2); }
+/* Main area */
+.cm2 { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.ctb { height:56px; background:var(--bg2); border-bottom:1px solid var(--bd); display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0; }
+.cttl { flex:1; font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
+.cca { flex:1; display:flex; overflow:hidden; }
+.cv  { flex:1; overflow-y:auto; padding:24px; -webkit-overflow-scrolling:touch; }
+.vw  { width:100%; aspect-ratio:16/9; background:#000; border-radius:var(--rl); overflow:hidden; margin-bottom:20px; }
+.vw iframe { width:100%; height:100%; border:none; }
+.vph { width:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; background:var(--bgc); border-radius:var(--rl); color:var(--tm); font-size:14px; aspect-ratio:16/9; margin-bottom:20px; border:2px dashed var(--bdl); }
 
-  .add-chapter-row { padding:10px 16px; border-top:1px solid var(--border); flex-shrink:0; }
+/* Complete checkbox */
+.cbtn { display:flex; align-items:center; gap:6px; cursor:pointer; }
+.chk { width:18px; height:18px; border-radius:4px; border:2px solid var(--bdl); display:flex; align-items:center; justify-content:center; transition:all .12s; flex-shrink:0; }
+.chk.on { background:var(--ac); border-color:var(--ac); }
+.chk.on::after { content:'✓'; font-size:11px; font-weight:700; color:#0a0e1a; }
+@keyframes pop { 0%{transform:scale(1)} 40%{transform:scale(1.3)} 70%{transform:scale(.92)} 100%{transform:scale(1)} }
+.chk.pop { animation:pop .32s ease; }
 
-  .search-input-wrap { position:relative; }
-  .search-input { padding-left:34px !important; }
-  .search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:14px; pointer-events:none; }
+/* Content sections */
+.ds { background:var(--bgc); border:1px solid var(--bd); border-radius:var(--rl); padding:20px; margin-bottom:20px; }
+.ds-t { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; margin-bottom:12px; color:var(--t2); text-transform:uppercase; letter-spacing:.06em; }
+.ds-p { font-size:14px; color:var(--t2); line-height:1.7; white-space:pre-wrap; }
+.fl2  { display:flex; flex-direction:column; gap:8px; }
+.fi2  { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bgh); border-radius:8px; border:1px solid var(--bd); text-decoration:none; color:inherit; }
+.fi2-n{ font-size:13px; flex:1; }
+.ll  { display:flex; flex-direction:column; gap:6px; }
+.li  { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ac2); padding:6px 0; text-decoration:none; }
+.li:hover { color:var(--ac); }
 
-  .tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:4px; font-size:11px; background:var(--bg-hover); color:var(--text-secondary); border:1px solid var(--border); }
+/* Notes panel */
+.np { width:300px; flex-shrink:0; background:var(--bgc); border-left:1px solid var(--bd); display:flex; flex-direction:column; overflow:hidden; transition:width .18s; }
+.np.hide { width:0; }
+.np-hd { padding:14px 16px; border-bottom:1px solid var(--bd); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.np-t  { font-family:'Syne',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--t2); }
+.na  { flex:1; padding:12px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
+.nta { width:100%; flex:1; background:var(--bg2); border:1px solid var(--bdl); border-radius:8px; color:var(--t1); font-family:inherit; font-size:16px; padding:12px; outline:none; resize:none; transition:border-color .12s; min-height:200px; -webkit-appearance:none; }
+.nta:focus { border-color:var(--ac); }
+.nsv { font-size:11px; color:var(--ac); text-align:right; height:14px; }
 
-  .company-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
-  .company-chip {
-    display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px;
-    cursor:pointer; border:1.5px solid var(--border); background:var(--bg-card);
-    font-size:12.5px; font-weight:600; transition:all .15s;
-  }
-  .company-chip:hover { border-color:var(--border-light); background:var(--bg-hover); }
-  .company-chip.active { border-color:var(--accent); background:var(--accent-glow); color:var(--accent); }
-  .company-chip img { width:16px; height:16px; object-fit:contain; border-radius:3px; }
+/* ── GLOBAL NOTES ───────────────────────────────────────────────────────────── */
+.ngl { display:flex; flex-direction:column; gap:14px; }
+.nc  { background:var(--bgc); border:1px solid var(--bd); border-radius:var(--rl); padding:16px 18px; cursor:pointer; transition:border-color .12s; }
+.nc:hover { border-color:var(--bdl); }
+.nc-co { font-size:11px; font-weight:700; color:var(--ac); text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; }
+.nc-ch { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:8px; }
+.nc-pv { font-size:13px; color:var(--t2); line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.nc-pv mark { background:rgba(16,230,140,.22); color:var(--ac); border-radius:2px; padding:0 2px; }
 
-  .complete-btn { display:flex; align-items:center; gap:6px; }
-  .checkbox-custom { width:18px; height:18px; border-radius:4px; border:2px solid var(--border-light); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s; flex-shrink:0; }
-  .checkbox-custom.checked { background:var(--accent); border-color:var(--accent); }
-  .checkbox-custom.checked::after { content:'✓'; font-size:11px; font-weight:700; color:#0a0e1a; }
+/* ── GRADIENTS ──────────────────────────────────────────────────────────────── */
+.g0{background:linear-gradient(135deg,#1a2a4a,#0d3d2b)}
+.g1{background:linear-gradient(135deg,#2d1a4a,#1a0d3d)}
+.g2{background:linear-gradient(135deg,#4a1a1a,#3d0d0d)}
+.g3{background:linear-gradient(135deg,#1a4a2d,#0d3d1a)}
+.g4{background:linear-gradient(135deg,#4a3a1a,#3d2d0d)}
+.g5{background:linear-gradient(135deg,#1a3a4a,#0d2d3d)}
 
-  .grad-0 { background:linear-gradient(135deg,#1a2a4a,#0d3d2b); }
-  .grad-1 { background:linear-gradient(135deg,#2d1a4a,#1a0d3d); }
-  .grad-2 { background:linear-gradient(135deg,#4a1a1a,#3d0d0d); }
-  .grad-3 { background:linear-gradient(135deg,#1a4a2d,#0d3d1a); }
-  .grad-4 { background:linear-gradient(135deg,#4a3a1a,#3d2d0d); }
-  .grad-5 { background:linear-gradient(135deg,#1a3a4a,#0d2d3d); }
+/* ── MOBILE NAV ─────────────────────────────────────────────────────────────── */
+.mbn {
+  display:none; position:fixed; bottom:0; left:0; right:0;
+  background:var(--bgs); border-top:1px solid var(--bd);
+  padding-bottom:max(env(safe-area-inset-bottom),20px);
+  z-index:200; flex-direction:row; align-items:stretch;
+  min-height:calc(56px + max(env(safe-area-inset-bottom),20px));
+}
+/* Extends background below nav to cover Safari chrome gap */
+.mbn::after { content:''; position:absolute; left:0; right:0; top:100%; height:40px; background:var(--bgs); }
+.mni { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; padding:8px 4px; min-height:56px; border:none; background:transparent; color:var(--tm); font-size:10px; font-family:inherit; font-weight:600; transition:color .12s; }
+.mni.on { color:var(--ac); }
+.mni-i { font-size:20px; line-height:1; }
 
-  @media (max-width:768px) {
-    .course-index { width:220px; }
-    .notes-panel { width:240px; }
-    .courses-grid { grid-template-columns:1fr 1fr; }
-  }
+/* ── MOBILE SHEETS ──────────────────────────────────────────────────────────── */
+.mss { position:fixed; inset:0; z-index:500; pointer-events:none; display:flex; }
+.mss.open { pointer-events:all; }
+.mss-bk { position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); z-index:1; opacity:0; transition:opacity .22s ease; }
+.mss.open .mss-bk { opacity:1; }
+.mss-pn { position:absolute; top:0; bottom:0; left:0; width:80%; max-width:320px; background:var(--bgs); border-right:1px solid var(--bd); display:flex; flex-direction:column; overflow:hidden; padding-top:env(safe-area-inset-top); z-index:2; transform:translateX(-100%); transition:transform .22s ease; }
+.mss.open .mss-pn { transform:translateX(0); }
+.mns { position:fixed; inset:0; z-index:500; pointer-events:none; display:flex; flex-direction:column; justify-content:flex-end; }
+.mns.open { pointer-events:all; }
+.mns-bk { position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); opacity:0; transition:opacity .28s ease; }
+.mns.open .mns-bk { opacity:1; }
+.mns-pn { position:relative; z-index:1; background:var(--bgc); border-radius:20px 20px 0 0; border-top:1px solid var(--bdl); display:flex; flex-direction:column; height:70vh; padding-bottom:env(safe-area-inset-bottom); transform:translateY(100%); transition:transform .28s ease; }
+.mns.open .mns-pn { transform:translateY(0); }
+.mns-hnd { width:36px; height:4px; background:var(--bdl); border-radius:2px; margin:10px auto 6px; flex-shrink:0; }
 
-  .mobile-bottom-nav {
-    display:none;
-    position:fixed; bottom:0; left:0; right:0;
-    background:var(--bg-sidebar); border-top:1px solid var(--border);
-    padding-bottom:max(env(safe-area-inset-bottom), 8px);
-    z-index:200; flex-direction:row; align-items:stretch;
-    min-height:calc(56px + max(env(safe-area-inset-bottom), 8px));
-  }
-  .mobile-nav-item {
-    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:3px; cursor:pointer; padding:8px 4px; min-height:56px;
-    border:none; background:transparent; color:var(--text-muted); font-size:10px;
-    font-family:'DM Sans',sans-serif; font-weight:600; transition:color .15s;
-  }
-  .mobile-nav-item.active { color:var(--accent); }
-  .mobile-nav-item svg { flex-shrink:0; }
-  .mobile-nav-icon { font-size:20px; line-height:1; }
-
-  .mobile-sidebar-sheet {
-    position:fixed; inset:0; z-index:500;
-    pointer-events:none;
-    display:flex;
-  }
-  .mobile-sidebar-sheet.open {
-    pointer-events:all;
-  }
-  .mobile-sheet-backdrop {
-    position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px);
-    z-index:1;
-    opacity:0; transition:opacity .25s ease;
-  }
-  .mobile-sidebar-sheet.open .mobile-sheet-backdrop { opacity:1; }
-  .mobile-sheet-panel {
-    position:absolute; top:0; bottom:0; left:0; width:80%; max-width:320px;
-    background:var(--bg-sidebar); border-right:1px solid var(--border);
-    display:flex; flex-direction:column; overflow:hidden;
-    padding-top:env(safe-area-inset-top);
-    z-index:2;
-    transform:translateX(-100%); transition:transform .25s ease;
-  }
-  .mobile-sidebar-sheet.open .mobile-sheet-panel { transform:translateX(0); }
-
-  .mobile-notes-sheet {
-    position:fixed; inset:0; z-index:500;
-    pointer-events:none;
-    display:flex;
-    flex-direction:column;
-    justify-content:flex-end;
-  }
-  .mobile-notes-sheet.open {
-    pointer-events:all;
-  }
-  .mobile-notes-backdrop {
-    position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px);
-    opacity:0; transition:opacity .3s ease;
-  }
-  .mobile-notes-sheet.open .mobile-notes-backdrop { opacity:1; }
-  .mobile-notes-sheet-panel {
-    position:relative; z-index:1;
-    background:var(--bg-card); border-radius:20px 20px 0 0; border-top:1px solid var(--border-light);
-    display:flex; flex-direction:column;
-    height:70vh; padding-bottom:env(safe-area-inset-bottom);
-    transform:translateY(100%); transition:transform .3s ease;
-  }
-  .mobile-notes-sheet.open .mobile-notes-sheet-panel { transform:translateY(0); }
-  .mobile-notes-handle {
-    width:36px; height:4px; background:var(--border-light); border-radius:2px;
-    margin:10px auto 6px; flex-shrink:0;
-  }
-
-  @media (max-width:640px) {
-    .sidebar { display:none !important; }
-    .mobile-hide { display: none !important; }
-    .mobile-bottom-nav { display:flex; }
-
-    .main { padding-bottom:calc(56px + max(env(safe-area-inset-bottom), 16px)); }
-
-    .topbar {
-      padding-top:max(12px, env(safe-area-inset-top));
-      height:auto; min-height:56px; flex-wrap:wrap; gap:8px;
-      padding-left:16px; padding-right:16px; padding-bottom:10px;
-    }
-    .topbar-title { font-size:16px; flex:none; }
-    .topbar > .btn { padding:6px 10px; font-size:12px; }
-    .topbar .search-input-wrap { order:10; width:100%; flex-basis:100%; }
-    .topbar .search-input-wrap input { width:100% !important; }
-
-    .courses-grid { grid-template-columns:1fr; gap:14px; }
-
-    .icon-btn { width:36px; height:36px; font-size:14px; }
-    .content { padding:16px; }
-
-    .course-page { flex-direction:column; }
-    .course-index { display:none !important; }
-    .notes-panel { display:none !important; }
-
-    .desktop-notes-btn { display:none !important; }
-
-    .course-topbar {
-      padding:0 12px; flex-wrap:wrap; height:auto; min-height:52px; gap:8px;
-      padding-top:max(10px, env(safe-area-inset-top)); padding-bottom:10px;
-    }
-    .chapter-title-bar { font-size:13px; }
-    .course-viewer { padding:14px; }
-
-    .modal-backdrop { padding:0; align-items:flex-end; }
-    .modal {
-      max-width:100%; max-height:92vh; border-radius:20px 20px 0 0;
-      padding-bottom:env(safe-area-inset-bottom);
-    }
-    .modal-body { padding:16px; gap:14px; }
-    .modal-header { padding:16px 16px 12px; }
-    .modal-footer { padding:12px 16px; padding-bottom:max(16px, env(safe-area-inset-bottom)); }
-    .form-row { grid-template-columns:1fr; }
-
-    .crow-acts { opacity:1 !important; }
-    .crow-acts .icon-btn { width:32px; height:32px; }
-
-    .btn { padding:10px 16px; font-size:14px; }
-    .btn-sm { padding:8px 12px; font-size:13px; }
-
-    .empty-state { padding:48px 20px; }
-
-    .company-chips { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
-    .company-chip { flex-shrink:0; }
-
-    .section-header { margin-bottom:14px; }
-    .tab-btn { padding:8px 10px; font-size:12px; }
-    .file-item { padding:12px; }
-    .link-item { padding:10px 0; }
-  }
-
-  @media (min-width:641px) and (max-width:768px) {
-    .sidebar { width:60px; }
-    .courses-grid { grid-template-columns:1fr 1fr; }
-    .course-index { width:220px; }
-    .notes-panel { width:240px; }
-    .topbar { padding:0 16px; }
-  }
+/* ── RESPONSIVE ─────────────────────────────────────────────────────────────── */
+@media(max-width:768px){
+  .ci{width:220px} .np{width:240px} .grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  .sb{display:none!important} .dsk{display:none!important} .mbn{display:flex}
+  .main{padding-bottom:calc(56px + max(env(safe-area-inset-bottom),20px))}
+  .topbar{padding-top:max(12px,env(safe-area-inset-top));height:auto;min-height:56px;flex-wrap:wrap;gap:8px;padding-left:16px;padding-right:16px;padding-bottom:10px}
+  .topbar-title{font-size:16px;flex:none}
+  .topbar>.btn{padding:6px 10px;font-size:12px}
+  .topbar .si-wrap{order:10;width:100%;flex-basis:100%}
+  .topbar .si-wrap input{width:100%!important}
+  .grid{grid-template-columns:1fr;gap:14px}
+  .ib{width:36px;height:36px;font-size:14px}
+  .content{padding:16px}
+  .cp{flex-direction:column} .ci{display:none!important} .np{display:none!important}
+  .ctb{padding:0 12px;flex-wrap:wrap;height:auto;min-height:52px;gap:8px;padding-top:max(10px,env(safe-area-inset-top));padding-bottom:10px}
+  .cttl{font-size:13px} .cv{padding:14px}
+  .mbk{padding:0;align-items:flex-end}
+  .mo{max-width:100%;max-height:92vh;border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+  .mb{padding:16px;gap:14px} .mh{padding:16px 16px 12px}
+  .mf{padding:12px 16px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+  .cr-acts{opacity:1!important} .cr-acts .ib{width:32px;height:32px}
+  .btn{padding:10px 16px;font-size:14px} .btn-sm{padding:8px 12px;font-size:13px}
+  .es{padding:48px 20px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px} .chip{flex-shrink:0}
+  .sh{margin-bottom:14px} .sort-row{gap:4px} .sk{padding:5px 8px;font-size:11px}
+  .tabk{padding:8px 10px;font-size:12px} .ngl{gap:10px}
+}
+@media(min-width:641px) and (max-width:768px){
+  .sb{width:60px} .grid{grid-template-columns:1fr 1fr} .topbar{padding:0 16px}
+}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+// ─────────────────────────────────────────────────────────────────────────────
+// Pull only what we need from React — no wildcard destructure
+// ─────────────────────────────────────────────────────────────────────────────
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-const uid = () => Math.random().toString(36).slice(2,10);
-const STORAGE_KEY = 'courseflow_v2';
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const SK  = 'courseflow_v2';
+const RK  = 'courseflow_resume';
+const GC  = ['#10e68c','#4f8ef7','#f56565','#f6c90e','#a78bfa','#fb923c'];
+const EMP = { companies:[], courses:[] };
+const SORTS = [
+  { k:'added',    l:'Date Added' },
+  { k:'recent',   l:'⏱ Recent'  },
+  { k:'az',       l:'A–Z'       },
+  { k:'progress', l:'% Done'    },
+];
 
-const DEFAULT_DATA = {
-  "companies": [],
-  "courses": []
-};
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+// FIX: load/save are called once on mount and on explicit updates — not per-render
+const loadData   = () => { try { const s=localStorage.getItem(SK);  return s ? JSON.parse(s) : { ...EMP }; } catch { return { ...EMP }; } };
+const saveData   = d  => { try { localStorage.setItem(SK, JSON.stringify(d)); } catch {} };
+// FIX: resume map is loaded once at app init and kept in memory; only written on chapter change
+const loadResume = () => { try { return JSON.parse(localStorage.getItem(RK)||'{}'); } catch { return {}; } };
+const saveResume = (map) => { try { localStorage.setItem(RK, JSON.stringify(map)); } catch {} };
 
-const load = () => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-    return JSON.parse(JSON.stringify(DEFAULT_DATA));
-  }
-  catch { return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
-};
-const save = (data) => localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+// ── UTILITIES ─────────────────────────────────────────────────────────────────
+const uid     = () => Math.random().toString(36).slice(2,10);
+const haptic  = (t='light') => { try { navigator.vibrate?.(t==='medium'?[30,20,30]:t==='heavy'?[50,30,80]:50); } catch {} };
+const favicon = url => { if(!url)return null; try{ return `https://www.google.com/s2/favicons?domain=${new URL(url.startsWith('http')?url:'https://'+url).hostname}&sz=64`; }catch{ return null; } };
+const pct     = c => { const t=c.chapters?.length||0, d=c.chapters?.filter(x=>x.completed).length||0; return t>0?Math.round(d/t*100):c.progress||0; };
 
-const GRAD_COLORS = ['#10e68c','#4f8ef7','#f56565','#f6c90e','#a78bfa','#fb923c'];
-
-function getFaviconUrl(url) {
+// ── EMBED URL — memoised per-chapter via useMemo in caller ───────────────────
+function embedUrl(url) {
   if (!url) return null;
-  try {
-    const hostname = new URL(url.startsWith('http') ? url : 'https://'+url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
-  } catch { return null; }
+  const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}?autoplay=0&title=0&byline=0&portrait=0`;
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (yt)   return `https://www.youtube.com/embed/${yt[1]}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
+  if (url.includes('wistia'))           return `https://fast.wistia.net/embed/iframe/${url.split('/').pop()}?autoplay=0`;
+  if (url.includes('player.hotmart.com')) return url;
+  const gd = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)||url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+  if (url.includes('drive.google.com') && gd) return `https://drive.google.com/file/d/${gd[1]}/preview`;
+  if (url.includes('embed')||url.startsWith('https')) return url;
+  return null;
+}
+const isYT = url => !!(url && (url.includes('youtube.com')||url.includes('youtu.be')));
+
+// ── COMPANY ICON ──────────────────────────────────────────────────────────────
+// FIX: memo wrapping prevents re-renders when parent re-renders for unrelated state
+const CompanyIcon = React.memo(function CompanyIcon({ company, size=26 }) {
+  const [err, setErr] = useState(false);
+  const src   = company?.icon || favicon(company?.url);
+  const color = GC[(company?.name||'').charCodeAt(0) % GC.length];
+  if (src && !err)
+    return <img src={src} width={size} height={size} style={{borderRadius:5,objectFit:'contain'}} onError={()=>setErr(true)} loading="lazy" />;
+  return <div className="fp" style={{width:size,height:size,background:color+'22',color,fontSize:size*.5}}>{(company?.name||'?')[0].toUpperCase()}</div>;
+});
+
+// ── CHAPTER ROW — shared between desktop index and mobile sheet ───────────────
+// FIX: extracted as memo'd component; neither index re-renders all rows when
+//      only the active chapter changes
+const ChapterRow = React.memo(function ChapterRow({ ch, idx, isActive, onSelect, onEdit, onDelete, mobileSize=false }) {
+  const pm = idx; // module header handled by parent
+  const sz = mobileSize ? 32 : 24;
+  return (
+    <div className={`cr ${isActive?'on':''} ${ch.completed?'dn':''}`}
+      style={mobileSize?{paddingRight:10}:{}}
+      onClick={onSelect}>
+      <div className="cn">{ch.completed?'✓':idx+1}</div>
+      <div className="ci2">
+        <div className="cn2">{ch.name}</div>
+        <div className="cm">
+          <span className={`cbv ${ch.type==='video'?'bv':'bt'}`}>{ch.type==='video'?'▶ Video':'✦ Text'}</span>
+          {ch.duration && <span className="cd">{ch.duration}</span>}
+        </div>
+      </div>
+      <div className="cr-acts" style={mobileSize?{opacity:1}:{}}>
+        <div className="ib" style={{width:sz,height:sz,fontSize:11}} onClick={e=>{e.stopPropagation();onEdit(idx);}}>✏️</div>
+        <div className="ib" style={{width:sz,height:sz,fontSize:11}} onClick={e=>{e.stopPropagation();onDelete(idx);}}>🗑</div>
+      </div>
+    </div>
+  );
+});
+
+// Renders a chapter list with optional module headers — shared by both index panels
+function ChapterList({ chapters, activeIdx, onSelect, onEdit, onDelete, mobile=false }) {
+  return (
+    <>
+      {chapters.length === 0 && (
+        <div style={{padding:'28px 16px',color:'var(--tm)',fontSize:13,textAlign:'center',lineHeight:1.7}}>
+          No chapters yet.<br/>Add your first one below.
+        </div>
+      )}
+      {chapters.map((ch, i) => {
+        const prevMod = i > 0 ? (chapters[i-1].module||'') : null;
+        const thisMod = ch.module || '';
+        return (
+          <React.Fragment key={ch.id||i}>
+            {thisMod && thisMod !== prevMod && (
+              <div className="modh" style={{paddingTop:i===0?12:20}}>
+                <span className="modlbl">{thisMod}</span>
+              </div>
+            )}
+            <ChapterRow
+              ch={ch} idx={i} isActive={i===activeIdx}
+              onSelect={()=>onSelect(i)} onEdit={onEdit} onDelete={onDelete}
+              mobileSize={mobile}
+            />
+          </React.Fragment>
+        );
+      })}
+    </>
+  );
 }
 
-function CompanyIcon({ company, size=26 }) {
-  const [err, setErr] = useState(false);
-  const faviconUrl = company?.icon || getFaviconUrl(company?.url);
-  const color = GRAD_COLORS[(company?.name||'').charCodeAt(0) % GRAD_COLORS.length];
-  if (faviconUrl && !err) {
-    return <img src={faviconUrl} width={size} height={size} style={{borderRadius:5,objectFit:'contain'}} onError={()=>setErr(true)} />;
-  }
+// ── PROGRESS BAR ──────────────────────────────────────────────────────────────
+function ProgBar({ done, total, showLabel=true, small=false }) {
+  const p = total > 0 ? Math.round(done/total*100) : 0;
   return (
-    <div className="favicon-placeholder" style={{width:size,height:size,background:color+'22',color,fontSize:size*.5,borderRadius:5}}>
-      {(company?.name||'?')[0].toUpperCase()}
+    <div className="pw">
+      {showLabel && <div className="pl"><span>{total>0?`${done}/${total} chapters`:'No chapters'}</span><span style={{color:'var(--ac)'}}>{p}%</span></div>}
+      {!showLabel && <div style={{fontSize:11,color:'var(--tm)',display:'flex',justifyContent:'space-between',marginBottom:4}}><span>{done}/{total} done</span><span style={{color:'var(--ac)'}}>{p}%</span></div>}
+      <div className="pb"><div className="pf" style={{width:`${p}%`}}/></div>
     </div>
   );
 }
 
-function getEmbedUrl(url) {
-  if (!url) return null;
-
-  const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  if (vimeoMatch)
-    return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=0&muted=0&title=0&byline=0&portrait=0`;
-
-  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-  if (ytMatch)
-    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&mute=0`;
-
-  if (url.includes('wistia')) {
-    const id = url.split('/').pop();
-    return `https://fast.wistia.net/embed/iframe/${id}?autoplay=0&muted=0`;
-  }
-
-  if (url.includes('player.hotmart.com')) {
-    return url;
-  }
-
-  const gdriveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) ||
-                      url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/) ||
-                      url.match(/id=([a-zA-Z0-9_-]+)/);
-  if (url.includes('drive.google.com') && gdriveMatch) {
-    return `https://drive.google.com/file/d/${gdriveMatch[1]}/preview`;
-  }
-
-  if (url.includes('embed') || url.startsWith('https')) {
-    return url;
-  }
-
-  return null;
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function Toast({ msg }) {
+  if (!msg) return null;
+  return <div style={{position:'fixed',bottom:20,left:'50%',transform:'translateX(-50%)',background:'var(--ac)',color:'#0a0e1a',padding:'10px 18px',borderRadius:10,fontSize:13,fontWeight:700,zIndex:2000,whiteSpace:'nowrap'}}>{msg}</div>;
 }
 
-// ─── ADD COURSE MODAL ────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// ADD COURSE MODAL
+// ─────────────────────────────────────────────────────────────────────────────
 function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
   const [title, setTitle] = useState(editCourse?.title||'');
   const [thumb, setThumb] = useState(editCourse?.thumbnail||'');
-  const [companyId, setCompanyId] = useState(editCourse?.companyId||'');
-  const [desc, setDesc] = useState(editCourse?.description||'');
-  const [newCompany, setNewCompany] = useState('');
-  const [newCompanyUrl, setNewCompanyUrl] = useState('');
-  const [newCompanyIcon, setNewCompanyIcon] = useState('');
-  const [addingCompany, setAddingCompany] = useState(false);
+  const [coId,  setCoId]  = useState(editCourse?.companyId||'');
+  const [desc,  setDesc]  = useState(editCourse?.description||'');
+  const [newCo, setNewCo] = useState('');
+  const [newCoUrl,  setNewCoUrl]  = useState('');
+  const [newCoIcon, setNewCoIcon] = useState('');
+  const [addingCo, setAddingCo]   = useState(false);
 
-  const handleSave = () => {
+  const doSave = useCallback(() => {
     if (!title.trim()) return;
-    onSave({ title, thumbnail:thumb, companyId, description:desc });
+    onSave({ title, thumbnail:thumb, companyId:coId, description:desc });
     onClose();
-  };
+  }, [title, thumb, coId, desc]);
+
+  const addPlatform = useCallback(() => {
+    if (!newCo.trim()) return;
+    if (companies.some(c=>c.name.toLowerCase()===newCo.toLowerCase())) { alert('Platform already exists'); return; }
+    const nc = { id:uid(), name:newCo.trim(), url:newCoUrl.trim(), icon:newCoIcon.trim()||undefined };
+    onSave(null, nc);
+    setCoId(nc.id); setAddingCo(false); setNewCo(''); setNewCoUrl(''); setNewCoIcon('');
+  }, [newCo, newCoUrl, newCoIcon, companies]);
 
   return (
-    <div className="modal-backdrop" onMouseDown={e => {
-      if (e.target === e.currentTarget) onClose();
-    }}>
-      <div className="modal">
-        <div className="modal-header">
-          <span className="modal-title">{editCourse?'Edit Course':'Add New Course'}</span>
-          <button className="close-btn" onClick={onClose}>×</button>
-        </div>
-        <div className="modal-body">
-          <div className="form-group">
-            <label className="form-label">Course Title *</label>
-            <input className="form-input" placeholder="e.g. Complete JavaScript Bootcamp" value={title} onChange={e=>setTitle(e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Thumbnail URL</label>
-            <input className="form-input" placeholder="https://example.com/thumb.jpg" value={thumb} onChange={e=>setThumb(e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Platform / Company</label>
-            {!addingCompany ? (
+    <div className="mbk" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="mo">
+        <div className="mh"><span className="mt">{editCourse?'Edit Course':'Add New Course'}</span><button className="xb" onClick={onClose}>×</button></div>
+        <div className="mb">
+          <div className="fg"><label className="fl">Course Title *</label><input className="fi" placeholder="e.g. Complete JavaScript Bootcamp" value={title} onChange={e=>setTitle(e.target.value)}/></div>
+          <div className="fg"><label className="fl">Thumbnail URL</label><input className="fi" placeholder="https://..." value={thumb} onChange={e=>setThumb(e.target.value)}/></div>
+          <div className="fg">
+            <label className="fl">Platform / Company</label>
+            {!addingCo ? (
               <div style={{display:'flex',gap:8}}>
-                <select
-                  className="form-select"
-                  style={{flex:1}}
-                  value={companyId}
-                  onChange={e=>setCompanyId(e.target.value)}
-                >
+                <select className="fsel" style={{flex:1}} value={coId} onChange={e=>setCoId(e.target.value)}>
                   <option value="">— None —</option>
-                  {companies.map(c=>(
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
+                  {companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-
-                {companyId && (
-                  <button
-                    className="btn btn-secondary"
-                    style={{padding:'6px 10px'}}
-                    onClick={()=>{
-                      const isUsed = courses.some(c=>c.companyId === companyId);
-                      if(isUsed){
-                        alert('Cannot delete: platform is used by courses');
-                        return;
-                      }
-                      const updatedCompanies = companies.filter(c=>c.id !== companyId);
-                      onSave(null, null, updatedCompanies);
-                      setCompanyId('');
-                    }}
-                  >
-                    🗑
-                  </button>
-                )}
-
-                <button className="btn btn-secondary" onClick={()=>setAddingCompany(true)}>
-                  + New
-                </button>
+                {coId && <button className="btn btn-s btn-sm" onClick={()=>{if(courses.some(c=>c.companyId===coId)){alert('Cannot delete: in use');return;}onSave(null,null,companies.filter(c=>c.id!==coId));setCoId('');}}>🗑</button>}
+                <button className="btn btn-s" onClick={()=>setAddingCo(true)}>+ New</button>
               </div>
             ) : (
-              <div style={{display:'flex',flexDirection:'column',gap:8,padding:12,background:'var(--bg-secondary)',borderRadius:8,border:'1px solid var(--border-light)'}}>
-                <input className="form-input" placeholder="Platform name (e.g. Udemy)" value={newCompany} onChange={e=>setNewCompany(e.target.value)} />
-                <input className="form-input" placeholder="Website URL (for favicon, e.g. udemy.com)" value={newCompanyUrl} onChange={e=>setNewCompanyUrl(e.target.value)} />
-                <input className="form-input" placeholder="Icon URL (optional)" value={newCompanyIcon} onChange={e=>setNewCompanyIcon(e.target.value)}/>
+              <div style={{display:'flex',flexDirection:'column',gap:8,padding:12,background:'var(--bg2)',borderRadius:8,border:'1px solid var(--bdl)'}}>
+                <input className="fi" placeholder="Platform name" value={newCo} onChange={e=>setNewCo(e.target.value)}/>
+                <input className="fi" placeholder="Website URL (for favicon)" value={newCoUrl} onChange={e=>setNewCoUrl(e.target.value)}/>
+                <input className="fi" placeholder="Icon URL (optional)" value={newCoIcon} onChange={e=>setNewCoIcon(e.target.value)}/>
                 <div style={{display:'flex',gap:8}}>
-                  <button className="btn btn-primary btn-sm" onClick={()=>{
-                    if(newCompany.trim()){
-                      const nc={
-                        id:uid(),
-                        name:newCompany.trim(),
-                        url:newCompanyUrl.trim(),
-                        icon:newCompanyIcon.trim() || undefined
-                      };
-                      if (companies.some(c => c.name.toLowerCase() === newCompany.toLowerCase())) {
-                        alert("Platform already exists");
-                        return;
-                      }
-                      onSave(null, nc);
-                      setCompanyId(nc.id);
-                      setAddingCompany(false);
-                      setNewCompany('');
-                      setNewCompanyUrl('');
-                      setNewCompanyIcon('');
-                    }
-                  }}>Add Platform</button>
-                  <button className="btn btn-secondary btn-sm" onClick={()=>setAddingCompany(false)}>Cancel</button>
+                  <button className="btn btn-p btn-sm" onClick={addPlatform}>Add Platform</button>
+                  <button className="btn btn-s btn-sm" onClick={()=>setAddingCo(false)}>Cancel</button>
                 </div>
               </div>
             )}
           </div>
-          <div className="form-group">
-            <label className="form-label">Description (optional)</label>
-            <textarea className="form-textarea" placeholder="Brief overview of this course..." value={desc} onChange={e=>setDesc(e.target.value)} />
-          </div>
+          <div className="fg"><label className="fl">Description (optional)</label><textarea className="fta" placeholder="Brief overview…" value={desc} onChange={e=>setDesc(e.target.value)}/></div>
         </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={!title.trim()}>
-            {editCourse?'Save Changes':'Add Course'}
-          </button>
+        <div className="mf">
+          <button className="btn btn-s" onClick={onClose}>Cancel</button>
+          <button className="btn btn-p" onClick={doSave} disabled={!title.trim()}>{editCourse?'Save Changes':'Add Course'}</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── CHAPTER MODAL ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// CHAPTER MODAL
+// ─────────────────────────────────────────────────────────────────────────────
 function ChapterModal({ chapter, onClose, onSave }) {
-  const [name, setName] = useState(chapter?.name||'');
-  const [mod, setMod] = useState(chapter?.module||'');
-  const [type, setType] = useState(chapter?.type||'video');
-  const [dur, setDur] = useState(chapter?.duration||'');
+  const nl = arr => (arr||[]).map(l=>typeof l==='string'?{label:l,url:l}:l);
+  const nf = arr => (arr||[]).map(f=>typeof f==='string'?{name:f,url:''}:f);
+  const [name,     setName]     = useState(chapter?.name||'');
+  const [mod,      setMod]      = useState(chapter?.module||'');
+  const [type,     setType]     = useState(chapter?.type||'video');
+  const [dur,      setDur]      = useState(chapter?.duration||'');
   const [videoUrl, setVideoUrl] = useState(chapter?.videoUrl||'');
-  const [desc, setDesc] = useState(chapter?.description||'');
-  const normalizeLinks = (arr = []) =>
-    arr.map(l => typeof l === 'string' ? { label: l, url: l } : l);
-  const normalizeFiles = (arr = []) =>
-    arr.map(f => typeof f === 'string' ? { name: f, url: '' } : f);
-  const [links, setLinks] = useState(normalizeLinks(chapter?.links));
-  const [files, setFiles] = useState(normalizeFiles(chapter?.files));
-  const [tab, setTab] = useState('basic');
+  const [desc,     setDesc]     = useState(chapter?.description||'');
+  const [links,    setLinks]    = useState(nl(chapter?.links));
+  const [files,    setFiles]    = useState(nf(chapter?.files));
+  const [tab,      setTab]      = useState('basic');
 
-  const handleSave = () => {
+  const doSave = useCallback(() => {
     if (!name.trim()) return;
     onSave({ name, module:mod, type, duration:dur, videoUrl, description:desc, links, files });
-  };
+  }, [name, mod, type, dur, videoUrl, desc, links, files]);
+
+  const updLink = useCallback((i, field, val) => setLinks(prev => { const u=[...prev]; u[i]={...u[i],[field]:val}; return u; }), []);
+  const updFile = useCallback((i, field, val) => setFiles(prev => { const u=[...prev]; u[i]={...u[i],[field]:val}; return u; }), []);
 
   return (
-    <div className="modal-backdrop chapter-editor-modal" onMouseDown={e => {
-      if (e.target === e.currentTarget) onClose();
-    }}>
-      <div className="modal" style={{maxWidth:620}}>
-        <div className="modal-header">
-          <span className="modal-title">{chapter?.id?'Edit Chapter':'Add Chapter'}</span>
-          <button className="close-btn" onClick={onClose}>×</button>
-        </div>
-        <div className="modal-body">
+    <div className="mbk" style={{zIndex:1100}} onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="mo" style={{maxWidth:620}}>
+        <div className="mh"><span className="mt">{chapter?.id?'Edit Chapter':'Add Chapter'}</span><button className="xb" onClick={onClose}>×</button></div>
+        <div className="mb">
           <div className="tabs">
-            {['basic','content','files'].map(t=>(
-              <button key={t} className={`tab-btn ${tab===t?'active':''}`} onClick={()=>setTab(t)}>
-                {t.charAt(0).toUpperCase()+t.slice(1)}
-              </button>
-            ))}
+            {['basic','content','files'].map(t=><button key={t} className={`tabk ${tab===t?'on':''}`} onClick={()=>setTab(t)}>{t[0].toUpperCase()+t.slice(1)}</button>)}
           </div>
-
           {tab==='basic' && <>
-            <div className="form-group">
-              <label className="form-label">Chapter Name *</label>
-              <input className="form-input" placeholder="e.g. Introduction to Variables" value={name} onChange={e=>setName(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Module / Section</label>
-              <input className="form-input" placeholder="e.g. Module 1: Foundations" value={mod} onChange={e=>setMod(e.target.value)} />
-              <span style={{fontSize:11,color:'var(--text-muted)',marginTop:3}}>A module header appears above the chapter when the module name changes. Leave blank for no header.</span>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Chapter Type</label>
-              <div style={{display:'flex',gap:8}}>
-                {['video','text'].map(t=>(
-                  <button key={t} className={`btn ${type===t?'btn-primary':'btn-secondary'}`} style={{flex:1}} onClick={()=>setType(t)}>
-                    {t==='video'?'📹 Video':'📝 Text Only'}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Duration (optional)</label>
-              <input className="form-input" placeholder="e.g. 6:30 or 15 min" value={dur} onChange={e=>setDur(e.target.value)} />
-            </div>
+            <div className="fg"><label className="fl">Chapter Name *</label><input className="fi" placeholder="e.g. Introduction to Variables" value={name} onChange={e=>setName(e.target.value)}/></div>
+            <div className="fg"><label className="fl">Module / Section</label><input className="fi" placeholder="e.g. Module 1: Foundations" value={mod} onChange={e=>setMod(e.target.value)}/><span style={{fontSize:11,color:'var(--tm)',marginTop:3}}>Header appears when module name changes. Leave blank for no header.</span></div>
+            <div className="fg"><label className="fl">Chapter Type</label><div style={{display:'flex',gap:8}}>{['video','text'].map(t=><button key={t} className={`btn ${type===t?'btn-p':'btn-s'}`} style={{flex:1}} onClick={()=>setType(t)}>{t==='video'?'📹 Video':'📝 Text Only'}</button>)}</div></div>
+            <div className="fg"><label className="fl">Duration (optional)</label><input className="fi" placeholder="e.g. 6:30 or 15 min" value={dur} onChange={e=>setDur(e.target.value)}/></div>
           </>}
-
           {tab==='content' && <>
-            {type==='video' && (
-              <div className="form-group">
-                <label className="form-label">Video URL / Embed Link</label>
-                <input className="form-input" placeholder="Vimeo, YouTube, Wistia, Google Drive, or direct embed URL" value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} />
-                <span style={{fontSize:11,color:'var(--text-muted)'}}>Supports: youtube.com, vimeo.com, wistia.com, drive.google.com, or any iframe-compatible URL</span>
-              </div>
-            )}
-            <div className="form-group">
-              <label className="form-label">Description / Notes</label>
-              <textarea className="form-textarea" style={{minHeight:120}} placeholder="Chapter description, key points, code snippets..." value={desc} onChange={e=>setDesc(e.target.value)} />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Links</label>
+            {type==='video' && <div className="fg"><label className="fl">Video URL</label><input className="fi" placeholder="YouTube, Vimeo, Wistia, Google Drive, or embed URL" value={videoUrl} onChange={e=>setVideoUrl(e.target.value)}/><span style={{fontSize:11,color:'var(--tm)'}}>YouTube videos auto-complete when the video ends.</span></div>}
+            <div className="fg"><label className="fl">Description / Notes</label><textarea className="fta" style={{minHeight:120}} value={desc} onChange={e=>setDesc(e.target.value)}/></div>
+            <div className="fg"><label className="fl">Links</label>
               <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                {links.map((l, i) => (
-                  <div key={i} style={{display:'flex', gap:8, alignItems:'center'}}>
-                    <input
-                      className="form-input"
-                      placeholder="Label (e.g. Join Discord)"
-                      value={l.label || ''}
-                      onChange={e => {
-                        const updated = [...links];
-                        updated[i] = { ...updated[i], label: e.target.value };
-                        setLinks(updated);
-                      }}
-                    />
-                    <input
-                      className="form-input"
-                      placeholder="https://..."
-                      value={l.url || ''}
-                      onChange={e => {
-                        const updated = [...links];
-                        const url = e.target.value;
-                        updated[i] = { ...updated[i], url, label: updated[i].label || url };
-                        setLinks(updated);
-                      }}
-                    />
-                    <button className="btn btn-danger btn-sm" onClick={() => setLinks(links.filter((_, idx) => idx !== i))}>✕</button>
+                {links.map((l,i)=>(
+                  <div key={i} style={{display:'flex',gap:8,alignItems:'center'}}>
+                    <input className="fi" placeholder="Label" value={l.label||''} onChange={e=>updLink(i,'label',e.target.value)}/>
+                    <input className="fi" placeholder="https://…" value={l.url||''} onChange={e=>{ updLink(i,'url',e.target.value); if(!links[i].label)updLink(i,'label',e.target.value); }}/>
+                    <button className="btn btn-d btn-sm" onClick={()=>setLinks(p=>p.filter((_,x)=>x!==i))}>✕</button>
                   </div>
                 ))}
-                <button className="btn btn-secondary btn-sm" onClick={() => setLinks([...links, { label:'', url:'' }])} style={{alignSelf:'flex-start'}}>
-                  + Add Link
-                </button>
+                <button className="btn btn-s btn-sm" style={{alignSelf:'flex-start'}} onClick={()=>setLinks(p=>[...p,{label:'',url:''}])}>+ Add Link</button>
               </div>
             </div>
           </>}
-
           {tab==='files' && (
-            <div className="form-group">
-              <label className="form-label">Files</label>
+            <div className="fg"><label className="fl">Files</label>
               <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                {files.map((f, i) => (
-                  <div key={i} style={{display:'flex', gap:8, alignItems:'center'}}>
-                    <input
-                      className="form-input"
-                      placeholder="File name"
-                      value={f.name || ''}
-                      onChange={e => {
-                        const updated = [...files];
-                        updated[i] = { ...updated[i], name: e.target.value };
-                        setFiles(updated);
-                      }}
-                    />
-                    <input
-                      className="form-input"
-                      placeholder="https://file-link.com"
-                      value={f.url || ''}
-                      onChange={e => {
-                        const updated = [...files];
-                        const url = e.target.value;
-                        updated[i] = { ...updated[i], url, name: updated[i].name || url };
-                        setFiles(updated);
-                      }}
-                    />
-                    <button className="btn btn-danger btn-sm" onClick={() => setFiles(files.filter((_, idx) => idx !== i))}>✕</button>
+                {files.map((f,i)=>(
+                  <div key={i} style={{display:'flex',gap:8,alignItems:'center'}}>
+                    <input className="fi" placeholder="File name" value={f.name||''} onChange={e=>updFile(i,'name',e.target.value)}/>
+                    <input className="fi" placeholder="https://…" value={f.url||''} onChange={e=>{ updFile(i,'url',e.target.value); if(!files[i].name)updFile(i,'name',e.target.value); }}/>
+                    <button className="btn btn-d btn-sm" onClick={()=>setFiles(p=>p.filter((_,x)=>x!==i))}>✕</button>
                   </div>
                 ))}
-                <button className="btn btn-secondary btn-sm" onClick={() => setFiles([...files, { name:'', url:'' }])} style={{alignSelf:'flex-start'}}>
-                  + Add File
-                </button>
+                <button className="btn btn-s btn-sm" style={{alignSelf:'flex-start'}} onClick={()=>setFiles(p=>[...p,{name:'',url:''}])}>+ Add File</button>
               </div>
-              <span style={{fontSize:11,color:'var(--text-muted)'}}>Add file names to list under chapter resources</span>
             </div>
           )}
         </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={!name.trim()}>Save Chapter</button>
-        </div>
+        <div className="mf"><button className="btn btn-s" onClick={onClose}>Cancel</button><button className="btn btn-p" onClick={doSave} disabled={!name.trim()}>Save Chapter</button></div>
       </div>
     </div>
   );
 }
 
-// ─── HOMEPAGE ────────────────────────────────────────────────────────────────
-function HomePage({ data, onOpenCourse, onUpdate, filterCompany_, showImportMobile, setShowImportMobile, showAddCourseMobile, setShowAddCourseMobile }) {
-  const [filterCompany, setFilterCompany] = useState(filterCompany_ || 'all');
-  useEffect(()=>{ setFilterCompany(filterCompany_ || 'all'); }, [filterCompany_]);
-
-  const [showAdd, setShowAdd] = useState(false);
-  const [editCourse, setEditCourse] = useState(null);
+// ─────────────────────────────────────────────────────────────────────────────
+// GLOBAL NOTES PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+function GlobalNotesPage({ data, onOpenCourse }) {
   const [search, setSearch] = useState('');
-  const [menuOpen, setMenuOpen] = useState(null);
-  const [showImport, setShowImport] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [importError, setImportError] = useState('');
+  const q = search.trim().toLowerCase();
 
-  useEffect(()=>{ if(showImportMobile){ setShowImport(true); if(setShowImportMobile) setShowImportMobile(false); } },[showImportMobile]);
-  useEffect(()=>{ if(showAddCourseMobile){ setEditCourse(null); setShowAdd(true); if(setShowAddCourseMobile) setShowAddCourseMobile(false); } },[showAddCourseMobile]);
-
-  const companies = data.companies;
-  const courses = data.courses;
-
-  const handleFileImport = (file) => {
-    if (!file) return;
-    if (!file.name.endsWith('.json')) { setImportError("Please upload a valid JSON file."); return; }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const parsed = JSON.parse(e.target.result);
-        if (!parsed.courses || !parsed.companies) { setImportError("Invalid file format."); return; }
-        onUpdate({ courses: parsed.courses, companies: parsed.companies });
-        setShowImport(false);
-        setImportError('');
-      } catch { setImportError("Invalid JSON file."); }
-    };
-    reader.readAsText(file);
-  };
-
-  const filtered = courses.filter(c => {
-    const matchCompany = filterCompany==='all' || c.companyId===filterCompany;
-    const matchSearch = !search || c.title.toLowerCase().includes(search.toLowerCase());
-    return matchCompany && matchSearch;
-  });
-
-  useEffect(() => {
-    const handler = () => setMenuOpen(null);
-    window.addEventListener('click', handler);
-    return () => window.removeEventListener('click', handler);
-  }, []);
-
-  const handleSaveCourse = (course, newCompany, updatedCompanies) => {
-    if (updatedCompanies) {
-      onUpdate({...data, companies: updatedCompanies});
-      return;
-    }
-    if (newCompany) {
-      onUpdate({ ...data, companies: [...data.companies, newCompany] });
-      return;
-    }
-    if (course) {
-      if (editCourse) {
-        const updatedCourses = data.courses.map(c => c.id === editCourse.id ? { ...c, ...course } : c);
-        onUpdate({ ...data, courses: updatedCourses });
-      } else {
-        const newCourse = { id: uid(), ...course, chapters: [], progress: 0 };
-        onUpdate({ ...data, courses: [...data.courses, newCourse] });
-      }
-      setShowAdd(false);
-      setEditCourse(null);
-    }
-  };
-
-  const handleDelete = (id, e) => {
-    e.stopPropagation();
-    const course = data.courses.find(c => c.id === id);
-    if (confirm(`Delete "${course?.title}"?`)) {
-      const newCourses = data.courses.filter(c => c.id !== id);
-      const usedCompanyIds = newCourses.map(c => c.companyId).filter(Boolean);
-      const newCompanies = data.companies.filter(co => usedCompanyIds.includes(co.id));
-      onUpdate({ ...data, courses: newCourses, companies: newCompanies });
-    }
-  };
-
-  const handleEdit = (course, e) => { e.stopPropagation(); setEditCourse(course); setShowAdd(true); };
-  const getCompany = id => companies.find(c=>c.id===id);
-
-  const [toast, setToast] = useState(false);
-  const [copyToast, setCopyToast] = useState(false);
-
-  const exportData = () => {
-    const dataToExport = { companies: data.companies, courses: data.courses };
-    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const date = new Date().toISOString().replace(/[:.]/g,'-');
-    a.href = url; a.download = `courseflow-backup-${date}.json`;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-    setToast(true); setTimeout(() => setToast(false), 2500);
-  };
-
-  const copyDataToClipboard = () => {
-    const dataToExport = { companies: data.companies, courses: data.courses };
-    navigator.clipboard.writeText(JSON.stringify(dataToExport, null, 2)).then(() => {
-      setCopyToast(true); setTimeout(() => setCopyToast(false), 2500);
+  // FIX: memoised — only recomputes when data.courses or search changes
+  const { allNotes, filtered } = useMemo(() => {
+    const all = [];
+    data.courses.forEach(course => {
+      (course.chapters||[]).forEach((ch, idx) => {
+        if (ch.notes?.trim()) all.push({ course, chapter:ch, idx });
+      });
     });
+    const filt = q ? all.filter(n =>
+      n.chapter.notes.toLowerCase().includes(q) ||
+      n.chapter.name.toLowerCase().includes(q)  ||
+      n.course.title.toLowerCase().includes(q)
+    ) : all;
+    return { allNotes:all, filtered:filt };
+  }, [data.courses, q]);
+
+  // Inline highlight without creating a component — just a function
+  const hl = (text) => {
+    if (!q) return text;
+    const lo = text.toLowerCase(), i = lo.indexOf(q);
+    if (i === -1) return text;
+    return <>{text.slice(0,i)}<mark>{text.slice(i,i+q.length)}</mark>{text.slice(i+q.length)}</>;
   };
 
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
       <div className="topbar">
-        <span className="topbar-title">Course<span>Flow</span></span>
-        <div className="search-input-wrap">
-          <span className="search-icon">🔍</span>
-          <input className="form-input search-input" placeholder="Search courses..." value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}} />
+        <span className="topbar-title">📓 <span>My Notes</span></span>
+        <div className="si-wrap">
+          <span className="si-ico">🔍</span>
+          <input className="fi si" placeholder="Search notes…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
         </div>
-        <button className="btn btn-secondary btn-sm mobile-hide" onClick={()=>setShowImport(true)}>📥 Import</button>
-        <button className="btn btn-secondary btn-sm mobile-hide" onClick={copyDataToClipboard} title="Copy data JSON to clipboard">📋 Copy Data</button>
-        <button className="btn btn-secondary btn-sm mobile-hide" onClick={exportData} title="Export all data as JSON file">💾 Export</button>
-        <button className="btn btn-primary mobile-hide" onClick={()=>{setEditCourse(null);setShowAdd(true);}}>+ Add Course</button>
       </div>
       <div className="content">
-        {companies.length>0 && (
-          <div className="company-chips">
-            <div className={`company-chip ${filterCompany==='all'?'active':''}`} onClick={()=>setFilterCompany('all')}>
-              <span>⬡</span> All ({courses.length})
+        {allNotes.length === 0 ? (
+          <div className="es"><div className="es-ico">📓</div><div className="es-t">No notes yet</div><div className="es-s">Open any course chapter and start writing — notes appear here.</div></div>
+        ) : filtered.length === 0 ? (
+          <div className="es"><div className="es-ico">🔍</div><div className="es-t">No matches</div><div className="es-s">No notes match "{search}".</div></div>
+        ) : (
+          <>
+            <div style={{marginBottom:16,fontSize:13,color:'var(--tm)'}}>{filtered.length} note{filtered.length!==1?'s':''}{q?` matching "${search}"`:''} — click to jump</div>
+            <div className="ngl">
+              {filtered.map(({course,chapter,idx}) => (
+                <div key={`${course.id}-${idx}`} className="nc" onClick={()=>onOpenCourse(course.id,idx)}>
+                  <div className="nc-co">{course.title}</div>
+                  <div className="nc-ch">Ch.{idx+1} — {chapter.name}</div>
+                  <div className="nc-pv">{hl(chapter.notes)}</div>
+                </div>
+              ))}
             </div>
-            {companies.filter(co => courses.some(c => c.companyId === co.id)).map(co=>(
-              <div key={co.id} className={`company-chip ${filterCompany===co.id?'active':''}`} onClick={()=>setFilterCompany(filterCompany===co.id?'all':co.id)}>
-                <CompanyIcon company={co} size={16} />
-                {co.name} ({courses.filter(c=>c.companyId===co.id).length})
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HOME PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompany, resumeMap, showImportMobile, setShowImportMobile, showAddCourseMobile, setShowAddCourseMobile }) {
+  // FIX: HomePageWrapper eliminated — filterCompany lives in App, passed as prop
+  const [showAdd,    setShowAdd]    = useState(false);
+  const [editCourse, setEditCourse] = useState(null);
+  const [search,     setSearch]     = useState('');
+  const [menuOpen,   setMenuOpen]   = useState(null);
+  const [showImport, setShowImport] = useState(false);
+  const [selFile,    setSelFile]    = useState(null);
+  const [impErr,     setImpErr]     = useState('');
+  const [sortBy,     setSortBy]     = useState('added');
+  const [toast,      setToast]      = useState('');
+
+  // Sync mobile-triggered modals
+  useEffect(() => { if (showImportMobile)    { setShowImport(true);                setShowImportMobile(false);    } }, [showImportMobile]);
+  useEffect(() => { if (showAddCourseMobile) { setEditCourse(null); setShowAdd(true); setShowAddCourseMobile(false); } }, [showAddCourseMobile]);
+
+  // FIX: useCallback — stable reference so the event listener isn't re-added every render
+  const closeMenu = useCallback(() => setMenuOpen(null), []);
+  useEffect(() => { window.addEventListener('click', closeMenu); return () => window.removeEventListener('click', closeMenu); }, [closeMenu]);
+
+  const { companies, courses } = data;
+
+  // FIX: memoised — filter+sort only recomputes when inputs change, not on every render
+  const filtered = useMemo(() => {
+    const sq = search.toLowerCase();
+    let list = courses.filter(c =>
+      (filterCompany === 'all' || c.companyId === filterCompany) &&
+      (!sq || c.title.toLowerCase().includes(sq))
+    );
+    if (sortBy === 'az')       list = [...list].sort((a,b)=>a.title.localeCompare(b.title));
+    else if (sortBy === 'progress') list = [...list].sort((a,b)=>pct(b)-pct(a));
+    else if (sortBy === 'recent')   list = [...list].sort((a,b)=>(b.lastAccessed||0)-(a.lastAccessed||0));
+    return list;
+  }, [courses, filterCompany, search, sortBy]);
+
+  // FIX: memoised company map — no repeated .find() inside render loops
+  const coMap = useMemo(() => Object.fromEntries(companies.map(c=>[c.id,c])), [companies]);
+
+  const showToast = useCallback((msg) => { setToast(msg); setTimeout(()=>setToast(''), 2500); }, []);
+
+  const handleSaveCourse = useCallback((course, newCo, updCos) => {
+    if (updCos) { onUpdate({ ...data, companies:updCos }); return; }
+    if (newCo)  { onUpdate({ ...data, companies:[...companies, newCo] }); return; }
+    if (course) {
+      const courses2 = editCourse
+        ? data.courses.map(c => c.id===editCourse.id ? {...c,...course} : c)
+        : [...data.courses, { id:uid(), ...course, chapters:[], progress:0 }];
+      onUpdate({ ...data, courses:courses2 });
+      setShowAdd(false); setEditCourse(null);
+    }
+  }, [data, editCourse]);
+
+  const handleDelete = useCallback((id, e) => {
+    e.stopPropagation();
+    const c = data.courses.find(x=>x.id===id);
+    if (!confirm(`Delete "${c?.title}"?`)) return;
+    const nc = data.courses.filter(x=>x.id!==id);
+    const used = new Set(nc.map(x=>x.companyId).filter(Boolean));
+    onUpdate({ ...data, courses:nc, companies:data.companies.filter(co=>used.has(co.id)) });
+  }, [data]);
+
+  const doExport = useCallback(() => {
+    const blob = new Blob([JSON.stringify({companies,courses},null,2)],{type:'application/json'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `courseflow-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast('✓ Backup downloaded!');
+  }, [companies, courses]);
+
+  const doCopy = useCallback(() => {
+    navigator.clipboard.writeText(JSON.stringify({companies,courses},null,2))
+      .then(()=>showToast('✓ Data copied to clipboard!'));
+  }, [companies, courses]);
+
+  const handleFileImport = (file) => {
+    if (!file) return;
+    if (!file.name.endsWith('.json')) { setImpErr('Please upload a valid JSON file.'); return; }
+    const r = new FileReader();
+    r.onload = e => {
+      try {
+        const p = JSON.parse(e.target.result);
+        if (!p.courses||!p.companies) { setImpErr('Invalid format.'); return; }
+        onUpdate({ courses:p.courses, companies:p.companies });
+        setShowImport(false); setImpErr('');
+      } catch { setImpErr('Invalid JSON.'); }
+    };
+    r.readAsText(file);
+  };
+
+  // Visible companies (only those with at least one course)
+  const visibleCos = useMemo(() => companies.filter(co=>courses.some(c=>c.companyId===co.id)), [companies, courses]);
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
+      <div className="topbar">
+        <span className="topbar-title">Course<span>Flow</span></span>
+        <div className="si-wrap">
+          <span className="si-ico">🔍</span>
+          <input className="fi si" placeholder="Search courses…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
+        </div>
+        <button className="btn btn-s btn-sm dsk" onClick={()=>setShowImport(true)}>📥 Import</button>
+        <button className="btn btn-s btn-sm dsk" onClick={doCopy}>📋 Copy Data</button>
+        <button className="btn btn-s btn-sm dsk" onClick={doExport}>💾 Export</button>
+        <button className="btn btn-p dsk" onClick={()=>{setEditCourse(null);setShowAdd(true);}}>+ Add Course</button>
+      </div>
+
+      <div className="content">
+        {visibleCos.length > 0 && (
+          <div className="chips">
+            <div className={`chip ${filterCompany==='all'?'on':''}`} onClick={()=>setFilterCompany('all')}>⬡ All ({courses.length})</div>
+            {visibleCos.map(co => (
+              <div key={co.id} className={`chip ${filterCompany===co.id?'on':''}`} onClick={()=>setFilterCompany(filterCompany===co.id?'all':co.id)}>
+                <CompanyIcon company={co} size={16}/> {co.name} ({courses.filter(c=>c.companyId===co.id).length})
               </div>
             ))}
           </div>
         )}
 
-        <div className="section-header">
+        <div className="sh">
           <div>
-            <span className="section-title">{filterCompany==='all'?'All Courses':getCompany(filterCompany)?.name||'Courses'}</span>
-            <span className="section-count">{filtered.length} course{filtered.length!==1?'s':''}</span>
+            <span className="st">{filterCompany==='all'?'All Courses':coMap[filterCompany]?.name||'Courses'}</span>
+            <span className="sc">{filtered.length} course{filtered.length!==1?'s':''}</span>
+          </div>
+          <div className="sort-row">
+            {SORTS.map(o=><button key={o.k} className={`sk ${sortBy===o.k?'on':''}`} onClick={()=>setSortBy(o.k)}>{o.l}</button>)}
           </div>
         </div>
 
-        {filtered.length===0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📚</div>
-            <div className="empty-title">{courses.length===0?'No courses yet':'No courses found'}</div>
-            <div className="empty-sub">{courses.length===0?'Start building your learning library by adding your first course.':'Try adjusting your search or filter.'}</div>
-            {courses.length===0 && <button className="btn btn-primary" onClick={()=>setShowAdd(true)}>Add Your First Course</button>}
+        {filtered.length === 0 ? (
+          <div className="es">
+            <div className="es-ico">📚</div>
+            <div className="es-t">{courses.length===0?'No courses yet':'No courses found'}</div>
+            <div className="es-s">{courses.length===0?'Start by adding your first course.':'Try adjusting your search or filter.'}</div>
+            {courses.length===0 && <button className="btn btn-p" onClick={()=>setShowAdd(true)}>Add Your First Course</button>}
           </div>
         ) : (
-          <div className="courses-grid">
-            {filtered.map((course,i)=>{
-              const company = getCompany(course.companyId);
-              const prog = course.progress||0;
-              const totalChaps = course.chapters?.length||0;
-              const doneChaps = course.chapters?.filter(c=>c.completed).length||0;
-              const pct = totalChaps>0?Math.round((doneChaps/totalChaps)*100):prog;
+          <div className="grid">
+            {filtered.map((course,i) => {
+              const company  = coMap[course.companyId];
+              const p        = pct(course);
+              const total    = course.chapters?.length||0;
+              const done     = course.chapters?.filter(c=>c.completed).length||0;
+              const rIdx     = resumeMap[course.id];
+              const hasRes   = rIdx !== undefined && rIdx > 0;
+              const rName    = hasRes ? course.chapters?.[rIdx]?.name : null;
               return (
-                <div key={course.id} className="course-card" onClick={()=>onOpenCourse(course.id)}>
-                  <div style={{position:'absolute', top:8, left:8, zIndex:50}}>
-                    <div className="icon-btn" style={{fontSize:10, letterSpacing:2}} onClick={(e)=>{ e.stopPropagation(); setMenuOpen(menuOpen===course.id?null:course.id); }}>•••</div>
+                <div key={course.id} className="card" onClick={()=>onOpenCourse(course.id)}>
+                  {/* ••• menu */}
+                  <div style={{position:'absolute',top:8,left:8,zIndex:50}}>
+                    <div className="ib" style={{fontSize:10,letterSpacing:2}} onClick={e=>{e.stopPropagation();setMenuOpen(menuOpen===course.id?null:course.id);}}>•••</div>
                     {menuOpen===course.id && (
-                      <div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:34,left:0,background:'var(--bg-card)',border:'1px solid var(--border-light)',borderRadius:10,padding:6,display:'flex',flexDirection:'column',gap:4,minWidth:130,boxShadow:'0 10px 30px rgba(0,0,0,.5)'}}>
-                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6}} onClick={(e)=>{handleEdit(course,e); setMenuOpen(null);}}>✏️ Edit</div>
-                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)'}} onClick={(e)=>{handleDelete(course.id,e); setMenuOpen(null);}}>🗑 Delete</div>
+                      <div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:34,left:0,background:'var(--bgc)',border:'1px solid var(--bdl)',borderRadius:10,padding:6,display:'flex',flexDirection:'column',gap:4,minWidth:130,boxShadow:'0 10px 30px rgba(0,0,0,.5)'}}>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6}} onClick={e=>{e.stopPropagation();setEditCourse(course);setShowAdd(true);setMenuOpen(null);}}>✏️ Edit</div>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)'}} onClick={e=>{handleDelete(course.id,e);setMenuOpen(null);}}>🗑 Delete</div>
                       </div>
                     )}
                   </div>
+                  {/* Thumbnail */}
                   {course.thumbnail ? (
-                    <div className="course-thumb">
-                      <img src={course.thumbnail} alt={course.title} onError={e=>{e.target.style.display='none'; e.target.nextSibling.style.display='flex';}} />
-                      <div style={{display:'none',width:'100%',aspectRatio:'16/9',alignItems:'center',justifyContent:'center',fontSize:36}} className={`grad-${i%6}`}>📖</div>
-                      {company && <div className="company-badge"><CompanyIcon company={company} size={18}/></div>}
+                    <div className="c-thumb">
+                      <img src={course.thumbnail} alt={course.title} loading="lazy" onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex';}}/>
+                      <div style={{display:'none',width:'100%',aspectRatio:'16/9',alignItems:'center',justifyContent:'center',fontSize:36}} className={`g${i%6}`}>📖</div>
+                      {company  && <div className="c-badge"><CompanyIcon company={company} size={18}/></div>}
+                      {hasRes   && <div className="c-resume">▶ Resume</div>}
                     </div>
                   ) : (
-                    <div className={`course-thumb-placeholder grad-${i%6}`}>
+                    <div className={`c-ph g${i%6}`}>
                       <span>📖</span>
-                      {company && <div className="company-badge"><CompanyIcon company={company} size={18}/></div>}
+                      {company && <div className="c-badge"><CompanyIcon company={company} size={18}/></div>}
+                      {hasRes  && <div className="c-resume">▶ Resume</div>}
                     </div>
                   )}
-                  <div className="course-body">
-                    <div className="course-name">{course.title}</div>
-                    {course.description && <div className="course-desc">{course.description}</div>}
-                    <div className="progress-wrap">
-                      <div className="progress-label">
-                        <span>{totalChaps>0?`${doneChaps}/${totalChaps} chapters`:'No chapters'}</span>
-                        <span style={{color:'var(--accent)'}}>{pct}%</span>
-                      </div>
-                      <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
-                    </div>
+                  <div className="c-body">
+                    <div className="c-name">{course.title}</div>
+                    {hasRes && rName
+                      ? <div className="c-desc" style={{color:'var(--ac)',opacity:.9}}>▶ Continue: {rName}</div>
+                      : course.description && <div className="c-desc">{course.description}</div>
+                    }
+                    <ProgBar done={done} total={total} />
                   </div>
                 </div>
               );
@@ -1083,335 +862,242 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany_, showImportMobi
         )}
       </div>
 
-      {showAdd && (
-        <AddCourseModal
-          companies={companies}
-          courses={courses}
-          editCourse={editCourse}
-          onClose={()=>{setShowAdd(false);setEditCourse(null);}}
-          onSave={handleSaveCourse}
-        />
-      )}
+      {showAdd && <AddCourseModal companies={companies} courses={courses} editCourse={editCourse} onClose={()=>{setShowAdd(false);setEditCourse(null);}} onSave={handleSaveCourse}/>}
 
       {showImport && (
-        <div className="modal-backdrop" onClick={e=>e.target===e.currentTarget&&setShowImport(false)}>
-          <div className="modal">
-            <div className="modal-header">
-              <span className="modal-title">Import Data</span>
-              <button className="close-btn" onClick={()=>setShowImport(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Upload JSON Backup</label>
-                <input type="file" id="fileInput" accept=".json" style={{display:'none'}}
-                  onChange={(e)=>{ const file = e.target.files[0]; if(file){ setSelectedFile(file.name); handleFileImport(file); } }}
-                />
+        <div className="mbk" onClick={e=>e.target===e.currentTarget&&setShowImport(false)}>
+          <div className="mo">
+            <div className="mh"><span className="mt">Import Data</span><button className="xb" onClick={()=>setShowImport(false)}>×</button></div>
+            <div className="mb">
+              <div className="fg">
+                <label className="fl">Upload JSON Backup</label>
+                <input type="file" id="fileInput" accept=".json" style={{display:'none'}} onChange={e=>{const f=e.target.files[0];if(f){setSelFile(f.name);handleFileImport(f);}}}/>
                 <label htmlFor="fileInput"
-                  onDrop={(e)=>{ e.preventDefault(); const file = e.dataTransfer.files[0]; if(file){ setSelectedFile(file.name); handleFileImport(file); } }}
-                  onDragOver={(e)=>e.preventDefault()}
-                  style={{border:'2px dashed var(--border-light)',borderRadius:10,padding:20,textAlign:'center',cursor:'pointer',display:'block'}}
-                >
+                  onDrop={e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f){setSelFile(f.name);handleFileImport(f);}}}
+                  onDragOver={e=>e.preventDefault()}
+                  style={{border:'2px dashed var(--bdl)',borderRadius:10,padding:20,textAlign:'center',cursor:'pointer',display:'block'}}>
                   <div style={{marginBottom:10}}>📁 Drag & drop JSON file</div>
-                  <span className="btn btn-secondary btn-sm">Choose File</span>
-                  {selectedFile && <div style={{marginTop:10,fontSize:12,color:'var(--text-secondary)'}}>{selectedFile}</div>}
+                  <span className="btn btn-s btn-sm">Choose File</span>
+                  {selFile && <div style={{marginTop:10,fontSize:12,color:'var(--t2)'}}>{selFile}</div>}
                 </label>
-                <div style={{fontSize:12,color:'var(--text-muted)'}}>Upload a previously exported backup file</div>
               </div>
-              {importError && <div style={{color:'var(--red)', fontSize:13}}>{importError}</div>}
+              {impErr && <div style={{color:'var(--red)',fontSize:13}}>{impErr}</div>}
             </div>
           </div>
         </div>
       )}
 
-      {toast && (
-        <div style={{position:'fixed',bottom:20,left:'50%',transform:'translateX(-50%)',background:'var(--accent)',color:'#0a0e1a',padding:'10px 18px',borderRadius:10,fontSize:13,fontWeight:700,zIndex:2000}}>
-          ✓ Backup downloaded successfully!
-        </div>
-      )}
-      {copyToast && (
-        <div style={{position:'fixed',bottom:20,left:'50%',transform:'translateX(-50%)',background:'var(--accent-2)',color:'#fff',padding:'10px 18px',borderRadius:10,fontSize:13,fontWeight:700,zIndex:2000,maxWidth:380,textAlign:'center'}}>
-          ✓ Data copied! Paste it into DEFAULT_DATA in the HTML file.
-        </div>
-      )}
+      <Toast msg={toast}/>
     </div>
   );
 }
 
-// ─── COURSE PAGE ─────────────────────────────────────────────────────────────
-function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobileNotesOpen, externalActiveChapter }) {
-  const course = data.courses.find(c=>c.id===courseId);
-  const company = data.companies.find(c=>c.id===course?.companyId);
-  const [activeChapter, setActiveChapter] = useState(externalActiveChapter || 0);
+// ─────────────────────────────────────────────────────────────────────────────
+// COURSE PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdate, mobileNotesOpen, setMobileNotesOpen, initChapterIdx }) {
+  const course  = useMemo(() => data.courses.find(c=>c.id===courseId), [data.courses, courseId]);
+  const company = useMemo(() => data.companies.find(c=>c.id===course?.companyId), [data.companies, course?.companyId]);
+  const chapters = course?.chapters || [];
 
-  useEffect(() => {
-    if (externalActiveChapter !== undefined) setActiveChapter(externalActiveChapter);
-  }, [externalActiveChapter]);
+  const [activeIdx,    setActiveIdxRaw] = useState(initChapterIdx ?? 0);
+  const [showNotes,    setShowNotes]    = useState(false);
+  const [showModal,    setShowModal]    = useState(false);
+  const [editIdx,      setEditIdx]      = useState(null);
+  const [noteSaved,    setNoteSaved]    = useState(false);
+  const [popAnim,      setPopAnim]      = useState(false);
 
-  const [showNotes, setShowNotes] = useState(false);
-  const [showAddChapter, setShowAddChapter] = useState(false);
-  const [editChapter, setEditChapter] = useState(null);
-  const [noteSaved, setNoteSaved] = useState(false);
-  const noteTimer = useRef(null);
+  // FIX: single timer ref for note debounce — no leaked timeouts
+  const noteTimer   = useRef(null);
+  const noteHideRef = useRef(null);
 
   if (!course) return null;
-  const chapters = course.chapters||[];
-  const chapter = chapters[activeChapter];
+  const chapter = chapters[activeIdx];
 
-  const updateCourse = (updated) => {
-    const courses = data.courses.map(c=>c.id===courseId?updated:c);
-    onUpdate({...data, courses});
-  };
+  // FIX: embed URL memoised per chapter — no regex on every render
+  const embed = useMemo(() => embedUrl(chapter?.videoUrl), [chapter?.videoUrl]);
+  const ytVideo = useMemo(() => isYT(chapter?.videoUrl), [chapter?.videoUrl]);
 
-  const saveNote = (val) => {
-    const newChapters = chapters.map((c,i)=>i===activeChapter?{...c,notes:val}:c);
-    updateCourse({...course,chapters:newChapters});
-    clearTimeout(noteTimer.current);
-    noteTimer.current = setTimeout(()=>setNoteSaved(true), 300);
-    setTimeout(()=>setNoteSaved(false),2000);
-  };
+  // ── Update helpers ──────────────────────────────────────────────────────────
+  // FIX: updateCourse creates minimal patch — only mutates the single changed course
+  const updateCourse = useCallback((updated) => {
+    onUpdate({ ...data, courses: data.courses.map(c=>c.id===courseId ? updated : c) });
+  }, [data, courseId]);
 
-  const toggleComplete = () => {
-    const newChapters = chapters.map((c,i)=>i===activeChapter?{...c,completed:!c.completed}:c);
-    updateCourse({...course,chapters:newChapters});
-  };
-
-  const handleSaveChapter = (chData) => {
-    let newChapters;
-    if (editChapter!==null) {
-      newChapters = chapters.map((c,i)=>i===editChapter?{...c,...chData}:c);
-      setEditChapter(null);
-    } else {
-      newChapters = [...chapters,{id:uid(),...chData,completed:false,notes:''}];
-      setActiveChapter(newChapters.length-1);
+  // ── Chapter navigation — also persists resume ───────────────────────────────
+  const setActiveIdx = useCallback((idx) => {
+    setActiveIdxRaw(idx);
+    const newMap = { ...resumeMap, [courseId]: idx };
+    onResumeUpdate(newMap);
+    // Stamp lastAccessed — only if it's been a while (avoid write-per-click-spam)
+    if ((Date.now() - (course.lastAccessed||0)) > 5000) {
+      updateCourse({ ...course, lastAccessed:Date.now() });
     }
-    updateCourse({...course,chapters:newChapters});
-    setShowAddChapter(false);
-  };
+  }, [courseId, resumeMap, course]);
 
-  const handleDeleteChapter = (idx) => {
+  // ── Notes — debounced write, both timeouts cleared on unmount ───────────────
+  const saveNote = useCallback((val) => {
+    const nc = chapters.map((c,i)=>i===activeIdx?{...c,notes:val}:c);
+    updateCourse({ ...course, chapters:nc });
+    clearTimeout(noteTimer.current);
+    clearTimeout(noteHideRef.current);
+    noteTimer.current   = setTimeout(()=>setNoteSaved(true),  300);
+    noteHideRef.current = setTimeout(()=>setNoteSaved(false), 2300);
+  }, [chapters, activeIdx, course]);
+
+  useEffect(() => () => { clearTimeout(noteTimer.current); clearTimeout(noteHideRef.current); }, []);
+
+  // ── Mark complete ───────────────────────────────────────────────────────────
+  const markComplete = useCallback((forceDone) => {
+    const will = forceDone !== undefined ? forceDone : !chapter?.completed;
+    const nc = chapters.map((c,i)=>i===activeIdx?{...c,completed:will}:c);
+    updateCourse({ ...course, chapters:nc });
+    if (will) { haptic('medium'); setPopAnim(true); setTimeout(()=>setPopAnim(false),400); }
+    else haptic('light');
+  }, [chapter, chapters, activeIdx, course]);
+
+  // ── YouTube end → auto-complete ─────────────────────────────────────────────
+  useEffect(() => {
+    if (!ytVideo || !embed) return;
+    const onMsg = (e) => {
+      try {
+        const d = typeof e.data==='string' ? JSON.parse(e.data) : e.data;
+        if (d?.event==='onStateChange' && d?.info===0 && !chapter?.completed) markComplete(true);
+      } catch {}
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, [ytVideo, embed, activeIdx, chapter?.completed]);
+
+  // ── Chapter CRUD ────────────────────────────────────────────────────────────
+  const handleSaveChapter = useCallback((chData) => {
+    let nc;
+    if (editIdx !== null) {
+      nc = chapters.map((c,i)=>i===editIdx?{...c,...chData}:c);
+      setEditIdx(null);
+    } else {
+      nc = [...chapters, { id:uid(), ...chData, completed:false, notes:'' }];
+      setActiveIdxRaw(nc.length-1);
+    }
+    updateCourse({ ...course, chapters:nc });
+    setShowModal(false);
+  }, [chapters, editIdx, course]);
+
+  const handleDeleteChapter = useCallback((idx) => {
     if (!confirm('Delete this chapter?')) return;
-    const newChapters = chapters.filter((_,i)=>i!==idx);
-    updateCourse({...course,chapters:newChapters});
-    if (activeChapter>=newChapters.length) setActiveChapter(Math.max(0,newChapters.length-1));
-  };
+    const nc = chapters.filter((_,i)=>i!==idx);
+    updateCourse({ ...course, chapters:nc });
+    if (activeIdx >= nc.length) setActiveIdxRaw(Math.max(0, nc.length-1));
+  }, [chapters, activeIdx, course]);
 
-  const embed = chapter ? getEmbedUrl(chapter.videoUrl) : null;
-  const doneCount = chapters.filter(c=>c.completed).length;
-  const pct = chapters.length>0?Math.round((doneCount/chapters.length)*100):0;
+  const doneCount = useMemo(() => chapters.filter(c=>c.completed).length, [chapters]);
+
+  // Shared chapter list props
+  const listProps = { chapters, activeIdx, onSelect:setActiveIdx, onEdit:(i)=>{setEditIdx(i);setShowModal(true);}, onDelete:handleDeleteChapter };
 
   return (
-    <div className="course-page" style={{height:'100%'}}>
-      {/* LEFT INDEX (desktop only) */}
-      <div className="course-index">
-        <div className="course-index-header">
-          <button className="btn btn-secondary btn-sm" onClick={onBack} style={{marginBottom:10}}>← Back</button>
-          <div className="course-index-title">Course Index</div>
-          <div className="course-index-name">{course.title}</div>
-          <div className="progress-mini">
-            <div className="progress-label" style={{fontSize:11,color:'var(--text-muted)',display:'flex',justifyContent:'space-between',marginBottom:4}}>
-              <span>{doneCount}/{chapters.length} done</span>
-              <span style={{color:'var(--accent)'}}>{pct}%</span>
-            </div>
-            <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
-          </div>
+    <div className="cp" style={{height:'100%'}}>
+      {/* LEFT INDEX — desktop */}
+      <div className="ci">
+        <div className="ci-hd">
+          <button className="btn btn-s btn-sm" onClick={onBack} style={{marginBottom:10}}>← Back</button>
+          <div className="ci-lbl">Course Index</div>
+          <div className="ci-ttl">{course.title}</div>
+          <ProgBar done={doneCount} total={chapters.length} showLabel={false} style={{marginTop:12}}/>
         </div>
-
-        <div className="course-index-list">
-          {chapters.length===0 && (
-            <div style={{padding:'28px 16px',color:'var(--text-muted)',fontSize:13,textAlign:'center',lineHeight:1.7}}>
-              No chapters yet.<br/>Add your first one below.
-            </div>
-          )}
-          {/* FIX: render chapters in their original chronological order.
-              A module header only appears when the module name changes from the previous chapter.
-              Chapters without a module name are simply rendered without any header — they
-              never get re-grouped or reordered. */}
-          {chapters.map((c, i) => {
-            const prevMod = i > 0 ? (chapters[i-1].module || '') : null;
-            const thisMod = c.module || '';
-            const showModHeader = thisMod && thisMod !== prevMod;
-            return (
-              <React.Fragment key={c.id||i}>
-                {showModHeader && (
-                  <div className="modh" style={{paddingTop: i === 0 ? 12 : 20}}>
-                    <span className="modlbl">{thisMod}</span>
-                  </div>
-                )}
-                <div
-                  className={`crow ${i===activeChapter?'on':''} ${c.completed?'done':''}`}
-                  onClick={()=>{ setActiveChapter(i); }}
-                >
-                  <div className="cnum">{c.completed?'✓':i+1}</div>
-                  <div className="cinfo">
-                    <div className="cchname">{c.name}</div>
-                    <div className="cmeta">
-                      <span className={`cbdg ${c.type==='video'?'bv':'bt'}`}>{c.type==='video'?'▶ Video':'✦ Text'}</span>
-                      {c.duration && <span className="cdur">{c.duration}</span>}
-                    </div>
-                  </div>
-                  <div className="crow-acts">
-                    <div className="icon-btn" style={{width:24,height:24,fontSize:11}} title="Edit" onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}>✏️</div>
-                    <div className="icon-btn" style={{width:24,height:24,fontSize:11}} title="Delete" onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}>🗑</div>
-                  </div>
-                </div>
-              </React.Fragment>
-            );
-          })}
-        </div>
-
-        <div className="add-chapter-row">
-          <button className="btn btn-secondary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{setEditChapter(null);setShowAddChapter(true);}}>
-            + Add Chapter
-          </button>
-        </div>
+        <div className="ci-list"><ChapterList {...listProps}/></div>
+        <div className="acr"><button className="btn btn-s" style={{width:'100%',justifyContent:'center'}} onClick={()=>{setEditIdx(null);setShowModal(true);}}>+ Add Chapter</button></div>
       </div>
 
-      {/* MAIN CONTENT */}
-      <div className="course-main">
-        <div className="course-topbar">
+      {/* MAIN */}
+      <div className="cm2">
+        <div className="ctb">
           {company && <CompanyIcon company={company} size={22}/>}
-          <div className="chapter-title-bar">{chapter?.name||'Select a chapter'}</div>
+          <div className="cttl">{chapter?.name||'Select a chapter'}</div>
           {chapter && (
-            <div className="complete-btn" onClick={toggleComplete} style={{cursor:'pointer',display:'flex',alignItems:'center',gap:8}}>
-              <div className={`checkbox-custom ${chapter.completed?'checked':''}`}/>
-              <span style={{fontSize:13,color:chapter.completed?'var(--accent)':'var(--text-secondary)',fontWeight:600}}>
+            <div className="cbtn" onClick={()=>markComplete()}>
+              <div className={`chk ${chapter.completed?'on':''} ${popAnim?'pop':''}`}/>
+              <span style={{fontSize:13,color:chapter.completed?'var(--ac)':'var(--t2)',fontWeight:600}}>
                 {chapter.completed?'Completed':'Mark Complete'}
               </span>
             </div>
           )}
-          <button className="btn btn-secondary btn-sm desktop-notes-btn" onClick={()=>setShowNotes(v=>!v)} title="Toggle Notes">
+          <button className="btn btn-s btn-sm dsk" onClick={()=>setShowNotes(v=>!v)}>
             {showNotes?'◧ Hide Notes':'◨ Notes'}
           </button>
         </div>
 
-        <div className="course-content-area">
-          <div className="course-viewer">
+        <div className="cca">
+          <div className="cv">
             {!chapter ? (
-              <div className="empty-state" style={{padding:'60px 20px'}}>
-                <div className="empty-icon">📖</div>
-                <div className="empty-title">No chapters yet</div>
-                <div className="empty-sub">Add chapters to start building your course content.</div>
-                <button className="btn btn-primary" onClick={()=>setShowAddChapter(true)}>Add First Chapter</button>
+              <div className="es" style={{padding:'60px 20px'}}>
+                <div className="es-ico">📖</div><div className="es-t">No chapters yet</div>
+                <div className="es-s">Add chapters to start building your course content.</div>
+                <button className="btn btn-p" onClick={()=>setShowModal(true)}>Add First Chapter</button>
               </div>
             ) : (
               <>
-                {chapter.type==='video' && (
-                  embed ? (
-                    <div className="video-wrapper">
-                      <iframe key={embed} src={embed} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen />
-                    </div>
-                  ) : (
-                    <div className="video-placeholder">
-                      <span style={{fontSize:40}}>▶</span>
-                      <span>{chapter.videoUrl?'Invalid video URL — try a Vimeo, YouTube, Google Drive, or Wistia link':'No video URL set for this chapter'}</span>
-                      <button className="btn btn-secondary btn-sm" onClick={()=>{setEditChapter(activeChapter);setShowAddChapter(true);}}>Add Video URL</button>
-                    </div>
-                  )
+                {chapter.type==='video' && (embed
+                  ? <div className="vw"><iframe key={`${embed}-${activeIdx}`} src={embed} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen/></div>
+                  : <div className="vph"><span style={{fontSize:40}}>▶</span><span>{chapter.videoUrl?'Invalid video URL':'No video URL set'}</span><button className="btn btn-s btn-sm" onClick={()=>{setEditIdx(activeIdx);setShowModal(true);}}>Add Video URL</button></div>
                 )}
-
-                {chapter.description && (
-                  <div className="desc-section">
-                    <div className="desc-section-title">📋 Description</div>
-                    <div className="desc-text">{chapter.description}</div>
-                  </div>
+                {chapter.description && <div className="ds"><div className="ds-t">📋 Description</div><div className="ds-p">{chapter.description}</div></div>}
+                {chapter.links?.length > 0 && (
+                  <div className="ds"><div className="ds-t">🔗 Resources</div><div className="ll">
+                    {chapter.links.map((l,i)=>{const lk=typeof l==='string'?{label:l,url:l}:l;return<a key={i} href={lk.url} target="_blank" rel="noopener noreferrer" className="li">🔗 {lk.label||lk.url}</a>;})}
+                  </div></div>
                 )}
-
-                {chapter.links?.length>0 && (
-                  <div className="desc-section">
-                    <div className="desc-section-title">🔗 Resources</div>
-                    <div className="links-list">
-                      {chapter.links.map((l,i)=>{
-                        const link = typeof l === 'string' ? { label: l, url: l } : l;
-                        return (
-                          <a key={i} href={link.url} target="_blank" rel="noopener noreferrer" className="link-item">
-                            🔗 {link.label || link.url}
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
+                {chapter.files?.length > 0 && (
+                  <div className="ds"><div className="ds-t">📁 Files</div><div className="fl2">
+                    {chapter.files.map((f,i)=>{const fi=typeof f==='string'?{name:f,url:''}:f;const il=!fi.name&&fi.url;return<a key={i} href={fi.url||'#'} target="_blank" rel="noopener noreferrer" className="fi2" style={{color:il?'var(--ac2)':'inherit',cursor:fi.url?'pointer':'default'}}><span style={{fontSize:18}}>{il?'🔗':'📄'}</span><span className="fi2-n">{fi.name||fi.url}</span></a>;})}
+                  </div></div>
                 )}
-
-                {chapter.files?.length>0 && (
-                  <div className="desc-section">
-                    <div className="desc-section-title">📁 Files</div>
-                    <div className="files-list">
-                      {chapter.files.map((f,i)=>{
-                        const file = typeof f === 'string' ? { name: f, url: '' } : f;
-                        const isLinkStyle = !file.name && file.url;
-                        return (
-                          <a key={i} href={file.url || '#'} target="_blank" rel="noopener noreferrer" className="file-item"
-                            style={{textDecoration:'none',color: isLinkStyle ? 'var(--accent-2)' : 'inherit',cursor: file.url ? 'pointer' : 'default'}}>
-                            <span className="file-icon">{isLinkStyle ? '🔗' : '📄'}</span>
-                            <span className="file-name">{file.name || file.url}</span>
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
                 {!chapter.description && !chapter.links?.length && !chapter.files?.length && chapter.type==='text' && (
-                  <div className="desc-section" style={{textAlign:'center',padding:'40px 20px',color:'var(--text-muted)'}}>
-                    <div style={{fontSize:32,marginBottom:10}}>📝</div>
-                    <div style={{fontSize:14}}>No content for this chapter yet.</div>
-                    <button className="btn btn-secondary btn-sm" style={{marginTop:12}} onClick={()=>{setEditChapter(activeChapter);setShowAddChapter(true);}}>Add Content</button>
+                  <div className="ds" style={{textAlign:'center',padding:'40px 20px',color:'var(--tm)'}}>
+                    <div style={{fontSize:32,marginBottom:10}}>📝</div><div>No content yet.</div>
+                    <button className="btn btn-s btn-sm" style={{marginTop:12}} onClick={()=>{setEditIdx(activeIdx);setShowModal(true);}}>Add Content</button>
                   </div>
                 )}
               </>
             )}
           </div>
 
-          {/* DESKTOP NOTES PANEL */}
-          <div className={`notes-panel ${showNotes?'':'hidden'}`}>
+          {/* Desktop notes panel */}
+          <div className={`np ${showNotes?'':'hide'}`}>
             {showNotes && <>
-              <div className="notes-panel-header">
-                <span className="notes-panel-title">📓 My Notes</span>
-                <span style={{fontSize:11,color:'var(--text-muted)'}}>{chapter?.name}</span>
-              </div>
-              <div className="notes-area">
-                <textarea
-                  className="note-textarea"
-                  placeholder={`Notes for "${chapter?.name||'this chapter'}"...\n\nJot down key points, code snippets, questions.`}
-                  value={chapter?.notes||''}
-                  onChange={e=>saveNote(e.target.value)}
-                />
-                <div className="note-saved">{noteSaved?'✓ Saved':''}</div>
+              <div className="np-hd"><span className="np-t">📓 My Notes</span><span style={{fontSize:11,color:'var(--tm)'}}>{chapter?.name}</span></div>
+              <div className="na">
+                <textarea className="nta" placeholder={`Notes for "${chapter?.name||'this chapter'}"…\n\nKey points, code, questions.`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
+                <div className="nsv">{noteSaved?'✓ Saved':''}</div>
               </div>
             </>}
           </div>
         </div>
       </div>
 
-      {/* Mobile Notes Bottom Sheet */}
-      <div className={`mobile-notes-sheet ${mobileNotesOpen?'open':''}`}>
-        <div className="mobile-notes-backdrop" onClick={()=>{ if(setMobileNotesOpen) setMobileNotesOpen(false); }}/>
-        <div className="mobile-notes-sheet-panel">
-          <div className="mobile-notes-handle"/>
-          <div className="notes-panel-header" style={{padding:'8px 16px 12px'}}>
-            <span className="notes-panel-title">📓 My Notes</span>
+      {/* Mobile notes sheet */}
+      <div className={`mns ${mobileNotesOpen?'open':''}`}>
+        <div className="mns-bk" onClick={()=>setMobileNotesOpen&&setMobileNotesOpen(false)}/>
+        <div className="mns-pn">
+          <div className="mns-hnd"/>
+          <div className="np-hd" style={{padding:'8px 16px 12px'}}>
+            <span className="np-t">📓 My Notes</span>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
-              <span style={{fontSize:11,color:'var(--text-muted)'}}>{chapter?.name}</span>
-              <button className="close-btn" onClick={()=>{ if(setMobileNotesOpen) setMobileNotesOpen(false); }}>×</button>
+              <span style={{fontSize:11,color:'var(--tm)'}}>{chapter?.name}</span>
+              <button className="xb" onClick={()=>setMobileNotesOpen&&setMobileNotesOpen(false)}>×</button>
             </div>
           </div>
-          <div className="notes-area" style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
-            <textarea
-              className="note-textarea"
-              style={{flex:1,minHeight:0,fontSize:16}}
-              placeholder={`Notes for "${chapter?.name||'this chapter'}"...\n\nJot down key points, questions.`}
-              value={chapter?.notes||''}
-              onChange={e=>saveNote(e.target.value)}
-            />
-            <div className="note-saved" style={{textAlign:'right',padding:'4px 0'}}>{noteSaved?'✓ Saved':''}</div>
+          <div className="na" style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+            <textarea className="nta" style={{flex:1,minHeight:0,fontSize:16}} placeholder={`Notes for "${chapter?.name||'this chapter'}"…`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
+            <div className="nsv" style={{textAlign:'right',padding:'4px 0'}}>{noteSaved?'✓ Saved':''}</div>
           </div>
         </div>
       </div>
 
-      {showAddChapter && (
+      {showModal && (
         <ChapterModal
-          chapter={editChapter!==null?chapters[editChapter]:null}
-          onClose={()=>{setShowAddChapter(false);setEditChapter(null);}}
+          chapter={editIdx!==null?chapters[editIdx]:null}
+          onClose={()=>{setShowModal(false);setEditIdx(null);}}
           onSave={handleSaveChapter}
         />
       )}
@@ -1419,112 +1105,57 @@ function CoursePage({ courseId, data, onBack, onUpdate, mobileNotesOpen, setMobi
   );
 }
 
-// ─── MOBILE COURSE INDEX ──────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// MOBILE COURSE INDEX SHEET
+// FIX: no longer duplicates chapter logic — reuses ChapterList + ChapterRow
+// ─────────────────────────────────────────────────────────────────────────────
 function MobileCourseIndex({ courseId, data, onUpdate, onClose, onSelectChapter }) {
-  const course = data.courses.find(c=>c.id===courseId);
-  const [showAddChapter, setShowAddChapter] = useState(false);
-  const [editChapter, setEditChapter] = useState(null);
-
+  const course   = useMemo(() => data.courses.find(c=>c.id===courseId), [data.courses, courseId]);
+  const [showModal, setShowModal] = useState(false);
+  const [editIdx,   setEditIdx]   = useState(null);
   if (!course) return null;
-  const chapters = course.chapters||[];
-  const doneCount = chapters.filter(c=>c.completed).length;
-  const pct = chapters.length>0?Math.round((doneCount/chapters.length)*100):0;
 
-  const updateCourse = (updated) => {
-    const courses = data.courses.map(c=>c.id===courseId?updated:c);
-    onUpdate({...data, courses});
-  };
+  const chapters = course.chapters||[];
+  const done     = chapters.filter(c=>c.completed).length;
+
+  const updateCourse = (updated) => onUpdate({ ...data, courses:data.courses.map(c=>c.id===courseId?updated:c) });
 
   const handleSaveChapter = (chData) => {
-    let newChapters;
-    if (editChapter!==null) {
-      newChapters = chapters.map((c,i)=>i===editChapter?{...c,...chData}:c);
-      setEditChapter(null);
-    } else {
-      newChapters = [...chapters,{id:uid(),...chData,completed:false,notes:''}];
-    }
-    updateCourse({...course,chapters:newChapters});
-    setShowAddChapter(false);
+    const nc = editIdx!==null
+      ? chapters.map((c,i)=>i===editIdx?{...c,...chData}:c)
+      : [...chapters,{id:uid(),...chData,completed:false,notes:''}];
+    if (editIdx!==null) setEditIdx(null);
+    updateCourse({...course,chapters:nc});
+    setShowModal(false);
   };
 
-  const handleDeleteChapter = (idx) => {
+  const handleDelete = (idx) => {
     if (!confirm('Delete this chapter?')) return;
-    const newChapters = chapters.filter((_,i)=>i!==idx);
-    updateCourse({...course,chapters:newChapters});
+    updateCourse({...course,chapters:chapters.filter((_,i)=>i!==idx)});
   };
 
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
-      <div className="course-index-header" style={{padding:'14px 16px'}}>
-        <button className="btn btn-secondary btn-sm" onClick={onClose} style={{marginBottom:10}}>✕ Close</button>
-        <div className="course-index-title">Course Index</div>
-        <div className="course-index-name">{course.title}</div>
-        <div className="progress-mini">
-          <div className="progress-label" style={{fontSize:11,color:'var(--text-muted)',display:'flex',justifyContent:'space-between',marginBottom:4}}>
-            <span>{doneCount}/{chapters.length} done</span>
-            <span style={{color:'var(--accent)'}}>{pct}%</span>
-          </div>
-          <div className="progress-bar"><div className="progress-fill" style={{width:`${pct}%`}}/></div>
-        </div>
+      <div className="ci-hd" style={{padding:'14px 16px'}}>
+        <button className="btn btn-s btn-sm" onClick={onClose} style={{marginBottom:10}}>✕ Close</button>
+        <div className="ci-lbl">Course Index</div>
+        <div className="ci-ttl">{course.title}</div>
+        <ProgBar done={done} total={chapters.length} showLabel={false} style={{marginTop:12}}/>
       </div>
-
-      <div className="course-index-list" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch'}}>
-        {chapters.length===0 && (
-          <div style={{padding:'28px 16px',color:'var(--text-muted)',fontSize:13,textAlign:'center',lineHeight:1.7}}>
-            No chapters yet.<br/>Add your first one below.
-          </div>
-        )}
-        {/* FIX: same chronological render as desktop — no reordering, header on module change only */}
-        {chapters.map((c, i) => {
-          const prevMod = i > 0 ? (chapters[i-1].module || '') : null;
-          const thisMod = c.module || '';
-          const showModHeader = thisMod && thisMod !== prevMod;
-          return (
-            <React.Fragment key={c.id||i}>
-              {showModHeader && (
-                <div className="modh" style={{paddingTop: i === 0 ? 12 : 20}}>
-                  <span className="modlbl">{thisMod}</span>
-                </div>
-              )}
-              <div
-                className={`crow ${c.completed?'done':''}`}
-                style={{paddingRight:10}}
-                onClick={()=>{
-                  if (onSelectChapter) onSelectChapter(i);
-                  onClose();
-                }}
-              >
-                <div className="cnum">{c.completed?'✓':i+1}</div>
-                <div className="cinfo">
-                  <div className="cchname">{c.name}</div>
-                  <div className="cmeta">
-                    <span className={`cbdg ${c.type==='video'?'bv':'bt'}`}>{c.type==='video'?'▶ Video':'✦ Text'}</span>
-                    {c.duration && <span className="cdur">{c.duration}</span>}
-                  </div>
-                </div>
-                <div className="crow-acts" style={{opacity:1}}>
-                  <div className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Edit"
-                    onClick={e=>{e.stopPropagation();setEditChapter(i);setShowAddChapter(true);}}>✏️</div>
-                  <div className="icon-btn" style={{width:32,height:32,fontSize:13}} title="Delete"
-                    onClick={e=>{e.stopPropagation();handleDeleteChapter(i);}}>🗑</div>
-                </div>
-              </div>
-            </React.Fragment>
-          );
-        })}
+      <div className="ci-list" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch'}}>
+        <ChapterList
+          chapters={chapters} activeIdx={-1}
+          onSelect={(i)=>{onSelectChapter&&onSelectChapter(i);onClose();}}
+          onEdit={(i)=>{setEditIdx(i);setShowModal(true);}}
+          onDelete={handleDelete}
+          mobile={true}
+        />
       </div>
-
-      <div className="add-chapter-row">
-        <button className="btn btn-secondary" style={{width:'100%',justifyContent:'center'}}
-          onClick={()=>{setEditChapter(null);setShowAddChapter(true);}}>
-          + Add Chapter
-        </button>
-      </div>
-
-      {showAddChapter && (
+      <div className="acr"><button className="btn btn-s" style={{width:'100%',justifyContent:'center'}} onClick={()=>{setEditIdx(null);setShowModal(true);}}>+ Add Chapter</button></div>
+      {showModal && (
         <ChapterModal
-          chapter={editChapter!==null?chapters[editChapter]:null}
-          onClose={()=>{setShowAddChapter(false);setEditChapter(null);}}
+          chapter={editIdx!==null?chapters[editIdx]:null}
+          onClose={()=>{setShowModal(false);setEditIdx(null);}}
           onSave={handleSaveChapter}
         />
       )}
@@ -1532,140 +1163,129 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose, onSelectChapter 
   );
 }
 
-// ─── APP ROOT ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// APP ROOT
+// ─────────────────────────────────────────────────────────────────────────────
 function App() {
-  const [data, setData] = useState(load);
-  const [view, setView] = useState('home');
-  const [filterCompany, setFilterCompany] = useState('all');
-  const [mobileNotesOpen, setMobileNotesOpen] = useState(false);
-  const [showImportMobile, setShowImportMobile] = useState(false);
-  const [showAddCourseMobile, setShowAddCourseMobile] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [mobileActiveChapter, setMobileActiveChapter] = useState(0);
+  const [data,    setData]    = useState(loadData);
+  const [view,    setView]    = useState('home');   // 'home' | 'notes' | <courseId>
+  const [filter,  setFilter]  = useState('all');
+  // FIX: resume map lives in memory as a ref-like state — loaded once, never from localStorage per-render
+  const [resumeMap, setResumeMapRaw] = useState(loadResume);
+  const [mobileNotes,   setMobileNotes]   = useState(false);
+  const [mobileSidebar, setMobileSidebar] = useState(false);
+  const [showImportMob, setShowImportMob] = useState(false);
+  const [showAddMob,    setShowAddMob]    = useState(false);
+  const [initChIdx,     setInitChIdx]     = useState(0);
 
-  const exportDataMobile = () => {
-    const d = { companies: data.companies, courses: data.courses };
-    const blob = new Blob([JSON.stringify(d, null, 2)], { type:'application/json' });
-    const url = URL.createObjectURL(blob);
+  // FIX: resume map updates go through one place — writes to localStorage here
+  const updateResume = useCallback((newMap) => {
+    setResumeMapRaw(newMap);
+    saveResume(newMap);
+  }, []);
+
+  const handleUpdate = useCallback((d) => { setData(d); saveData(d); }, []);
+  const handleBack   = useCallback(() => { setView('home'); setMobileSidebar(false); }, []);
+
+  const handleOpenCourse = useCallback((id, chIdx) => {
+    const idx = chIdx !== undefined ? chIdx : (resumeMap[id] ?? 0);
+    setInitChIdx(idx);
+    setView(id);
+  }, [resumeMap]);
+
+  const exportMobile = useCallback(() => {
+    const { companies, courses } = data;
+    const b = new Blob([JSON.stringify({companies,courses},null,2)],{type:'application/json'});
+    const u = URL.createObjectURL(b);
     const a = document.createElement('a');
-    a.href = url; a.download = `courseflow-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-  };
+    a.href=u; a.download=`courseflow-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
+  }, [data]);
 
-  const courseCompanies = data.companies.filter(co => data.courses.some(c => c.companyId === co.id));
-  const handleUpdate = (newData) => { setData(newData); save(newData); };
-  const handleBack = () => { setView('home'); setMobileSidebarOpen(false); };
+  const isCourse = view !== 'home' && view !== 'notes';
+
+  // FIX: memoised so sidebar doesn't recompute on every keypress in search
+  const sidebarCos = useMemo(() => data.companies.filter(co=>data.courses.some(c=>c.companyId===co.id)), [data.companies, data.courses]);
+  const activeCourseCoId = useMemo(() => isCourse ? data.courses.find(c=>c.id===view)?.companyId : null, [isCourse, data.courses, view]);
 
   return (
-    <div style={{display:'flex',position:'fixed',top:0,left:0,right:0,bottom:0,overflow:'hidden'}}>
+    <div style={{display:'flex',position:'fixed',inset:0,overflow:'hidden'}}>
+
       {/* DESKTOP SIDEBAR */}
-      <div className="sidebar">
-        <div className="sidebar-logo" onClick={()=>setView('home')} title="CourseFlow">CF</div>
-        <div className="sidebar-divider"/>
-        <div className={`sidebar-item ${view==='home'&&filterCompany==='all'?'active':''}`} onClick={()=>{setView('home');setFilterCompany('all');}}>
-          <span style={{fontSize:18}}>⬡</span>
-          <span className="sidebar-tooltip">All Courses</span>
+      <div className="sb">
+        <div className="sb-logo" onClick={()=>setView('home')} title="CourseFlow">CF</div>
+        <div className="sb-div"/>
+        <div className={`sb-item ${view==='home'&&filter==='all'?'on':''}`} onClick={()=>{setView('home');setFilter('all');}}>
+          <span style={{fontSize:18}}>⬡</span><span className="sb-tip">All Courses</span>
         </div>
-        {courseCompanies.map(co=>(
-          <div key={co.id}
-            className={`sidebar-item ${
-              (view !== 'home' && data.courses.find(c=>c.id===view)?.companyId === co.id) ||
-              (view === 'home' && filterCompany === co.id) ? 'active' : ''
-            }`}
-            onClick={()=>{setView('home');setFilterCompany(co.id);}}>
-            <CompanyIcon company={co} size={26}/>
-            <span className="sidebar-tooltip">{co.name}</span>
+        <div className={`sb-item ${view==='notes'?'on':''}`} onClick={()=>setView('notes')}>
+          <span style={{fontSize:18}}>📓</span><span className="sb-tip">My Notes</span>
+        </div>
+        <div className="sb-div"/>
+        {sidebarCos.map(co => (
+          <div key={co.id} className={`sb-item ${(activeCourseCoId===co.id)||(view==='home'&&filter===co.id)?'on':''}`}
+            onClick={()=>{setView('home');setFilter(co.id);}}>
+            <CompanyIcon company={co} size={26}/><span className="sb-tip">{co.name}</span>
           </div>
         ))}
       </div>
 
-      {/* MAIN */}
+      {/* MAIN PANEL */}
       <div className="main">
-        {view==='home'
-          ? <HomePageWrapper
-              data={data}
-              onOpenCourse={id=>{setView(id); setMobileActiveChapter(0);}}
-              onUpdate={handleUpdate}
-              initialFilter={filterCompany}
-              showImportMobile={showImportMobile}
-              setShowImportMobile={setShowImportMobile}
-              showAddCourseMobile={showAddCourseMobile}
-              setShowAddCourseMobile={setShowAddCourseMobile}
-            />
-          : <CoursePage
-              courseId={view}
-              data={data}
-              onBack={handleBack}
-              onUpdate={handleUpdate}
-              mobileNotesOpen={mobileNotesOpen}
-              setMobileNotesOpen={setMobileNotesOpen}
-              externalActiveChapter={mobileActiveChapter}
-            />
-        }
+        {view==='home' && (
+          <HomePage
+            data={data} onOpenCourse={handleOpenCourse} onUpdate={handleUpdate}
+            filterCompany={filter} setFilterCompany={setFilter}
+            resumeMap={resumeMap}
+            showImportMobile={showImportMob} setShowImportMobile={setShowImportMob}
+            showAddCourseMobile={showAddMob}  setShowAddCourseMobile={setShowAddMob}
+          />
+        )}
+        {view==='notes' && <GlobalNotesPage data={data} onOpenCourse={handleOpenCourse}/>}
+        {isCourse && (
+          <CoursePage
+            courseId={view} data={data} onBack={handleBack} onUpdate={handleUpdate}
+            resumeMap={resumeMap} onResumeUpdate={updateResume}
+            mobileNotesOpen={mobileNotes} setMobileNotesOpen={setMobileNotes}
+            initChapterIdx={initChIdx}
+          />
+        )}
       </div>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="mobile-bottom-nav">
-        {view !== 'home' ? (
+      <nav className="mbn">
+        {isCourse ? (
           <>
-            <button className="mobile-nav-item" onClick={handleBack}>
-              <span className="mobile-nav-icon">←</span>
-              <span>Home</span>
-            </button>
-            <button className={`mobile-nav-item ${mobileSidebarOpen?'active':''}`} onClick={()=>setMobileSidebarOpen(true)}>
-              <span className="mobile-nav-icon">☰</span>
-              <span>Chapters</span>
-            </button>
-            <button className={`mobile-nav-item ${mobileNotesOpen?'active':''}`} onClick={()=>setMobileNotesOpen(v=>!v)}>
-              <span className="mobile-nav-icon">📓</span>
-              <span>{mobileNotesOpen?'Hide Notes':'Notes'}</span>
-            </button>
+            <button className="mni" onClick={handleBack}><span className="mni-i">←</span><span>Home</span></button>
+            <button className={`mni ${mobileSidebar?'on':''}`} onClick={()=>setMobileSidebar(true)}><span className="mni-i">☰</span><span>Chapters</span></button>
+            <button className={`mni ${mobileNotes?'on':''}`} onClick={()=>setMobileNotes(v=>!v)}><span className="mni-i">📓</span><span>{mobileNotes?'Hide':'Notes'}</span></button>
           </>
         ) : (
           <>
-            <button className="mobile-nav-item" onClick={()=>setShowImportMobile(true)}>
-              <span className="mobile-nav-icon">📥</span>
-              <span>Import</span>
-            </button>
-            <button className="mobile-nav-item" onClick={exportDataMobile}>
-              <span className="mobile-nav-icon">💾</span>
-              <span>Export</span>
-            </button>
-            <button className="mobile-nav-item" onClick={()=>setShowAddCourseMobile(true)}>
-              <span className="mobile-nav-icon">＋</span>
-              <span>Add Course</span>
-            </button>
+            <button className={`mni ${view==='home'?'on':''}`} onClick={()=>setView('home')}><span className="mni-i">⬡</span><span>Courses</span></button>
+            <button className={`mni ${view==='notes'?'on':''}`} onClick={()=>setView('notes')}><span className="mni-i">📓</span><span>Notes</span></button>
+            <button className="mni" onClick={()=>setShowAddMob(true)}><span className="mni-i">＋</span><span>Add</span></button>
+            <button className="mni" onClick={()=>setShowImportMob(true)}><span className="mni-i">📥</span><span>Import</span></button>
+            <button className="mni" onClick={exportMobile}><span className="mni-i">💾</span><span>Export</span></button>
           </>
         )}
       </nav>
 
-      {/* Mobile Chapters Sheet */}
-      <div className={`mobile-sidebar-sheet ${mobileSidebarOpen ? 'open' : ''}`}>
-        <div className="mobile-sheet-backdrop" onClick={()=>setMobileSidebarOpen(false)} />
-        <div className="mobile-sheet-panel" onClick={(e)=>e.stopPropagation()}>
-          {view !== 'home' && (
+      {/* MOBILE CHAPTERS SHEET */}
+      <div className={`mss ${mobileSidebar?'open':''}`}>
+        <div className="mss-bk" onClick={()=>setMobileSidebar(false)}/>
+        <div className="mss-pn" onClick={e=>e.stopPropagation()}>
+          {isCourse && (
             <MobileCourseIndex
-              courseId={view}
-              data={data}
-              onUpdate={handleUpdate}
-              onClose={()=>setMobileSidebarOpen(false)}
-              onSelectChapter={(idx)=>{ setMobileActiveChapter(idx); setMobileSidebarOpen(false); }}
+              courseId={view} data={data} onUpdate={handleUpdate}
+              onClose={()=>setMobileSidebar(false)}
+              onSelectChapter={idx=>{ setInitChIdx(idx); setMobileSidebar(false); }}
             />
           )}
         </div>
       </div>
     </div>
   );
-}
-
-function HomePageWrapper({ data, onOpenCourse, onUpdate, initialFilter, showImportMobile, setShowImportMobile, showAddCourseMobile, setShowAddCourseMobile }) {
-  const [filterCompany, setFilterCompany] = useState(initialFilter||'all');
-  useEffect(()=>setFilterCompany(initialFilter||'all'),[initialFilter]);
-  return <HomePage data={data} onOpenCourse={onOpenCourse} onUpdate={onUpdate} filterCompany_={filterCompany}
-    showImportMobile={showImportMobile} setShowImportMobile={setShowImportMobile}
-    showAddCourseMobile={showAddCourseMobile} setShowAddCourseMobile={setShowAddCourseMobile}
-  />;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
