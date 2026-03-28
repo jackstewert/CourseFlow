@@ -625,6 +625,8 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
   const [impErr,     setImpErr]     = useState('');
   const [sortBy,     setSortBy]     = useState('added');
   const [toast,      setToast]      = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); 
+// 'all' | 'done'
 
   useEffect(() => { if (showImportMobile)    { setShowImport(true);                setShowImportMobile(false);    } }, [showImportMobile]);
   useEffect(() => { if (showAddCourseMobile) { setEditCourse(null); setShowAdd(true); setShowAddCourseMobile(false); } }, [showAddCourseMobile]);
@@ -636,10 +638,18 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
 
   const filtered = useMemo(() => {
     const sq = search.toLowerCase();
-    let list = courses.filter(c =>
-      (filterCompany === 'all' || c.companyId === filterCompany) &&
-      (!sq || c.title.toLowerCase().includes(sq))
-    );
+    let list = courses.filter(c => {
+  const matchesCompany =
+    filterCompany === 'all' || c.companyId === filterCompany;
+
+  const matchesSearch =
+    !sq || c.title.toLowerCase().includes(sq);
+
+  const matchesStatus =
+    filterStatus === 'all' || pct(c) === 100;
+
+  return matchesCompany && matchesSearch && matchesStatus;
+});
     if (sortBy === 'az')            list = [...list].sort((a,b)=>a.title.localeCompare(b.title));
     else if (sortBy === 'progress') list = [...list].sort((a,b)=>pct(b)-pct(a));
     else if (sortBy === 'recent')   list = [...list].sort((a,b)=>(b.lastAccessed||0)-(a.lastAccessed||0));
@@ -728,14 +738,43 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
         )}
 
         <div className="sh">
-          <div>
-            <span className="st">{filterCompany==='all'?'All Courses':coMap[filterCompany]?.name||'Courses'}</span>
-            <span className="sc">{filtered.length} course{filtered.length!==1?'s':''}</span>
-          </div>
-          <div className="sort-row">
-            {SORTS.map(o=><button key={o.k} className={`sk ${sortBy===o.k?'on':''}`} onClick={()=>setSortBy(o.k)}>{o.l}</button>)}
-          </div>
-        </div>
+  <div>
+    <span className="st">
+      {filterCompany==='all'?'All Courses':coMap[filterCompany]?.name||'Courses'}
+    </span>
+    <span className="sc">
+      {filtered.length} course{filtered.length!==1?'s':''}
+    </span>
+  </div>
+
+  {/* SORT */}
+  <div className="sort-row">
+    {SORTS.map(o => (
+      <button key={o.k}
+        className={`sk ${sortBy===o.k?'on':''}`}
+        onClick={()=>setSortBy(o.k)}>
+        {o.l}
+      </button>
+    ))}
+  </div>
+
+  {/* 🔥 ADD THIS HERE */}
+  <div className="sort-row">
+    <button 
+      className={`sk ${filterStatus==='all'?'on':''}`}
+      onClick={() => setFilterStatus('all')}
+    >
+      All
+    </button>
+
+    <button 
+      className={`sk ${filterStatus==='done'?'on':''}`}
+      onClick={() => setFilterStatus('done')}
+    >
+      Done
+    </button>
+  </div>
+</div>
 
         {filtered.length === 0 ? (
           <div className="es">
