@@ -67,7 +67,7 @@ body {
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:var(--bdl); border-radius:4px; }
 
-.sb { width:68px; background:var(--bgs); border-right:1px solid var(--bd); display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:6px; flex-shrink:0; z-index:10; overflow-y:auto; }
+.sb { width:68px; background:var(--bgs); border-right:1px solid var(--bd); display:flex; flex-direction:column; align-items:center; padding:16px 0; gap:6px; flex-shrink:0; z-index:10; overflow-y:auto; overflow-x:hidden; }
 .sb-logo { width:40px; height:40px; background:var(--ac); border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; font-family:'Syne',sans-serif; font-weight:800; font-size:15px; color:#0a0e1a; cursor:pointer; flex-shrink:0; }
 .sb-div  { width:32px; height:1px; background:var(--bd); margin:6px 0; flex-shrink:0; }
 .sb-item { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s,border-color .15s; position:relative; flex-shrink:0; border:2px solid transparent; }
@@ -377,8 +377,15 @@ function embedUrl(url) {
   if (yt)   return `https://www.youtube.com/embed/${yt[1]}?enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
   if (url.includes('wistia'))             return `https://fast.wistia.net/embed/iframe/${url.split('/').pop()}?autoplay=0`;
   if (url.includes('player.hotmart.com')) return url;
-  const gd = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)||url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
-  if (url.includes('drive.google.com') && gd) return `https://drive.google.com/file/d/${gd[1]}/preview`;
+  if (url.includes('drive.google.com')) {
+    // Match /file/d/ID with any suffix (/view, /preview, etc.)
+    const gd = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (gd) return `https://drive.google.com/file/d/${gd[1]}/preview`;
+    // Match ?id= style sharing links
+    const gd2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (gd2) return `https://drive.google.com/file/d/${gd2[1]}/preview`;
+    return null;
+  }
   if (url.includes('embed')||url.startsWith('https')) return url;
   return null;
 }
@@ -471,7 +478,7 @@ function VideoPlayer({ url, activeKey, onEnded }) {
       <iframe
         key={activeKey}
         src={embed}
-        allow="autoplay; fullscreen; picture-in-picture"
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
         allowFullScreen
         onLoad={() => setIframeLoaded(true)}
       />
@@ -762,7 +769,7 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
   const [showImport, setShowImport] = useState(false);
   const [selFile,    setSelFile]    = useState(null);
   const [impErr,     setImpErr]     = useState('');
-  const [sortBy,     setSortBy]     = useState('added');
+  const [sortBy,     setSortBy]     = useState('recent');
   const [toast,      setToast]      = useState('');
 
   useEffect(() => { if (showImportMobile)    { setShowImport(true);                setShowImportMobile(false);    } }, [showImportMobile]);
@@ -824,10 +831,6 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
     showToast('\u2713 Backup downloaded!');
   }, [companies, courses]);
 
-  const doCopy = useCallback(() => {
-    navigator.clipboard.writeText(JSON.stringify({companies,courses},null,2))
-      .then(()=>showToast('\u2713 Data copied to clipboard!'));
-  }, [companies, courses]);
 
   const handleFileImport = (file) => {
     if (!file) return;
@@ -871,7 +874,6 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
           <input className="fi si" placeholder="Search courses\u2026" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
         </div>
         <button className="btn btn-s btn-sm dsk" onClick={()=>setShowImport(true)}>&#x1F4E5; Import</button>
-        <button className="btn btn-s btn-sm dsk" onClick={doCopy}>&#x1F4CB; Copy Data</button>
         <button className="btn btn-s btn-sm dsk" onClick={doExport}>&#x1F4BE; Export</button>
         <button className="btn btn-p dsk" onClick={()=>{setEditCourse(null);setShowAdd(true);}}>+ Add Course</button>
       </div>
