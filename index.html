@@ -902,13 +902,16 @@ const setActiveIdx = useCallback((idx) => {
 }, [resumeMap, courseId, onResumeUpdate, onChapterChange]);
 
   const saveNote = useCallback((val) => {
-    const nc = chapters.map((c,i)=>i===activeIdx?{...c,notes:val}:c);
-    updateCourse({ ...course, chapters:nc });
-    clearTimeout(noteTimer.current);
-    clearTimeout(noteHideRef.current);
-    noteTimer.current   = setTimeout(()=>setNoteSaved(true),  300);
-    noteHideRef.current = setTimeout(()=>setNoteSaved(false), 2300);
-  }, [chapters, activeIdx, course]);
+  const nc = chapters.map((c,i)=>
+    i === activeIdx ? { ...c, notes: val } : c
+  );
+
+  updateCourse({ ...course, chapters: nc });
+
+  setNoteSaved(true);
+  clearTimeout(noteHideRef.current);
+  noteHideRef.current = setTimeout(() => setNoteSaved(false), 1200);
+}, [chapters, activeIdx, course, updateCourse]);
 
   useEffect(() => () => { clearTimeout(noteTimer.current); clearTimeout(noteHideRef.current); }, []);
 
