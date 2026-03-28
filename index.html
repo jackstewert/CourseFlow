@@ -341,10 +341,10 @@ const RK  = 'courseflow_resume';
 const GC  = ['#10e68c','#4f8ef7','#f56565','#f6c90e','#a78bfa','#fb923c'];
 const EMP = { companies:[], courses:[] };
 const SORTS = [
-  { k:'added',    l:'Date Added' },
-  { k:'recent',   l:'\u23f1 Recent'  },
-  { k:'az',       l:'A\u2013Z'       },
-  { k:'progress', l:'Completed'    },
+  { k:'recent',   l:'⏱ Recent'    },
+  { k:'added',    l:'Date Added'  },
+  { k:'az',       l:'A–Z'         },
+  { k:'progress', l:'Completed'   },
 ];
 
 const loadData = () => {
@@ -501,11 +501,11 @@ const ChapterRow = React.memo(function ChapterRow({ ch, idx, isActive, onSelect,
     <div className={`cr ${isActive?'on':''} ${ch.completed?'dn':''}`}
       style={mobileSize?{paddingRight:10}:{}}
       onClick={onSelect}>
-      <div className="cn">{ch.completed?'\u2713':idx+1}</div>
+      <div className="cn">{ch.completed?'✓':idx+1}</div>
       <div className="ci2">
         <div className="cn2">{ch.name}</div>
         <div className="cm">
-          <span className={`cbv ${ch.type==='video'?'bv':'bt'}`}>{ch.type==='video'?'\u25b6 Video':'\u2726 Text'}</span>
+          <span className={`cbv ${ch.type==='video'?'bv':'bt'}`}>{ch.type==='video'?'▶ Video':'✦ Text'}</span>
           {ch.duration && <span className="cd">{ch.duration}</span>}
         </div>
       </div>
@@ -619,7 +619,7 @@ function AddCourseModal({ companies, courses, onClose, onSave, editCourse }) {
               </div>
             )}
           </div>
-          <div className="fg"><label className="fl">Description (optional)</label><textarea className="fta" placeholder="Brief overview\u2026" value={desc} onChange={e=>setDesc(e.target.value)}/></div>
+          <div className="fg"><label className="fl">Description (optional)</label><textarea className="fta" placeholder="Brief overview…" value={desc} onChange={e=>setDesc(e.target.value)}/></div>
         </div>
         <div className="mf">
           <button className="btn btn-s" onClick={onClose}>Cancel</button>
@@ -662,7 +662,7 @@ function ChapterModal({ chapter, onClose, onSave }) {
           {tab==='basic' && <>
             <div className="fg"><label className="fl">Chapter Name *</label><input className="fi" placeholder="e.g. Introduction to Variables" value={name} onChange={e=>setName(e.target.value)}/></div>
             <div className="fg"><label className="fl">Module / Section</label><input className="fi" placeholder="e.g. Module 1: Foundations" value={mod} onChange={e=>setMod(e.target.value)}/><span style={{fontSize:11,color:'var(--tm)',marginTop:3}}>Header appears when module name changes. Leave blank for no header.</span></div>
-            <div className="fg"><label className="fl">Chapter Type</label><div style={{display:'flex',gap:8}}>{['video','text'].map(t=><button key={t} className={`btn ${type===t?'btn-p':'btn-s'}`} style={{flex:1}} onClick={()=>setType(t)}>{t==='video'?'\ud83d\udcf9 Video':'\ud83d\udcdd Text Only'}</button>)}</div></div>
+            <div className="fg"><label className="fl">Chapter Type</label><div style={{display:'flex',gap:8}}>{['video','text'].map(t=><button key={t} className={`btn ${type===t?'btn-p':'btn-s'}`} style={{flex:1}} onClick={()=>setType(t)}>{t==='video'?'📹 Video':'📝 Text Only'}</button>)}</div></div>
             <div className="fg"><label className="fl">Duration (optional)</label><input className="fi" placeholder="e.g. 6:30 or 15 min" value={dur} onChange={e=>setDur(e.target.value)}/></div>
           </>}
           {tab==='content' && <>
@@ -673,7 +673,7 @@ function ChapterModal({ chapter, onClose, onSave }) {
                 {links.map((l,i)=>(
                   <div key={i} style={{display:'flex',gap:8,alignItems:'center'}}>
                     <input className="fi" placeholder="Label" value={l.label||''} onChange={e=>updLink(i,'label',e.target.value)}/>
-                    <input className="fi" placeholder="https://\u2026" value={l.url||''} onChange={e=>{ updLink(i,'url',e.target.value); if(!links[i].label)updLink(i,'label',e.target.value); }}/>
+                    <input className="fi" placeholder="https://…" value={l.url||''} onChange={e=>{ updLink(i,'url',e.target.value); if(!links[i].label)updLink(i,'label',e.target.value); }}/>
                     <button className="btn btn-d btn-sm" onClick={()=>setLinks(p=>p.filter((_,x)=>x!==i))}>&times;</button>
                   </div>
                 ))}
@@ -687,7 +687,7 @@ function ChapterModal({ chapter, onClose, onSave }) {
                 {files.map((f,i)=>(
                   <div key={i} style={{display:'flex',gap:8,alignItems:'center'}}>
                     <input className="fi" placeholder="File name" value={f.name||''} onChange={e=>updFile(i,'name',e.target.value)}/>
-                    <input className="fi" placeholder="https://\u2026" value={f.url||''} onChange={e=>{ updFile(i,'url',e.target.value); if(!files[i].name)updFile(i,'name',e.target.value); }}/>
+                    <input className="fi" placeholder="https://…" value={f.url||''} onChange={e=>{ updFile(i,'url',e.target.value); if(!files[i].name)updFile(i,'name',e.target.value); }}/>
                     <button className="btn btn-d btn-sm" onClick={()=>setFiles(p=>p.filter((_,x)=>x!==i))}>&times;</button>
                   </div>
                 ))}
@@ -734,7 +734,7 @@ function GlobalNotesPage({ data, onOpenCourse }) {
         <span className="topbar-title">&#x1F4D3; <span>My Notes</span></span>
         <div className="si-wrap">
           <span className="si-ico">&#x1F50D;</span>
-          <input className="fi si" placeholder="Search notes\u2026" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
+          <input className="fi si" placeholder="Search notes…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
         </div>
       </div>
       <div className="content">
@@ -853,11 +853,48 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
           ...c,
           companyId: idRemap[c.companyId] || c.companyId
         }));
+
+        let newCourseCount = 0;
+        let mergedChapterCount = 0;
+
+        // For each imported course: if it already exists (by id or title+companyId),
+        // merge any chapters that aren't already present. Otherwise add it fresh.
+        const mergedCourses = data.courses.map(existing => {
+          const match = remappedCourses.find(ic =>
+            ic.id === existing.id ||
+            (ic.title.toLowerCase() === existing.title.toLowerCase() && (ic.companyId||'') === (existing.companyId||''))
+          );
+          if (!match) return existing;
+          // Merge chapters: skip any whose id OR name already exists in this course
+          const existingChapterIds   = new Set((existing.chapters||[]).map(ch => ch.id));
+          const existingChapterNames = new Set((existing.chapters||[]).map(ch => ch.name.toLowerCase()));
+          const chaptersToAdd = (match.chapters||[]).filter(ch =>
+            !existingChapterIds.has(ch.id) &&
+            !existingChapterNames.has(ch.name.toLowerCase())
+          );
+          mergedChapterCount += chaptersToAdd.length;
+          return { ...existing, chapters: [...(existing.chapters||[]), ...chaptersToAdd] };
+        });
+
+        // Courses in the import that don't exist locally at all — add them fresh
+        const brandNewCourses = remappedCourses.filter(ic =>
+          !data.courses.some(ec =>
+            ec.id === ic.id ||
+            (ic.title.toLowerCase() === ec.title.toLowerCase() && (ic.companyId||'') === (ec.companyId||''))
+          )
+        );
+        newCourseCount = brandNewCourses.length;
+
         onUpdate({
-          courses: [...data.courses, ...remappedCourses],
+          courses: [...mergedCourses, ...brandNewCourses],
           companies: [...data.companies, ...newCompanies]
         });
         setShowImport(false); setImpErr('');
+        const parts = [];
+        if (newCourseCount > 0)     parts.push(`${newCourseCount} new course${newCourseCount!==1?'s':''}`);
+        if (mergedChapterCount > 0) parts.push(`${mergedChapterCount} new chapter${mergedChapterCount!==1?'s':''} merged`);
+        if (parts.length === 0)     parts.push('nothing new to import');
+        showToast(`\u2713 ${parts.join(', ')}`);
       } catch { setImpErr('Invalid JSON.'); }
     };
     r.readAsText(file);
@@ -871,7 +908,7 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
         <span className="topbar-title">Course<span>Flow</span></span>
         <div className="si-wrap">
           <span className="si-ico">&#x1F50D;</span>
-          <input className="fi si" placeholder="Search courses\u2026" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
+          <input className="fi si" placeholder="Search courses…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220,padding:'7px 12px 7px 34px'}}/>
         </div>
         <button className="btn btn-s btn-sm dsk" onClick={()=>setShowImport(true)}>&#x1F4E5; Import</button>
         <button className="btn btn-s btn-sm dsk" onClick={doExport}>&#x1F4BE; Export</button>
@@ -1104,7 +1141,7 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
             </div>
           )}
           <button className="btn btn-s btn-sm dsk" onClick={()=>setShowNotes(v=>!v)}>
-            {showNotes?'\u25a7 Hide Notes':'\u25a8 Notes'}
+            {showNotes?'⊟ Hide Notes':'⊞ Notes'}
           </button>
         </div>
 
@@ -1152,8 +1189,8 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
             {showNotes && <>
               <div className="np-hd"><span className="np-t">&#x1F4D3; My Notes</span><span style={{fontSize:11,color:'var(--tm)'}}>{chapter?.name}</span></div>
               <div className="na">
-                <textarea className="nta" placeholder={`Notes for "${chapter?.name||'this chapter'}"\u2026\n\nKey points, code, questions.`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
-                <div className="nsv">{noteSaved?'\u2713 Saved':''}</div>
+                <textarea className="nta" placeholder={`Notes for "${chapter?.name||'this chapter'}"…\n\nKey points, code, questions.`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
+                <div className="nsv">{noteSaved?'✓ Saved':''}</div>
               </div>
             </>}
           </div>
@@ -1172,8 +1209,8 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
             </div>
           </div>
           <div className="na" style={{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
-            <textarea className="nta" style={{flex:1,minHeight:0,fontSize:16}} placeholder={`Notes for "${chapter?.name||'this chapter'}"\u2026`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
-            <div className="nsv" style={{textAlign:'right',padding:'4px 0'}}>{noteSaved?'\u2713 Saved':''}</div>
+            <textarea className="nta" style={{flex:1,minHeight:0,fontSize:16}} placeholder={`Notes for "${chapter?.name||'this chapter'}"…`} value={chapter?.notes||''} onChange={e=>saveNote(e.target.value)}/>
+            <div className="nsv" style={{textAlign:'right',padding:'4px 0'}}>{noteSaved?'✓ Saved':''}</div>
           </div>
         </div>
       </div>
