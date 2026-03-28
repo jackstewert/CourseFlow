@@ -196,7 +196,7 @@ body {
 .cbtn { display:flex; align-items:center; gap:6px; cursor:pointer; }
 .chk { width:18px; height:18px; border-radius:4px; border:2px solid var(--bdl); display:flex; align-items:center; justify-content:center; transition:all .12s; flex-shrink:0; }
 .chk.on { background:var(--ac); border-color:var(--ac); }
-.chk.on::after { content:'checkmark'; font-size:11px; font-weight:700; color:#0a0e1a; }
+.chk.on::after { content:'✓'; font-size:11px; font-weight:700; color:#0a0e1a; }
 @keyframes pop { 0%{transform:scale(1)} 40%{transform:scale(1.3)} 70%{transform:scale(.92)} 100%{transform:scale(1)} }
 .chk.pop { animation:pop .32s ease; }
 
@@ -321,7 +321,9 @@ const pct     = c => { const t=c.chapters?.length||0, d=c.chapters?.filter(x=>x.
 
 // FIX: "has resume" means the course has been opened before (key exists),
 // regardless of which chapter index is stored (including 0).
-const hasResume = (resumeMap, courseId) => courseId in resumeMap;
+const hasResume = (resumeMap, courseId) => {
+  return (resumeMap[courseId] ?? 0) > 0;
+};
 
 function embedUrl(url) {
   if (!url) return null;
@@ -751,7 +753,7 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
               const rIdx  = resumeMap[course.id] ?? 0;
               const rName = res ? course.chapters?.[rIdx]?.name : null;
               return (
-                <div key={course.id} className="card" onClick={()=>onOpenCourse(course.id)}>
+                <div key={course.id} className="card" onClick={() => onOpenCourse(course.id, resumeMap[course.id] ?? 0)}>
                   <div style={{position:'absolute',top:8,left:8,zIndex:50}}>
                     <div className="ib" style={{fontSize:10,letterSpacing:2}} onClick={e=>{e.stopPropagation();setMenuOpen(menuOpen===course.id?null:course.id);}}>&#x2022;&#x2022;&#x2022;</div>
                     {menuOpen===course.id && (
@@ -1080,12 +1082,20 @@ function App() {
   const [data,    setData]    = useState(loadData);
   const [view,    setView]    = useState('home');
   const [filter,  setFilter]  = useState('all');
-  const [resumeMap, setResumeMapRaw] = useState(loadResume);
+  const [resumeMap, setResumeMap] = useState(loadResume());
+
+useEffect(() => {
+  saveResume(resumeMap);   // 🔥 THIS IS MISSING
+}, [resumeMap]);
   const [mobileNotes,   setMobileNotes]   = useState(false);
   const [mobileSidebar, setMobileSidebar] = useState(false);
   const [showImportMob, setShowImportMob] = useState(false);
   const [showAddMob,    setShowAddMob]    = useState(false);
   const [activeChapterIdx, setActiveChapterIdx] = useState(0);
+  const handleResumeUpdate = (map) => {
+  setResumeMap(map);
+  saveResume(map);   // 🔥 THIS is the missing line
+};
 
   const updateResume = useCallback((newMap) => {
     setResumeMapRaw(newMap);
@@ -1163,7 +1173,9 @@ function App() {
         {isCourse && (
           <CoursePage
             courseId={view} data={data} onBack={handleBack} onUpdate={handleUpdate}
-            resumeMap={resumeMap} onResumeUpdate={updateResume}
+            resumeMap={resumeMap}
+  onResumeUpdate={handleResumeUpdate}
+
             mobileNotesOpen={mobileNotes} setMobileNotesOpen={setMobileNotes}
             initChapterIdx={activeChapterIdx}
             onChapterChange={handleChapterChange}
