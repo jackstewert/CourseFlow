@@ -793,7 +793,8 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
                   <div style={{position:'absolute',top:8,left:8,zIndex:50}}>
                     <div className="ib" style={{fontSize:10,letterSpacing:2}} onClick={e=>{e.stopPropagation();setMenuOpen(menuOpen===course.id?null:course.id);}}>&#x2022;&#x2022;&#x2022;</div>
                     {menuOpen===course.id && (
-                      <div onClick={e=>e.stopPropagation()} style={{position:'absolute',top:34,left:0,background:'var(--bgc)',border:'1px solid var(--bdl)',borderRadius:10,padding:6,display:'flex',flexDirection:'column',gap:4,minWidth:130,boxShadow:'0 10px 30px rgba(0,0,0,.5)'}}>
+                      <div className="menu"
+ onClick={e=>e.stopPropagation()} style={{position:'absolute',top:34,left:0,background:'var(--bgc)',border:'1px solid var(--bdl)',borderRadius:10,padding:6,display:'flex',flexDirection:'column',gap:4,minWidth:130,boxShadow:'0 10px 30px rgba(0,0,0,.5)'}}>
                         <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6}} onClick={e=>{e.stopPropagation();setEditCourse(course);setShowAdd(true);setMenuOpen(null);}}>&#x270F;&#xFE0F; Edit</div>
                         <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)'}} onClick={e=>{handleDelete(course.id,e);setMenuOpen(null);}}>&#x1F5D1; Delete</div>
                       </div>
@@ -902,11 +903,14 @@ const setActiveIdx = useCallback((idx) => {
 }, [resumeMap, courseId, onResumeUpdate, onChapterChange]);
 
   const saveNote = useCallback((val) => {
-  const nc = chapters.map((c,i)=>
+  const nc = chapters.map((c, i) =>
     i === activeIdx ? { ...c, notes: val } : c
   );
 
-  updateCourse({ ...course, chapters: nc });
+  updateCourse({
+    ...course,
+    chapters: nc
+  });
 
   setNoteSaved(true);
   clearTimeout(noteHideRef.current);
