@@ -147,7 +147,7 @@ body {
 .sk:hover:not(.on) { background:var(--bgh); color:var(--t1); }
 
 .chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
-.chip { display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px; cursor:pointer; border:1.5px solid var(--bd); background:var(--bgc); font-size:12.5px; font-weight:600; transition:all .12px; }
+.chip { display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:8px; cursor:pointer; border:1.5px solid var(--bd); background:var(--bgc); font-size:12.5px; font-weight:600; transition:all .12s; }
 .chip:hover { border-color:var(--bdl); background:var(--bgh); }
 .chip.on { border-color:var(--ac); background:var(--acg); color:var(--ac); }
 
@@ -189,8 +189,46 @@ body {
 .cttl { flex:1; font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
 .cca { flex:1; display:flex; overflow:hidden; }
 .cv  { flex:1; overflow-y:auto; padding:24px; -webkit-overflow-scrolling:touch; }
-.vw  { width:100%; aspect-ratio:16/9; background:#000; border-radius:var(--rl); overflow:hidden; margin-bottom:20px; }
-.vw iframe { width:100%; height:100%; border:none; }
+
+/* ── Video wrapper & skeleton ─────────────────────────────────────── */
+.vw  { width:100%; aspect-ratio:16/9; background:#000; border-radius:var(--rl); overflow:hidden; margin-bottom:20px; position:relative; }
+.vw iframe { width:100%; height:100%; border:none; display:block; }
+
+/* Skeleton shimmer shown while iframe is loading */
+.vsk {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:14px;
+  background:var(--bgc); border-radius:var(--rl); z-index:2;
+  transition:opacity .25s;
+}
+.vsk.hidden { opacity:0; pointer-events:none; }
+.vsk-spin {
+  width:40px; height:40px; border-radius:50%;
+  border:3px solid var(--bdl); border-top-color:var(--ac);
+  animation:spin .7s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.vsk-txt { font-size:13px; color:var(--tm); font-weight:600; }
+
+/* Click-to-load poster for YouTube — avoids early iframe network hit */
+.vyt-poster {
+  position:absolute; inset:0; cursor:pointer; z-index:3;
+  display:flex; align-items:center; justify-content:center;
+  background:#000; border-radius:var(--rl); overflow:hidden;
+}
+.vyt-poster img { width:100%; height:100%; object-fit:cover; }
+.vyt-poster-overlay {
+  position:absolute; inset:0; background:rgba(0,0,0,.35);
+  display:flex; align-items:center; justify-content:center;
+}
+.vyt-play {
+  width:64px; height:64px; background:rgba(255,255,255,.95);
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  transition:transform .15s, background .15s; box-shadow:0 4px 20px rgba(0,0,0,.5);
+}
+.vyt-poster:hover .vyt-play { transform:scale(1.1); background:#fff; }
+.vyt-play::after { content:''; border-style:solid; border-width:10px 0 10px 20px; border-color:transparent transparent transparent #0a0e1a; margin-left:4px; }
+
 .vph { width:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px; background:var(--bgc); border-radius:var(--rl); color:var(--tm); font-size:14px; aspect-ratio:16/9; margin-bottom:20px; border:2px dashed var(--bdl); }
 
 .cbtn { display:flex; align-items:center; gap:6px; cursor:pointer; }
@@ -344,7 +382,102 @@ function embedUrl(url) {
   if (url.includes('embed')||url.startsWith('https')) return url;
   return null;
 }
-const isYT = url => !!(url && (url.includes('youtube.com')||url.includes('youtu.be')));
+
+const ytIdFrom = url => {
+  if (!url) return null;
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+};
+// Capture optional ?t= or &start= timestamp for YouTube embeds
+const ytStartFrom = url => {
+  if (!url) return null;
+  const m = url.match(/[?&](?:t|start)=(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+};
+
+// ── Fast video component ──────────────────────────────────────────────
+// For YouTube: show thumbnail poster first, load iframe only on click.
+// For others: mount iframe immediately but show skeleton until loaded.
+function VideoPlayer({ url, activeKey, onEnded }) {
+  const embed  = useMemo(() => embedUrl(url), [url]);
+  const ytId   = useMemo(() => ytIdFrom(url), [url]);
+  const ytStart = useMemo(() => ytStartFrom(url), [url]);
+
+  // YouTube: poster-first strategy
+  const [ytReady, setYtReady] = useState(false);
+  // Non-YT: loading skeleton
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+
+  // Reset on chapter change
+  useEffect(() => {
+    setYtReady(false);
+    setIframeLoaded(false);
+  }, [activeKey]);
+
+  // Listen for YT video-ended postMessage to auto-complete
+  useEffect(() => {
+    if (!ytReady || !ytId) return;
+    const onMsg = (e) => {
+      try {
+        const d = typeof e.data==='string' ? JSON.parse(e.data) : e.data;
+        if (d?.event==='onStateChange' && d?.info===0) onEnded?.();
+      } catch {}
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, [ytReady, ytId, onEnded]);
+
+  if (!embed) return null;
+
+  if (ytId) {
+    const thumb = `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`;
+    return (
+      <div className="vw">
+        {!ytReady ? (
+          /* Poster — zero iframe network cost until clicked */
+          <div className="vyt-poster" onClick={() => setYtReady(true)}>
+            <img src={thumb} alt="video thumbnail" loading="lazy" />
+            <div className="vyt-poster-overlay">
+              <div className="vyt-play" />
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Skeleton shown until iframe fires onLoad */}
+            <div className={`vsk ${iframeLoaded ? 'hidden' : ''}`}>
+              <div className="vsk-spin" />
+              <span className="vsk-txt">Loading video…</span>
+            </div>
+            <iframe
+              key={activeKey}
+              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1${ytStart?`&start=${ytStart}`:''}&origin=${encodeURIComponent(location.origin)}`}
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              onLoad={() => setIframeLoaded(true)}
+            />
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // Non-YouTube embed
+  return (
+    <div className="vw">
+      <div className={`vsk ${iframeLoaded ? 'hidden' : ''}`}>
+        <div className="vsk-spin" />
+        <span className="vsk-txt">Loading video…</span>
+      </div>
+      <iframe
+        key={activeKey}
+        src={embed}
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+        onLoad={() => setIframeLoaded(true)}
+      />
+    </div>
+  );
+}
 
 const CompanyIcon = React.memo(function CompanyIcon({ company, size=26 }) {
   const [err, setErr] = useState(false);
@@ -607,7 +740,7 @@ function GlobalNotesPage({ data, onOpenCourse }) {
             <div style={{marginBottom:16,fontSize:13,color:'var(--tm)'}}>{filtered.length} note{filtered.length!==1?'s':''}{q?` matching "${search}"`:''} &mdash; click to jump</div>
             <div className="ngl">
               {filtered.map(({course,chapter,idx}) => (
-                <div key={`${course.id}-${idx}`} className="nc" onClick={()=>onOpenCourse(course.id,idx)}>
+                <div key={`${course.id}-${idx}`} className="nc" onClick={()=>onOpenCourse(course.id,idx,true)}>
                   <div className="nc-co">{course.title}</div>
                   <div className="nc-ch">Ch.{idx+1} &mdash; {chapter.name}</div>
                   <div className="nc-pv">{hl(chapter.notes)}</div>
@@ -677,8 +810,9 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
     const c = data.courses.find(x=>x.id===id);
     if (!confirm(`Delete "${c?.title}"?`)) return;
     const nc = data.courses.filter(x=>x.id!==id);
-    const used = new Set(nc.map(x=>x.companyId).filter(Boolean));
-    onUpdate({ ...data, courses:nc, companies:data.companies.filter(co=>used.has(co.id)) });
+    // Only delete companies that are truly unused across ALL remaining courses
+    const usedByRemaining = new Set(nc.map(x=>x.companyId).filter(Boolean));
+    onUpdate({ ...data, courses:nc, companies:data.companies.filter(co=>usedByRemaining.has(co.id)) });
   }, [data]);
 
   const doExport = useCallback(() => {
@@ -703,9 +837,22 @@ function HomePage({ data, onOpenCourse, onUpdate, filterCompany, setFilterCompan
       try {
         const p = JSON.parse(e.target.result);
         if (!p.courses||!p.companies) { setImpErr('Invalid format.'); return; }
+        // Deduplicate companies by name (case-insensitive)
+        const existingNames = new Set(data.companies.map(c=>c.name.toLowerCase()));
+        const newCompanies = p.companies.filter(c => !existingNames.has(c.name.toLowerCase()));
+        // Remap companyIds in imported courses if they clash
+        const idRemap = {};
+        p.companies.forEach(ic => {
+          const match = data.companies.find(ec => ec.name.toLowerCase() === ic.name.toLowerCase());
+          if (match && match.id !== ic.id) idRemap[ic.id] = match.id;
+        });
+        const remappedCourses = p.courses.map(c => ({
+          ...c,
+          companyId: idRemap[c.companyId] || c.companyId
+        }));
         onUpdate({
-          courses: [...data.courses, ...p.courses],
-          companies: [...data.companies, ...p.companies]
+          courses: [...data.courses, ...remappedCourses],
+          companies: [...data.companies, ...newCompanies]
         });
         setShowImport(false); setImpErr('');
       } catch { setImpErr('Invalid JSON.'); }
@@ -854,20 +1001,21 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
   const [noteSaved,  setNoteSaved]    = useState(false);
   const [popAnim,    setPopAnim]      = useState(false);
 
+  // Unique key per chapter view — forces VideoPlayer to reset
+  const [videoKey, setVideoKey] = useState(0);
+
   const noteTimer   = useRef(null);
   const noteHideRef = useRef(null);
 
   useEffect(() => {
     if (initChapterIdx !== undefined && initChapterIdx !== activeIdx) {
       setActiveIdxRaw(initChapterIdx);
+      setVideoKey(k => k + 1);
     }
   }, [initChapterIdx]);
 
   if (!course) return null;
   const chapter = chapters[activeIdx];
-
-  const embed   = useMemo(() => embedUrl(chapter?.videoUrl), [chapter?.videoUrl]);
-  const ytVideo = useMemo(() => isYT(chapter?.videoUrl), [chapter?.videoUrl]);
 
   const updateCourse = useCallback((updated) => {
     onUpdate({ ...data, courses: data.courses.map(c=>c.id===courseId ? updated : c) });
@@ -875,17 +1023,20 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
 
   const setActiveIdx = useCallback((idx) => {
     setActiveIdxRaw(idx);
+    setVideoKey(k => k + 1);
     const updatedResume = { ...resumeMap, [courseId]: idx };
     onResumeUpdate(updatedResume);
     onChapterChange?.(idx);
   }, [resumeMap, courseId, onResumeUpdate, onChapterChange]);
 
   const saveNote = useCallback((val) => {
+    // Optimistically update in-memory state immediately for responsive UI
     const nc = chapters.map((c, i) => i === activeIdx ? { ...c, notes: val } : c);
     updateCourse({ ...course, chapters: nc });
-    setNoteSaved(true);
+    // Debounce the "Saved" indicator — don't flash it on every keystroke
+    setNoteSaved(false);
     clearTimeout(noteHideRef.current);
-    noteHideRef.current = setTimeout(() => setNoteSaved(false), 1200);
+    noteHideRef.current = setTimeout(() => setNoteSaved(true), 600);
   }, [chapters, activeIdx, course, updateCourse]);
 
   useEffect(() => () => { clearTimeout(noteTimer.current); clearTimeout(noteHideRef.current); }, []);
@@ -898,18 +1049,6 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
     else haptic('light');
   }, [chapter, chapters, activeIdx, course]);
 
-  useEffect(() => {
-    if (!ytVideo || !embed) return;
-    const onMsg = (e) => {
-      try {
-        const d = typeof e.data==='string' ? JSON.parse(e.data) : e.data;
-        if (d?.event==='onStateChange' && d?.info===0 && !chapter?.completed) markComplete(true);
-      } catch {}
-    };
-    window.addEventListener('message', onMsg);
-    return () => window.removeEventListener('message', onMsg);
-  }, [ytVideo, embed, activeIdx, chapter?.completed]);
-
   const handleSaveChapter = useCallback((chData) => {
     let nc;
     if (editIdx !== null) {
@@ -917,18 +1056,22 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
       setEditIdx(null);
     } else {
       nc = [...chapters, { id:uid(), ...chData, completed:false, notes:'' }];
-      setActiveIdxRaw(nc.length-1);
+      // Use setActiveIdx so resume map + videoKey both update
+      setActiveIdx(nc.length - 1);
     }
     updateCourse({ ...course, chapters:nc });
     setShowModal(false);
-  }, [chapters, editIdx, course]);
+  }, [chapters, editIdx, course, setActiveIdx]);
 
   const handleDeleteChapter = useCallback((idx) => {
     if (!confirm('Delete this chapter?')) return;
     const nc = chapters.filter((_,i)=>i!==idx);
     updateCourse({ ...course, chapters:nc });
-    if (activeIdx >= nc.length) setActiveIdxRaw(Math.max(0, nc.length-1));
-  }, [chapters, activeIdx, course]);
+    if (activeIdx >= nc.length) {
+      const newIdx = Math.max(0, nc.length - 1);
+      setActiveIdx(newIdx);
+    }
+  }, [chapters, activeIdx, course, setActiveIdx]);
 
   const doneCount = useMemo(() => chapters.filter(c=>c.completed).length, [chapters]);
   const listProps = { chapters, activeIdx, onSelect:setActiveIdx, onEdit:(i)=>{setEditIdx(i);setShowModal(true);}, onDelete:handleDeleteChapter };
@@ -973,9 +1116,14 @@ function CoursePage({ courseId, data, onBack, onUpdate, resumeMap, onResumeUpdat
               </div>
             ) : (
               <>
-                {chapter.type==='video' && (embed
-                  ? <div className="vw"><iframe key={`${embed}-${activeIdx}`} src={embed} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen/></div>
-                  : <div className="vph"><span style={{fontSize:40}}>&#x25B6;</span><span>{chapter.videoUrl?'Invalid video URL':'No video URL set'}</span><button className="btn btn-s btn-sm" onClick={()=>{setEditIdx(activeIdx);setShowModal(true);}}>Add Video URL</button></div>
+                {chapter.type==='video' && (
+                  chapter.videoUrl
+                    ? <VideoPlayer
+                        url={chapter.videoUrl}
+                        activeKey={`${courseId}-${activeIdx}-${videoKey}`}
+                        onEnded={() => { if (!chapter.completed) markComplete(true); }}
+                      />
+                    : <div className="vph"><span style={{fontSize:40}}>&#x25B6;</span><span>No video URL set</span><button className="btn btn-s btn-sm" onClick={()=>{setEditIdx(activeIdx);setShowModal(true);}}>Add Video URL</button></div>
                 )}
                 {chapter.description && <div className="ds"><div className="ds-t">&#x1F4CB; Description</div><div className="ds-p">{chapter.description}</div></div>}
                 {chapter.links?.length > 0 && (
@@ -1051,11 +1199,14 @@ function MobileCourseIndex({ courseId, data, onUpdate, onClose, activeChapterIdx
   const updateCourse = (updated) => onUpdate({ ...data, courses:data.courses.map(c=>c.id===courseId?updated:c) });
 
   const handleSaveChapter = (chData) => {
-    const nc = editIdx!==null
+    const isEdit = editIdx !== null;
+    const nc = isEdit
       ? chapters.map((c,i)=>i===editIdx?{...c,...chData}:c)
       : [...chapters,{id:uid(),...chData,completed:false,notes:''}];
-    if (editIdx!==null) setEditIdx(null);
+    if (isEdit) setEditIdx(null);
     updateCourse({...course,chapters:nc});
+    // Jump to newly added chapter
+    if (!isEdit) onSelectChapter(nc.length - 1);
     setShowModal(false);
   };
 
@@ -1098,9 +1249,6 @@ function App() {
   const [data,      setData]      = useState(loadData);
   const [view,      setView]      = useState('home');
   const [filter,    setFilter]    = useState('all');
-  // FIX: single consistent state setter — was split between setResumeMap and
-  // setResumeMapRaw (which was never declared), causing a ReferenceError on
-  // every course-card click.
   const [resumeMap, setResumeMap] = useState(loadResume);
 
   const [mobileNotes,   setMobileNotes]   = useState(false);
@@ -1109,7 +1257,11 @@ function App() {
   const [showAddMob,    setShowAddMob]    = useState(false);
   const [activeChapterIdx, setActiveChapterIdx] = useState(0);
 
-  // Single helper that updates both state and localStorage
+  const dataRef = useRef(data);
+  useEffect(() => { dataRef.current = data; }, [data]);
+  const resumeMapRef = useRef(resumeMap);
+  useEffect(() => { resumeMapRef.current = resumeMap; }, [resumeMap]);
+
   const updateResume = useCallback((newMap) => {
     setResumeMap(newMap);
     saveResume(newMap);
@@ -1118,14 +1270,23 @@ function App() {
   const handleUpdate = useCallback((d) => { setData(d); saveData(d); }, []);
   const handleBack   = useCallback(() => { setView('home'); setMobileSidebar(false); }, []);
 
-  const handleOpenCourse = useCallback((id, chIdx) => {
-    const savedIdx = resumeMap[id] ?? 0;
+  const handleOpenCourse = useCallback((id, chIdx, fromNotes=false) => {
+    const currentData = dataRef.current;
+    const currentResume = resumeMapRef.current;
+    const savedIdx = currentResume[id] ?? 0;
     const idx = chIdx !== undefined ? chIdx : savedIdx;
     setActiveChapterIdx(idx);
-    const newMap = { ...resumeMap, [id]: idx };
-    updateResume(newMap);
+    // Stamp lastAccessed so "Recent" sort works correctly
+    const updatedCourses = currentData.courses.map(c => c.id === id ? { ...c, lastAccessed: Date.now() } : c);
+    const newData = { ...currentData, courses: updatedCourses };
+    setData(newData); saveData(newData);
+    // Only update resume position if NOT navigating from Notes
+    if (!fromNotes) {
+      const newMap = { ...currentResume, [id]: idx };
+      setResumeMap(newMap); saveResume(newMap);
+    }
     setView(id);
-  }, [resumeMap, updateResume]);
+  }, []);
 
   const handleChapterChange = useCallback((idx) => {
     setActiveChapterIdx(idx);
