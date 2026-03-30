@@ -404,19 +404,24 @@ function VideoPlayer({ url, videoKey, onEnded }) {
   // Google Drive: use a tall fixed-height container so Drive's native
   // player chrome (toolbar + controls) isn't clipped by a 16/9 box.
   if (parsed.type === 'gdrive') {
-    return (
-      <div style={{width:'100%',height:520,borderRadius:'var(--rl)',overflow:'hidden',marginBottom:20,background:'#1a1a1a',border:'1px solid var(--bdl)'}}>
-        <iframe
-          key={videoKey}
-          src={buildEmbedSrc(parsed)}
-          style={{width:'100%',height:'100%',border:'none',display:'block'}}
-          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-          allowFullScreen
-          referrerPolicy="strict-origin-when-cross-origin"
-          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
-        />
-      </div>
-    );
+  return (
+    <div style={{
+      width: '100%',
+      aspectRatio: '16 / 9',
+      borderRadius: 'var(--rl)',
+      overflow: 'hidden',
+      marginBottom: 20,
+      background: '#000'
+    }}>
+      <iframe
+        key={videoKey}
+        src={buildEmbedSrc(parsed)}
+        style={{ width: '100%', height: '100%', border: 'none' }}
+        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  );
   }
 
   return (
