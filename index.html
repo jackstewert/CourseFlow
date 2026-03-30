@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0e1a">
 <title>CourseFlow</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
@@ -361,7 +362,7 @@ function buildEmbedSrc(parsed) {
   switch (parsed.type) {
     case 'youtube': return `https://www.youtube.com/embed/${parsed.id}?enablejsapi=1${parsed.start ? `&start=${parsed.start}` : ''}&origin=${encodeURIComponent(location.origin)}`;
     case 'vimeo':   return `https://player.vimeo.com/video/${parsed.id}?title=0&byline=0&portrait=0`;
-    case 'gdrive':  return `https://drive.google.com/file/d/${parsed.id}/preview?rm=minimal`;
+    case 'gdrive':  return `https://drive.google.com/file/d/${parsed.id}/preview`;
     case 'wistia':  return `https://fast.wistia.net/embed/iframe/${parsed.id}`;
     case 'embed':   return parsed.src;
     default:        return null;
@@ -407,9 +408,10 @@ function VideoPlayer({ url, videoKey, onEnded }) {
           key={videoKey}
           src={buildEmbedSrc(parsed)}
           style={{width:'100%',height:'100%',border:'none',display:'block'}}
-          allow="autoplay; fullscreen"
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
           allowFullScreen
-          referrerPolicy="no-referrer-when-downgrade"
+          referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
         />
       </div>
     );
