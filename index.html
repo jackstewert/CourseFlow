@@ -7,14 +7,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0e1a">
 <title>CourseFlow</title>
-<link rel="icon" href="favicon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="favicon copy.png">
-<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
 :root {
@@ -294,13 +294,79 @@ const SORTS = [
 ];
 const EMPTY = { companies:[], courses:[] };
 
-function loadData() {
-  try { const d = JSON.parse(localStorage.getItem(DATA_KEY)); return (d && d.courses) ? d : EMPTY; }
-  catch { return EMPTY; }
+// ── Firebase config — fill these in after creating your project ──
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyCXKu18ONnWJx8Jt4zVBu1BEze68olXvNg",
+  authDomain:        "courseflow-7e19f.firebaseapp.com",
+  projectId:         "courseflow-7e19f",
+  storageBucket:     "courseflow-7e19f.firebasestorage.app",
+  messagingSenderId: "1042718851199",
+  appId:             "1:1042718851199:web:852906be7d21cd1c0b3f4a",
+};
+const FIREBASE_CONFIGURED = !FIREBASE_CONFIG.apiKey.startsWith('REPLACE');
+
+// ── AES-GCM encryption helpers ──
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const km = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt, iterations:200000, hash:'SHA-256' },
+    km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']
+  );
 }
-function saveData(d) { try { localStorage.setItem(DATA_KEY, JSON.stringify(d)); } catch {} }
+async function encryptData(plaintext, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await deriveKey(password, salt);
+  const ct   = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
+  const buf  = new Uint8Array(16 + 12 + ct.byteLength);
+  buf.set(salt,0); buf.set(iv,16); buf.set(new Uint8Array(ct),28);
+  return btoa(String.fromCharCode(...buf));
+}
+async function decryptData(b64, password) {
+  const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const key = await deriveKey(password, buf.slice(0,16));
+  const pt  = await crypto.subtle.decrypt({ name:'AES-GCM', iv: buf.slice(16,28) }, key, buf.slice(28));
+  return new TextDecoder().decode(pt);
+}
+
+// ── Firebase singleton ──
+let _db = null;
+function getDb() {
+  if (_db) return _db;
+  if (!FIREBASE_CONFIGURED) return null;
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    _db = firebase.firestore();
+    return _db;
+  } catch(e) { console.error('Firebase init failed', e); return null; }
+}
+
+// ── Cloud save / load ──
+async function cloudSave(key, value, password) {
+  const db = getDb(); if (!db) return;
+  const encrypted = await encryptData(JSON.stringify(value), password);
+  await db.collection('courseflow').doc(key).set({ data: encrypted, updatedAt: Date.now() });
+}
+async function cloudLoad(key, password) {
+  const db = getDb(); if (!db) return null;
+  try {
+    const snap = await db.collection('courseflow').doc(key).get();
+    if (!snap.exists) return null;
+    const json = await decryptData(snap.data().data, password);
+    return JSON.parse(json);
+  } catch(e) {
+    // Re-throw Firestore errors (network, permissions) so caller can distinguish
+    if (e && e.code) throw e;
+    return null; // decryption failure = wrong password
+  }
+}
+
+// ── localStorage fallback (cache / offline) ──
+function loadData()   { try { const d = JSON.parse(localStorage.getItem(DATA_KEY));   return (d && d.courses) ? d : EMPTY; } catch { return EMPTY; } }
+function saveData(d)  { try { localStorage.setItem(DATA_KEY,   JSON.stringify(d)); }  catch {} }
 function loadResume() { try { return JSON.parse(localStorage.getItem(RESUME_KEY) || '{}'); } catch { return {}; } }
-function saveResume(m) { try { localStorage.setItem(RESUME_KEY, JSON.stringify(m)); } catch {} }
+function saveResume(m){ try { localStorage.setItem(RESUME_KEY, JSON.stringify(m)); }  catch {} }
 
 // ─────────────────────────────────────────────
 // Helpers
@@ -404,24 +470,19 @@ function VideoPlayer({ url, videoKey, onEnded }) {
   // Google Drive: use a tall fixed-height container so Drive's native
   // player chrome (toolbar + controls) isn't clipped by a 16/9 box.
   if (parsed.type === 'gdrive') {
-  return (
-    <div style={{
-      width: '100%',
-      aspectRatio: '16 / 9',
-      borderRadius: 'var(--rl)',
-      overflow: 'hidden',
-      marginBottom: 20,
-      background: '#000'
-    }}>
-      <iframe
-        key={videoKey}
-        src={buildEmbedSrc(parsed)}
-        style={{ width: '100%', height: '100%', border: 'none' }}
-        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-        allowFullScreen
-      />
-    </div>
-  );
+    return (
+      <div style={{width:'100%',height:520,borderRadius:'var(--rl)',overflow:'hidden',marginBottom:20,background:'#1a1a1a',border:'1px solid var(--bdl)'}}>
+        <iframe
+          key={videoKey}
+          src={buildEmbedSrc(parsed)}
+          style={{width:'100%',height:'100%',border:'none',display:'block'}}
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
+        />
+      </div>
+    );
   }
 
   return (
@@ -1362,14 +1423,109 @@ function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterId
 }
 
 // ─────────────────────────────────────────────
+// LoginScreen
+// ─────────────────────────────────────────────
+function LoginScreen({ onUnlock }) {
+  const [pw, setPw]       = useState('');
+  const [err, setErr]     = useState('');
+  const [loading, setLoading] = useState(false);
+  const isConfigured = FIREBASE_CONFIGURED;
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!pw.trim()) return;
+    setLoading(true); setErr('');
+    try {
+      if (!isConfigured) {
+        localStorage.setItem('cf_session_pw', pw);
+        onUnlock(pw, loadData(), loadResume());
+        return;
+      }
+      // Try loading from cloud with this password
+      let cloudData, cloudResume, sentinel;
+      try {
+        [cloudData, cloudResume, sentinel] = await Promise.all([
+          cloudLoad('data',     pw),
+          cloudLoad('resume',   pw),
+          cloudLoad('sentinel', pw),
+        ]);
+      } catch(e) {
+        // Firestore-level error (permissions, network, project not found)
+        const msg = e.message || String(e);
+        if (msg.includes('permission') || msg.includes('PERMISSION')) {
+          setErr('Firebase permissions error. Make sure Firestore is enabled and rules allow read/write.');
+        } else if (msg.includes('project') || msg.includes('NOT_FOUND')) {
+          setErr('Firebase project not found. Double-check your projectId in FIREBASE_CONFIG.');
+        } else {
+          setErr(`Firebase error: ${msg}`);
+        }
+        setLoading(false); return;
+      }
+
+      if (cloudData === null && sentinel !== null) {
+        setErr('Wrong password. Try again.'); setLoading(false); return;
+      }
+      const finalData   = cloudData   ?? loadData();
+      const finalResume = cloudResume ?? loadResume();
+      if (sentinel === null) await cloudSave('sentinel', { ok: true }, pw);
+      localStorage.setItem('cf_session_pw', pw);
+      saveData(finalData); saveResume(finalResume);
+      onUnlock(pw, finalData, finalResume);
+    } catch(e) {
+      setErr(`Unexpected error: ${e.message || e}`); setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{position:'fixed',inset:0,background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+      <div style={{background:'var(--bgc)',border:'1px solid var(--bdl)',borderRadius:16,padding:'32px 28px',width:'100%',maxWidth:360,boxShadow:'0 24px 80px rgba(0,0,0,.6)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:24}}>
+          <div style={{width:40,height:40,background:'var(--ac)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:15,color:'#0a0e1a',flexShrink:0}}>CF</div>
+          <div>
+            <div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:18}}>CourseFlow</div>
+            <div style={{fontSize:12,color:'var(--t2)'}}>Enter your password to unlock</div>
+          </div>
+        </div>
+        {!isConfigured && (
+          <div style={{background:'rgba(247,144,9,.12)',border:'1px solid rgba(247,144,9,.3)',borderRadius:8,padding:'10px 12px',marginBottom:16,fontSize:12,color:'#f6c90e',lineHeight:1.6}}>
+            ⚠️ Firebase not configured yet. Running in local-only mode.<br/>
+            Fill in <code style={{background:'rgba(255,255,255,.08)',padding:'1px 4px',borderRadius:3}}>FIREBASE_CONFIG</code> in the source to enable sync.
+          </div>
+        )}
+        <form onSubmit={handleSubmit} style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div className="fg">
+            <label className="fl">Password</label>
+            <input
+              className="fi" type="password" autoFocus
+              placeholder="Your secret password"
+              value={pw} onChange={e => setPw(e.target.value)}
+            />
+          </div>
+          {err && <div style={{fontSize:12,color:'var(--red)',background:'rgba(245,101,101,.1)',border:'1px solid rgba(245,101,101,.25)',borderRadius:6,padding:'8px 10px'}}>{err}</div>}
+          <button className="btn btn-p" type="submit" disabled={loading || !pw.trim()} style={{justifyContent:'center',marginTop:4}}>
+            {loading ? 'Unlocking…' : 'Unlock'}
+          </button>
+        </form>
+        <div style={{marginTop:16,fontSize:11,color:'var(--tm)',lineHeight:1.6,textAlign:'center'}}>
+          Your data is encrypted with AES-256 before leaving this device.<br/>Even Firebase cannot read it.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // App (root)
 // ─────────────────────────────────────────────
 function App() {
+  const [unlocked,  setUnlocked]  = useState(() => !!localStorage.getItem('cf_session_pw'));
+  const [sessionPw, setSessionPw] = useState(() => localStorage.getItem('cf_session_pw') || '');
   const [data,      setData]      = useState(loadData);
   const [resumeMap, setResumeMap] = useState(loadResume);
-  const [view,      setView]      = useState('home'); // 'home' | 'notes' | <courseId>
+  const [view,      setView]      = useState('home');
   const [filter,    setFilter]    = useState('all');
   const [chapterIdx, setChapterIdx] = useState(0);
+  const [syncStatus, setSyncStatus] = useState(''); // '', 'saving', 'saved', 'error'
 
   // Mobile UI state
   const [mobileSidebar, setMobileSidebar] = useState(false);
@@ -1380,11 +1536,55 @@ function App() {
   // Stable refs so callbacks never go stale
   const dataRef      = useRef(data);
   const resumeMapRef = useRef(resumeMap);
-  useEffect(() => { dataRef.current = data; }, [data]);
-  useEffect(() => { resumeMapRef.current = resumeMap; }, [resumeMap]);
+  const pwRef        = useRef(sessionPw);
+  useEffect(() => { dataRef.current = data; },         [data]);
+  useEffect(() => { resumeMapRef.current = resumeMap; },[resumeMap]);
+  useEffect(() => { pwRef.current = sessionPw; },       [sessionPw]);
 
-  const updateData = useCallback(d => { setData(d); saveData(d); }, []);
-  const updateResume = useCallback(m => { setResumeMap(m); saveResume(m); }, []);
+  // Debounced cloud sync
+  const syncTimer = useRef(null);
+  function scheduleSync(newData, newResume) {
+    if (!FIREBASE_CONFIGURED || !pwRef.current) return;
+    clearTimeout(syncTimer.current);
+    setSyncStatus('saving');
+    syncTimer.current = setTimeout(async () => {
+      try {
+        await Promise.all([
+          cloudSave('data',   newData,   pwRef.current),
+          cloudSave('resume', newResume, pwRef.current),
+        ]);
+        setSyncStatus('saved');
+        setTimeout(() => setSyncStatus(''), 2500);
+      } catch(e) {
+        setSyncStatus('error');
+      }
+    }, 1200);
+  }
+
+  function handleUnlock(pw, initialData, initialResume) {
+    setSessionPw(pw);
+    pwRef.current = pw;
+    setData(initialData);
+    setResumeMap(initialResume);
+    setUnlocked(true);
+  }
+
+  function handleLock() {
+    localStorage.removeItem('cf_session_pw');
+    setUnlocked(false);
+    setSessionPw('');
+  }
+
+  const updateData = useCallback(d => {
+    setData(d); saveData(d);
+    scheduleSync(d, resumeMapRef.current);
+  }, []);
+
+  const updateResume = useCallback(m => {
+    setResumeMap(m); saveResume(m);
+    scheduleSync(dataRef.current, m);
+  }, []);
+
   const goHome = useCallback(() => { setView('home'); setMobileSidebar(false); setMobileNotes(false); }, []);
 
   // Open a course — stamps lastAccessed, updates resume
@@ -1393,16 +1593,14 @@ function App() {
     const r = resumeMapRef.current;
     const idx = chIdx !== undefined ? chIdx : (r[id] ?? 0);
     setChapterIdx(idx);
-
-    // Stamp lastAccessed
     const updated = { ...d, courses: d.courses.map(c => c.id === id ? { ...c, lastAccessed: Date.now() } : c) };
     setData(updated); saveData(updated);
-
-    // Only update resume position when NOT jumping from Notes (don't clobber saved position)
-    if (!fromNotes) { const nm = { ...r, [id]: idx }; setResumeMap(nm); saveResume(nm); }
-
+    scheduleSync(updated, r);
+    if (!fromNotes) { const nm = { ...r, [id]: idx }; setResumeMap(nm); saveResume(nm); scheduleSync(updated, nm); }
     setView(id);
   }, []);
+
+  if (!unlocked) return <LoginScreen onUnlock={handleUnlock} />;
 
   const isCourse = view !== 'home' && view !== 'notes';
   const sidebarCos = useMemo(() => data.companies.filter(co => data.courses.some(c => c.companyId === co.id)), [data.companies, data.courses]);
@@ -1412,6 +1610,10 @@ function App() {
     const { companies, courses } = dataRef.current;
     downloadJson({ companies, courses }, `courseflow-backup-${new Date().toISOString().slice(0,10)}.json`);
   }, []);
+
+  // Sync status indicator styles
+  const syncColor = syncStatus === 'saved' ? 'var(--ac)' : syncStatus === 'error' ? 'var(--red)' : 'var(--tm)';
+  const syncLabel = syncStatus === 'saving' ? '↑ Syncing…' : syncStatus === 'saved' ? '✓ Synced' : syncStatus === 'error' ? '✗ Sync error' : FIREBASE_CONFIGURED ? '☁ Cloud sync on' : '⚠ Local only';
 
   return (
     <div style={{display:'flex',position:'fixed',inset:0,overflow:'hidden'}}>
@@ -1435,6 +1637,15 @@ function App() {
             <span className="sb-tip">{co.name}</span>
           </div>
         ))}
+        {/* Sync status + lock pushed to bottom */}
+        <div style={{flex:1}} />
+        <div style={{fontSize:9,color:syncColor,textAlign:'center',padding:'4px 4px',lineHeight:1.4,letterSpacing:'.01em',cursor:'default'}} title={syncLabel}>
+          {syncStatus==='saving'?'↑':syncStatus==='saved'?'✓':syncStatus==='error'?'✗':FIREBASE_CONFIGURED?'☁':'⚠'}
+        </div>
+        <div className="sb-item" onClick={handleLock} title="Lock / sign out" style={{marginBottom:8}}>
+          <span style={{fontSize:16}}>🔒</span>
+          <span className="sb-tip">Lock</span>
+        </div>
       </div>
 
       {/* ── Main area ── */}
@@ -1463,6 +1674,7 @@ function App() {
             <button className="mni" onClick={goHome}><span className="mni-i">←</span><span>Home</span></button>
             <button className={`mni ${mobileSidebar?'on':''}`} onClick={() => setMobileSidebar(true)}><span className="mni-i">☰</span><span>Chapters</span></button>
             <button className={`mni ${mobileNotes?'on':''}`} onClick={() => setMobileNotes(v => !v)}><span className="mni-i">📓</span><span>{mobileNotes?'Hide':'Notes'}</span></button>
+            <button className="mni" onClick={handleLock}><span className="mni-i">🔒</span><span>Lock</span></button>
           </>
         ) : (
           <>
@@ -1470,7 +1682,8 @@ function App() {
             <button className={`mni ${view==='notes'?'on':''}`} onClick={() => setView('notes')}><span className="mni-i">📓</span><span>Notes</span></button>
             <button className="mni" onClick={() => setTriggerAdd(true)}><span className="mni-i">＋</span><span>Add</span></button>
             <button className="mni" onClick={() => setTriggerImport(true)}><span className="mni-i">📥</span><span>Import</span></button>
-            <button className="mni" onClick={exportMobile}><span className="mni-i">💾</span><span>Export</span></button>
+            <button className="mni" onClick={exportMobile}><span className="mni-i">💾</span><span style={{color:syncColor}}>{syncStatus==='saving'?'Sync…':syncStatus==='saved'?'Synced':syncStatus==='error'?'Err':'Export'}</span></button>
+            <button className="mni" onClick={handleLock}><span className="mni-i">🔒</span><span>Lock</span></button>
           </>
         )}
       </nav>
