@@ -1534,8 +1534,9 @@ function LoginScreen({ onUnlock }) {
 function App() {
   const [unlocked,  setUnlocked]  = useState(() => !!localStorage.getItem('cf_session_pw'));
   const [sessionPw, setSessionPw] = useState(() => localStorage.getItem('cf_session_pw') || '');
-  const [data,      setData]      = useState(loadData);
-  const [resumeMap, setResumeMap] = useState(loadResume);
+  const alreadyUnlocked = !!localStorage.getItem('cf_session_pw');
+  const [data,      setData]      = useState(() => alreadyUnlocked ? loadData() : EMPTY);
+  const [resumeMap, setResumeMap] = useState(() => alreadyUnlocked ? loadResume() : {});
   const [view,      setView]      = useState('home');
   const [filter,    setFilter]    = useState('all');
   const [chapterIdx, setChapterIdx] = useState(0);
@@ -1576,17 +1577,21 @@ function App() {
   }
 
   function handleUnlock(pw, initialData, initialResume) {
-    setSessionPw(pw);
+    // Batch all state updates synchronously before React re-renders
     pwRef.current = pw;
-    setData(initialData);
-    setResumeMap(initialResume);
-    setUnlocked(true);
+    React.startTransition(() => {
+      setSessionPw(pw);
+      setData(initialData);
+      setResumeMap(initialResume);
+      setView('home');
+      setUnlocked(true);
+    });
   }
 
   function handleLock() {
+    clearTimeout(syncTimer.current);
     localStorage.removeItem('cf_session_pw');
-    setUnlocked(false);
-    setSessionPw('');
+    window.location.reload();
   }
 
   const updateData = useCallback(d => {
@@ -1614,7 +1619,9 @@ function App() {
     setView(id);
   }, []);
 
-  if (!unlocked) return <LoginScreen onUnlock={handleUnlock} />;
+  if (!unlocked) {
+    return <LoginScreen onUnlock={handleUnlock} />;
+  }
 
   const isCourse = view !== 'home' && view !== 'notes';
   const sidebarCos = useMemo(() => data.companies.filter(co => data.courses.some(c => c.companyId === co.id)), [data.companies, data.courses]);
