@@ -1441,33 +1441,47 @@ function LoginScreen({ onUnlock }) {
         onUnlock(pw, loadData(), loadResume());
         return;
       }
-      // Try loading from cloud with this password
-      let cloudData, cloudResume, sentinel;
+
+      // First, check if a sentinel exists to validate the password
+      const db = getDb();
+      let sentinelSnap;
       try {
-        [cloudData, cloudResume, sentinel] = await Promise.all([
-          cloudLoad('data',     pw),
-          cloudLoad('resume',   pw),
-          cloudLoad('sentinel', pw),
-        ]);
+        sentinelSnap = await db.collection('courseflow').doc('sentinel').get();
       } catch(e) {
-        // Firestore-level error (permissions, network, project not found)
         const msg = e.message || String(e);
         if (msg.includes('permission') || msg.includes('PERMISSION')) {
-          setErr('Firebase permissions error. Make sure Firestore is enabled and rules allow read/write.');
+          setErr('Firebase permissions error. Go to Firestore → Rules and set: allow read, write: if true;');
         } else if (msg.includes('project') || msg.includes('NOT_FOUND')) {
-          setErr('Firebase project not found. Double-check your projectId in FIREBASE_CONFIG.');
+          setErr('Firebase project not found. Check your projectId in FIREBASE_CONFIG.');
         } else {
           setErr(`Firebase error: ${msg}`);
         }
         setLoading(false); return;
       }
 
-      if (cloudData === null && sentinel !== null) {
-        setErr('Wrong password. Try again.'); setLoading(false); return;
+      if (sentinelSnap.exists) {
+        // Sentinel exists — try to decrypt it to verify password
+        try {
+          await decryptData(sentinelSnap.data().data, pw);
+        } catch(e) {
+          setErr('Wrong password. Try again.');
+          setLoading(false); return;
+        }
       }
+
+      // Password is correct (or first time) — load data
+      const [cloudData, cloudResume] = await Promise.all([
+        cloudLoad('data',   pw),
+        cloudLoad('resume', pw),
+      ]);
+
+      // First time — write sentinel
+      if (!sentinelSnap.exists) {
+        await cloudSave('sentinel', { ok: true }, pw);
+      }
+
       const finalData   = cloudData   ?? loadData();
       const finalResume = cloudResume ?? loadResume();
-      if (sentinel === null) await cloudSave('sentinel', { ok: true }, pw);
       localStorage.setItem('cf_session_pw', pw);
       saveData(finalData); saveResume(finalResume);
       onUnlock(pw, finalData, finalResume);
