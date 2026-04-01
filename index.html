@@ -471,7 +471,7 @@ function VideoPlayer({ url, videoKey, onEnded }) {
   // Google Drive: use a tall fixed-height container so Drive's native
   // player chrome (toolbar + controls) isn't clipped by a 16/9 box.
   if (parsed.type === 'gdrive') {
-     return (
+  return (
     <div style={{
       width: '100%',
       aspectRatio: '16 / 9',
@@ -489,7 +489,7 @@ function VideoPlayer({ url, videoKey, onEnded }) {
       />
     </div>
   );
-  }
+}
 
   return (
     <div className="vw">
@@ -1429,70 +1429,67 @@ function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterId
 }
 
 // ─────────────────────────────────────────────
-// LoginScreen
+// LoginScreen — renders into #root directly,
+// never shares a React tree with App
 // ─────────────────────────────────────────────
-function LoginScreen({ onUnlock }) {
-  const [pw, setPw]       = useState('');
-  const [err, setErr]     = useState('');
+function LoginScreen() {
+  const [pw, setPw]           = useState('');
+  const [err, setErr]         = useState('');
   const [loading, setLoading] = useState(false);
-  const isConfigured = FIREBASE_CONFIGURED;
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!pw.trim()) return;
     setLoading(true); setErr('');
     try {
-      if (!isConfigured) {
+      if (!FIREBASE_CONFIGURED) {
+        // No Firebase — just store pw and boot App
         localStorage.setItem('cf_session_pw', pw);
-        onUnlock(pw, loadData(), loadResume());
+        bootApp(pw, loadData(), loadResume());
         return;
       }
 
-      // First, check if a sentinel exists to validate the password
+      // Verify password via sentinel doc
       const db = getDb();
       let sentinelSnap;
       try {
         sentinelSnap = await db.collection('courseflow').doc('sentinel').get();
       } catch(e) {
         const msg = e.message || String(e);
-        if (msg.includes('permission') || msg.includes('PERMISSION')) {
-          setErr('Firebase permissions error. Go to Firestore → Rules and set: allow read, write: if true;');
-        } else if (msg.includes('project') || msg.includes('NOT_FOUND')) {
-          setErr('Firebase project not found. Check your projectId in FIREBASE_CONFIG.');
-        } else {
-          setErr(`Firebase error: ${msg}`);
-        }
+        if (msg.includes('ermission')) setErr('Firebase permissions error. Set Firestore rules to: allow read, write: if true;');
+        else if (msg.includes('roject') || msg.includes('NOT_FOUND')) setErr('Firebase project not found. Check your projectId.');
+        else setErr('Firebase error: ' + msg);
         setLoading(false); return;
       }
 
       if (sentinelSnap.exists) {
-        // Sentinel exists — try to decrypt it to verify password
-        try {
-          await decryptData(sentinelSnap.data().data, pw);
-        } catch(e) {
-          setErr('Wrong password. Try again.');
-          setLoading(false); return;
-        }
+        try { await decryptData(sentinelSnap.data().data, pw); }
+        catch(e) { setErr('Wrong password. Try again.'); setLoading(false); return; }
       }
 
-      // Password is correct (or first time) — load data
+      // Load cloud data
       const [cloudData, cloudResume] = await Promise.all([
         cloudLoad('data',   pw),
         cloudLoad('resume', pw),
       ]);
 
       // First time — write sentinel
-      if (!sentinelSnap.exists) {
-        await cloudSave('sentinel', { ok: true }, pw);
-      }
+      if (!sentinelSnap.exists) await cloudSave('sentinel', { ok: true }, pw);
 
       const finalData   = cloudData   ?? loadData();
       const finalResume = cloudResume ?? loadResume();
+
+      // Persist to localStorage so App can read synchronously on mount
       localStorage.setItem('cf_session_pw', pw);
-      saveData(finalData); saveResume(finalResume);
-      onUnlock(pw, finalData, finalResume);
+      saveData(finalData);
+      saveResume(finalResume);
+
+      // Unmount LoginScreen and mount App — no React state involved
+      bootApp(pw, finalData, finalResume);
+
     } catch(e) {
-      setErr(`Unexpected error: ${e.message || e}`); setLoading(false);
+      setErr('Unexpected error: ' + (e.message || e));
+      setLoading(false);
     }
   }
 
@@ -1506,20 +1503,16 @@ function LoginScreen({ onUnlock }) {
             <div style={{fontSize:12,color:'var(--t2)'}}>Enter your password to unlock</div>
           </div>
         </div>
-        {!isConfigured && (
+        {!FIREBASE_CONFIGURED && (
           <div style={{background:'rgba(247,144,9,.12)',border:'1px solid rgba(247,144,9,.3)',borderRadius:8,padding:'10px 12px',marginBottom:16,fontSize:12,color:'#f6c90e',lineHeight:1.6}}>
-            ⚠️ Firebase not configured yet. Running in local-only mode.<br/>
-            Fill in <code style={{background:'rgba(255,255,255,.08)',padding:'1px 4px',borderRadius:3}}>FIREBASE_CONFIG</code> in the source to enable sync.
+            ⚠️ Firebase not configured. Running in local-only mode.
           </div>
         )}
         <form onSubmit={handleSubmit} style={{display:'flex',flexDirection:'column',gap:12}}>
           <div className="fg">
             <label className="fl">Password</label>
-            <input
-              className="fi" type="password" autoFocus
-              placeholder="Your secret password"
-              value={pw} onChange={e => setPw(e.target.value)}
-            />
+            <input className="fi" type="password" autoFocus placeholder="Your secret password"
+              value={pw} onChange={e => setPw(e.target.value)} />
           </div>
           {err && <div style={{fontSize:12,color:'var(--red)',background:'rgba(245,101,101,.1)',border:'1px solid rgba(245,101,101,.25)',borderRadius:6,padding:'8px 10px'}}>{err}</div>}
           <button className="btn btn-p" type="submit" disabled={loading || !pw.trim()} style={{justifyContent:'center',marginTop:4}}>
@@ -1527,7 +1520,7 @@ function LoginScreen({ onUnlock }) {
           </button>
         </form>
         <div style={{marginTop:16,fontSize:11,color:'var(--tm)',lineHeight:1.6,textAlign:'center'}}>
-          Your data is encrypted with AES-256 before leaving this device.<br/>Even Firebase cannot read it.
+          AES-256 encrypted before leaving this device.
         </div>
       </div>
     </div>
@@ -1535,40 +1528,72 @@ function LoginScreen({ onUnlock }) {
 }
 
 // ─────────────────────────────────────────────
-// App (root)
+// App — only ever mounts after auth is confirmed
 // ─────────────────────────────────────────────
-function App() {
-  const [unlocked,  setUnlocked]  = useState(() => !!localStorage.getItem('cf_session_pw'));
-  const [sessionPw, setSessionPw] = useState(() => localStorage.getItem('cf_session_pw') || '');
-  const alreadyUnlocked = !!localStorage.getItem('cf_session_pw');
-  const [data,      setData]      = useState(() => alreadyUnlocked ? loadData() : EMPTY);
-  const [resumeMap, setResumeMap] = useState(() => alreadyUnlocked ? loadResume() : {});
+function App({ sessionPw, initialData, initialResume }) {
+  const [data,      setData]      = useState(initialData);
+  const [resumeMap, setResumeMap] = useState(initialResume);
   const [view,      setView]      = useState('home');
   const [filter,    setFilter]    = useState('all');
   const [chapterIdx, setChapterIdx] = useState(0);
-  const [syncStatus, setSyncStatus] = useState(''); // '', 'saving', 'saved', 'error'
+  const [syncStatus, setSyncStatus] = useState('');
 
-  // Mobile UI state
   const [mobileSidebar, setMobileSidebar] = useState(false);
   const [mobileNotes,   setMobileNotes]   = useState(false);
   const [triggerImport, setTriggerImport] = useState(false);
   const [triggerAdd,    setTriggerAdd]    = useState(false);
 
-  // Stable refs so callbacks never go stale
   const dataRef      = useRef(data);
   const resumeMapRef = useRef(resumeMap);
   const pwRef        = useRef(sessionPw);
-  useEffect(() => { dataRef.current = data; },         [data]);
-  useEffect(() => { resumeMapRef.current = resumeMap; },[resumeMap]);
-  useEffect(() => { pwRef.current = sessionPw; },       [sessionPw]);
+  useEffect(() => { dataRef.current = data; },          [data]);
+  useEffect(() => { resumeMapRef.current = resumeMap; }, [resumeMap]);
 
-  // Debounced cloud sync
+  // ── Real-time Firestore listeners ──
+  // Fires instantly on every device whenever another device saves.
+  // We skip applying the update if it originated from this tab
+  // (detected by a short "local write in progress" window).
+  const localWriting = useRef(false);
+
+  useEffect(() => {
+    if (!FIREBASE_CONFIGURED || !sessionPw) return;
+    const db = getDb(); if (!db) return;
+
+    const unsub1 = db.collection('courseflow').doc('data').onSnapshot(async snap => {
+      if (!snap.exists || localWriting.current) return;
+      try {
+        const json = await decryptData(snap.data().data, pwRef.current);
+        const parsed = JSON.parse(json);
+        if (parsed && parsed.courses) {
+          setData(parsed);
+          saveData(parsed);
+        }
+      } catch(e) { /* decryption error — ignore */ }
+    });
+
+    const unsub2 = db.collection('courseflow').doc('resume').onSnapshot(async snap => {
+      if (!snap.exists || localWriting.current) return;
+      try {
+        const json = await decryptData(snap.data().data, pwRef.current);
+        const parsed = JSON.parse(json);
+        if (parsed) {
+          setResumeMap(parsed);
+          saveResume(parsed);
+        }
+      } catch(e) { /* ignore */ }
+    });
+
+    return () => { unsub1(); unsub2(); };
+  }, [sessionPw]);
+
+  // Debounced cloud save (marks localWriting so we don't echo our own writes)
   const syncTimer = useRef(null);
   function scheduleSync(newData, newResume) {
     if (!FIREBASE_CONFIGURED || !pwRef.current) return;
     clearTimeout(syncTimer.current);
     setSyncStatus('saving');
     syncTimer.current = setTimeout(async () => {
+      localWriting.current = true;
       try {
         await Promise.all([
           cloudSave('data',   newData,   pwRef.current),
@@ -1576,28 +1601,19 @@ function App() {
         ]);
         setSyncStatus('saved');
         setTimeout(() => setSyncStatus(''), 2500);
-      } catch(e) {
-        setSyncStatus('error');
+      } catch(e) { setSyncStatus('error'); }
+      finally {
+        // Keep the flag on briefly so the snapshot echo is suppressed
+        setTimeout(() => { localWriting.current = false; }, 2000);
       }
     }, 1200);
-  }
-
-  function handleUnlock(pw, initialData, initialResume) {
-    // Batch all state updates synchronously before React re-renders
-    pwRef.current = pw;
-    React.startTransition(() => {
-      setSessionPw(pw);
-      setData(initialData);
-      setResumeMap(initialResume);
-      setView('home');
-      setUnlocked(true);
-    });
   }
 
   function handleLock() {
     clearTimeout(syncTimer.current);
     localStorage.removeItem('cf_session_pw');
-    window.location.reload();
+    // Unmount App, mount LoginScreen — no React state flash
+    bootLogin();
   }
 
   const updateData = useCallback(d => {
@@ -1612,7 +1628,6 @@ function App() {
 
   const goHome = useCallback(() => { setView('home'); setMobileSidebar(false); setMobileNotes(false); }, []);
 
-  // Open a course — stamps lastAccessed, updates resume
   const openCourse = useCallback((id, chIdx, fromNotes = false) => {
     const d = dataRef.current;
     const r = resumeMapRef.current;
@@ -1625,10 +1640,6 @@ function App() {
     setView(id);
   }, []);
 
-  if (!unlocked) {
-    return <LoginScreen onUnlock={handleUnlock} />;
-  }
-
   const isCourse = view !== 'home' && view !== 'notes';
   const sidebarCos = useMemo(() => data.companies.filter(co => data.courses.some(c => c.companyId === co.id)), [data.companies, data.courses]);
   const activeCo   = useMemo(() => isCourse ? data.courses.find(c => c.id === view)?.companyId : null, [isCourse, data.courses, view]);
@@ -1638,14 +1649,11 @@ function App() {
     downloadJson({ companies, courses }, `courseflow-backup-${new Date().toISOString().slice(0,10)}.json`);
   }, []);
 
-  // Sync status indicator styles
   const syncColor = syncStatus === 'saved' ? 'var(--ac)' : syncStatus === 'error' ? 'var(--red)' : 'var(--tm)';
   const syncLabel = syncStatus === 'saving' ? '↑ Syncing…' : syncStatus === 'saved' ? '✓ Synced' : syncStatus === 'error' ? '✗ Sync error' : FIREBASE_CONFIGURED ? '☁ Cloud sync on' : '⚠ Local only';
 
   return (
     <div style={{display:'flex',position:'fixed',inset:0,overflow:'hidden'}}>
-
-      {/* ── Desktop sidebar ── */}
       <div className="sb">
         <div className="sb-logo" onClick={goHome} title="CourseFlow">CF</div>
         <div className="sb-div" />
@@ -1664,18 +1672,15 @@ function App() {
             <span className="sb-tip">{co.name}</span>
           </div>
         ))}
-        {/* Sync status + lock pushed to bottom */}
         <div style={{flex:1}} />
-        <div style={{fontSize:9,color:syncColor,textAlign:'center',padding:'4px 4px',lineHeight:1.4,letterSpacing:'.01em',cursor:'default'}} title={syncLabel}>
+        <div style={{fontSize:9,color:syncColor,textAlign:'center',padding:'4px',lineHeight:1.4,cursor:'default'}} title={syncLabel}>
           {syncStatus==='saving'?'↑':syncStatus==='saved'?'✓':syncStatus==='error'?'✗':FIREBASE_CONFIGURED?'☁':'⚠'}
         </div>
-        <div className="sb-item" onClick={handleLock} title="Lock / sign out" style={{marginBottom:8}}>
-          <span style={{fontSize:16}}>🔒</span>
-          <span className="sb-tip">Lock</span>
+        <div className="sb-item" onClick={handleLock} title="Lock" style={{marginBottom:8}}>
+          <span style={{fontSize:16}}>🔒</span><span className="sb-tip">Lock</span>
         </div>
       </div>
 
-      {/* ── Main area ── */}
       <div className="main">
         {view === 'home' && (
           <HomePage data={data} onUpdate={updateData} onOpenCourse={openCourse}
@@ -1683,9 +1688,7 @@ function App() {
             triggerImport={triggerImport} setTriggerImport={setTriggerImport}
             triggerAdd={triggerAdd} setTriggerAdd={setTriggerAdd} />
         )}
-        {view === 'notes' && (
-          <GlobalNotesPage data={data} onOpenCourse={openCourse} />
-        )}
+        {view === 'notes' && <GlobalNotesPage data={data} onOpenCourse={openCourse} />}
         {isCourse && (
           <CoursePage courseId={view} data={data} onUpdate={updateData} onBack={goHome}
             resumeMap={resumeMap} onResumeUpdate={updateResume}
@@ -1694,7 +1697,6 @@ function App() {
         )}
       </div>
 
-      {/* ── Mobile bottom nav ── */}
       <nav className="mbn">
         {isCourse ? (
           <>
@@ -1715,7 +1717,6 @@ function App() {
         )}
       </nav>
 
-      {/* ── Mobile chapter sidebar ── */}
       <div className={`mss ${mobileSidebar ? 'open' : ''}`}>
         <div className="mss-bk" onClick={() => setMobileSidebar(false)} />
         <div className="mss-pn" onClick={e => e.stopPropagation()}>
@@ -1727,12 +1728,32 @@ function App() {
           )}
         </div>
       </div>
-
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+// ─────────────────────────────────────────────
+// Boot helpers — swap LoginScreen ↔ App by
+// calling ReactDOM.render on the same root.
+// No shared React tree = no blank flash ever.
+// ─────────────────────────────────────────────
+const _root = ReactDOM.createRoot(document.getElementById('root'));
+
+function bootLogin() {
+  _root.render(<LoginScreen />);
+}
+
+function bootApp(pw, data, resume) {
+  _root.render(<App sessionPw={pw} initialData={data} initialResume={resume} />);
+}
+
+// On page load: if a session exists go straight to App, else show login
+const _savedPw = localStorage.getItem('cf_session_pw');
+if (_savedPw) {
+  bootApp(_savedPw, loadData(), loadResume());
+} else {
+  bootLogin();
+}
 </script>
 </body>
 </html>
