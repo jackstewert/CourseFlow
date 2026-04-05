@@ -7,8 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0e1a">
 <title>CourseFlow</title>
-<link rel="icon" href="favicon.png">
-<link rel="apple-touch-icon" sizes="180x180" href="favicon copy.png">
+<link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
@@ -471,25 +470,20 @@ function VideoPlayer({ url, videoKey, onEnded }) {
   // Google Drive: use a tall fixed-height container so Drive's native
   // player chrome (toolbar + controls) isn't clipped by a 16/9 box.
   if (parsed.type === 'gdrive') {
-  return (
-    <div style={{
-      width: '100%',
-      aspectRatio: '16 / 9',
-      borderRadius: 'var(--rl)',
-      overflow: 'hidden',
-      marginBottom: 20,
-      background: '#000'
-    }}>
-      <iframe
-        key={videoKey}
-        src={buildEmbedSrc(parsed)}
-        style={{ width: '100%', height: '100%', border: 'none' }}
-        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-        allowFullScreen
-      />
-    </div>
-  );
-}
+    return (
+      <div style={{width:'100%',height:520,borderRadius:'var(--rl)',overflow:'hidden',marginBottom:20,background:'#1a1a1a',border:'1px solid var(--bdl)'}}>
+        <iframe
+          key={videoKey}
+          src={buildEmbedSrc(parsed)}
+          style={{width:'100%',height:'100%',border:'none',display:'block'}}
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="vw">
@@ -1176,13 +1170,14 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
     onUpdate({ ...data, courses: data.courses.map(c => c.id === courseId ? updated : c) });
   }, [data, courseId, onUpdate]);
 
-  // Navigate to a chapter — update resume map
+  // Navigate to a chapter — update resume map AND notify parent
   const goToChapter = useCallback(idx => {
     setActiveIdxRaw(idx);
     setVideoKey(k => k + 1);
     const newMap = { ...resumeMap, [courseId]: idx };
     onResumeUpdate(newMap);
-  }, [resumeMap, courseId, onResumeUpdate]);
+    onChapterChange?.(idx);
+  }, [resumeMap, courseId, onResumeUpdate, onChapterChange]);
 
   const markComplete = useCallback((force) => {
     const will = force !== undefined ? force : !chapter?.completed;
@@ -1260,13 +1255,25 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
           {company && <CompanyIcon company={company} size={22} />}
           <div className="cttl">{chapter?.name || 'Select a chapter'}</div>
           {chapter && (
-            <div className="cbtn" onClick={() => markComplete()}>
-              <div className={`chk ${chapter.completed?'on':''} ${popAnim?'pop':''}`}>
-                {chapter.completed ? '✓' : ''}
-              </div>
-              <span style={{fontSize:13,color:chapter.completed?'var(--ac)':'var(--t2)',fontWeight:600,whiteSpace:'nowrap'}}>
-                {chapter.completed ? 'Completed' : 'Mark Complete'}
-              </span>
+            <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+              <button
+                className="btn btn-s btn-sm"
+                disabled={activeIdx === 0}
+                onClick={() => goToChapter(activeIdx - 1)}
+                style={{opacity: activeIdx === 0 ? 0.4 : 1}}
+              >← Prev</button>
+              {activeIdx < chapters.length - 1 ? (
+                <button
+                  className={`btn btn-sm ${chapter.completed ? 'btn-s' : 'btn-p'}`}
+                  onClick={() => { if (!chapter.completed) markComplete(true); goToChapter(activeIdx + 1); }}
+                >{chapter.completed ? 'Next →' : '✓ Complete & Continue'}</button>
+              ) : (
+                <button
+                  className={`btn btn-sm ${chapter.completed ? 'btn-s' : 'btn-p'}`}
+                  onClick={() => markComplete()}
+                  style={{opacity: chapter.completed ? 0.6 : 1}}
+                >{chapter.completed ? '✓ Completed' : '✓ Mark Complete'}</button>
+              )}
             </div>
           )}
           <button className="btn btn-s btn-sm dsk" onClick={() => setShowNotes(v => !v)}>
@@ -1693,7 +1700,7 @@ function App({ sessionPw, initialData, initialResume }) {
           <CoursePage courseId={view} data={data} onUpdate={updateData} onBack={goHome}
             resumeMap={resumeMap} onResumeUpdate={updateResume}
             mobileNotesOpen={mobileNotes} setMobileNotesOpen={setMobileNotes}
-            initChapterIdx={chapterIdx} />
+            initChapterIdx={chapterIdx} onChapterChange={setChapterIdx} />
         )}
       </div>
 
