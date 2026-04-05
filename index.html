@@ -174,6 +174,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 /* ── Video player ── */
 .vw{width:100%;aspect-ratio:16/9;background:#000;border-radius:var(--rl);overflow:hidden;margin-bottom:20px;position:relative}
 .vw iframe{width:100%;height:100%;border:none;display:block}
+.vw iframe:fullscreen,.vw iframe:-webkit-full-screen{width:100vw;height:100vh;border-radius:0}
 .vsk{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bgc);border-radius:var(--rl);z-index:2;transition:opacity .25s}
 .vsk.hidden{opacity:0;pointer-events:none}
 .vsk-spin{width:40px;height:40px;border-radius:50%;border:3px solid var(--bdl);border-top-color:var(--ac);animation:spin .7s linear infinite}
@@ -471,25 +472,20 @@ function VideoPlayer({ url, videoKey, onEnded }) {
   // Google Drive: use a tall fixed-height container so Drive's native
   // player chrome (toolbar + controls) isn't clipped by a 16/9 box.
   if (parsed.type === 'gdrive') {
-  return (
-    <div style={{
-      width: '100%',
-      aspectRatio: '16 / 9',
-      borderRadius: 'var(--rl)',
-      overflow: 'hidden',
-      marginBottom: 20,
-      background: '#000'
-    }}>
-      <iframe
-        key={videoKey}
-        src={buildEmbedSrc(parsed)}
-        style={{ width: '100%', height: '100%', border: 'none' }}
-        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-        allowFullScreen
-      />
-    </div>
-  );
-}
+    return (
+      <div style={{width:'100%',aspectRatio:'16/9',borderRadius:'var(--rl)',overflow:'hidden',marginBottom:20,background:'#000',position:'relative'}}>
+        <iframe
+          key={videoKey}
+          src={buildEmbedSrc(parsed)}
+          style={{width:'100%',height:'100%',border:'none',display:'block',position:'absolute',inset:0}}
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+          allowFullScreen={true}
+          webkitAllowFullScreen={true}
+          mozAllowFullScreen={true}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="vw">
