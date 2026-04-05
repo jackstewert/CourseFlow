@@ -1140,7 +1140,7 @@ function HomePage({ data, onUpdate, onOpenCourse, filterCompany, setFilterCompan
 // ─────────────────────────────────────────────
 // CoursePage
 // ─────────────────────────────────────────────
-function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdate, mobileNotesOpen, setMobileNotesOpen, initChapterIdx }) {
+function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdate, mobileNotesOpen, setMobileNotesOpen, initChapterIdx, onChapterChange }) {
   const course  = useMemo(() => data.courses.find(c => c.id === courseId), [data.courses, courseId]);
   const company = useMemo(() => data.companies.find(c => c.id === course?.companyId), [data.companies, course?.companyId]);
   const chapters = course?.chapters || [];
