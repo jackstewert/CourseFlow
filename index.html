@@ -1182,7 +1182,6 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
   const [popAnim,    setPopAnim]      = useState(false);
   const noteSaveTimer = useRef(null);
 
-  // Sync when parent changes chapter (e.g. from Notes page)
   useEffect(() => {
     if (initChapterIdx !== undefined && initChapterIdx !== activeIdx) {
       setActiveIdxRaw(initChapterIdx);
@@ -1198,7 +1197,6 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
     onUpdate({ ...data, courses: data.courses.map(c => c.id === courseId ? updated : c) });
   }, [data, courseId, onUpdate]);
 
-  // Navigate to a chapter — update resume map AND notify parent
   const goToChapter = useCallback(idx => {
     setActiveIdxRaw(idx);
     setVideoKey(k => k + 1);
@@ -1227,12 +1225,14 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
     if (editIdx !== null) {
       updateCourse({ ...course, chapters: chapters.map((c,i) => i===editIdx ? {...c,...chData} : c) });
     } else {
-      const nc = [...chapters, { id: uid(), ...chData, completed: false, notes: '' }];
+      const newChapter = { id: uid(), ...chData, completed: false, notes: '' };
+      const insertAt = chapters.length > 0 ? activeIdx + 1 : 0;
+      const nc = [...chapters.slice(0, insertAt), newChapter, ...chapters.slice(insertAt)];
       updateCourse({ ...course, chapters: nc });
-      goToChapter(nc.length - 1);
+      goToChapter(insertAt);
     }
     setShowModal(false); setEditIdx(null);
-  }, [chapters, editIdx, course, updateCourse, goToChapter]);
+  }, [chapters, editIdx, activeIdx, course, updateCourse, goToChapter]);
 
   const deleteChapter = useCallback(idx => {
     if (!confirm('Delete this chapter?')) return;
@@ -1240,6 +1240,7 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
     updateCourse({ ...course, chapters: nc });
     if (activeIdx >= nc.length) goToChapter(Math.max(0, nc.length - 1));
   }, [chapters, activeIdx, course, updateCourse, goToChapter]);
+
 
   const NotesContent = (
     <>
@@ -1284,23 +1285,17 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
           <div className="cttl">{chapter?.name || 'Select a chapter'}</div>
           {chapter && (
             <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
-              <button
-                className="btn btn-s btn-sm"
-                disabled={activeIdx === 0}
-                onClick={() => goToChapter(activeIdx - 1)}
-                style={{opacity: activeIdx === 0 ? 0.4 : 1}}
-              >← Prev</button>
+              <button className="btn btn-s btn-sm" disabled={activeIdx === 0} onClick={() => goToChapter(activeIdx - 1)} style={{opacity: activeIdx === 0 ? 0.4 : 1}}>← Prev</button>
               {activeIdx < chapters.length - 1 ? (
-                <button
-                  className={`btn btn-sm ${chapter.completed ? 'btn-s' : 'btn-p'}`}
-                  onClick={() => { if (!chapter.completed) markComplete(true); goToChapter(activeIdx + 1); }}
-                >{chapter.completed ? 'Next →' : '✓ Complete & Continue'}</button>
+                <button className={`btn btn-sm ${chapter.completed ? 'btn-s' : 'btn-p'}`}
+                  onClick={() => { if (!chapter.completed) markComplete(true); goToChapter(activeIdx + 1); }}>
+                  {chapter.completed ? 'Next →' : '✓ Complete & Continue'}
+                </button>
               ) : (
-                <button
-                  className={`btn btn-sm ${chapter.completed ? 'btn-s' : 'btn-p'}`}
-                  onClick={() => markComplete()}
-                  style={{opacity: chapter.completed ? 0.6 : 1}}
-                >{chapter.completed ? '✓ Completed' : '✓ Mark Complete'}</button>
+                <button className={`btn btn-sm ${chapter.completed ? 'btn-s' : 'btn-p'}`}
+                  onClick={() => markComplete()} style={{opacity: chapter.completed ? 0.6 : 1}}>
+                  {chapter.completed ? '✓ Completed' : '✓ Mark Complete'}
+                </button>
               )}
             </div>
           )}
@@ -1323,12 +1318,7 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
                 {chapter.type === 'video' && (
                   chapter.videoUrl
                     ? <VideoPlayer url={chapter.videoUrl} videoKey={`${courseId}-${activeIdx}-${videoKey}`}
-                        onEnded={() => {
-                          if (!chapter.completed) markComplete(true);
-                          if (activeIdx < chapters.length - 1) {
-                            setTimeout(() => goToChapter(activeIdx + 1), 800);
-                          }
-                        }} />
+                        onEnded={() => { if (!chapter.completed) markComplete(true); if (activeIdx < chapters.length - 1) { setTimeout(() => goToChapter(activeIdx + 1), 800); } }} />
                     : <div className="vno-url">
                         <span style={{fontSize:36}}>▶</span>
                         <span>No video URL set</span>
@@ -1336,10 +1326,7 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
                       </div>
                 )}
                 {chapter.description && (
-                  <div className="ds">
-                    <div className="ds-t">📋 Description</div>
-                    <div className="ds-p">{chapter.description}</div>
-                  </div>
+                  <div className="ds"><div className="ds-t">📋 Description</div><div className="ds-p">{chapter.description}</div></div>
                 )}
                 {chapter.links?.length > 0 && (
                   <div className="ds">
@@ -1359,10 +1346,8 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
                       {chapter.files.map((f,i) => {
                         const fi = typeof f === 'string' ? {name:f,url:''} : f;
                         return (
-                          <a key={i} href={fi.url||'#'} target="_blank" rel="noopener noreferrer" className="fi2"
-                            style={{cursor:fi.url?'pointer':'default'}}>
-                            <span style={{fontSize:18}}>📄</span>
-                            <span className="fi2-n">{fi.name || fi.url}</span>
+                          <a key={i} href={fi.url||'#'} target="_blank" rel="noopener noreferrer" className="fi2" style={{cursor:fi.url?'pointer':'default'}}>
+                            <span style={{fontSize:18}}>📄</span><span className="fi2-n">{fi.name || fi.url}</span>
                           </a>
                         );
                       })}
@@ -1373,18 +1358,13 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
                   <div className="ds" style={{textAlign:'center',padding:'40px 20px',color:'var(--tm)'}}>
                     <div style={{fontSize:32,marginBottom:10}}>📝</div>
                     <div>No content yet.</div>
-                    <button className="btn btn-s btn-sm" style={{marginTop:12}}
-                      onClick={() => { setEditIdx(activeIdx); setShowModal(true); }}>Add Content</button>
+                    <button className="btn btn-s btn-sm" style={{marginTop:12}} onClick={() => { setEditIdx(activeIdx); setShowModal(true); }}>Add Content</button>
                   </div>
                 )}
               </>
             )}
           </div>
-
-          {/* Desktop notes panel */}
-          <div className={`np ${showNotes ? '' : 'hide'}`}>
-            {showNotes && NotesContent}
-          </div>
+          <div className={`np ${showNotes ? '' : 'hide'}`}>{showNotes && NotesContent}</div>
         </div>
       </div>
 
@@ -1393,18 +1373,13 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
         <div className="mns-bk" onClick={() => setMobileNotesOpen(false)} />
         <div className="mns-pn">
           <div className="mns-hnd" />
-          <div style={{display:'flex',flexDirection:'column',flex:1,overflow:'hidden'}}>
-            {NotesContent}
-          </div>
+          <div style={{display:'flex',flexDirection:'column',flex:1,overflow:'hidden'}}>{NotesContent}</div>
         </div>
       </div>
 
       {showModal && (
-        <ChapterModal
-          chapter={editIdx !== null ? chapters[editIdx] : null}
-          onClose={() => { setShowModal(false); setEditIdx(null); }}
-          onSave={saveChapter}
-        />
+        <ChapterModal chapter={editIdx !== null ? chapters[editIdx] : null}
+          onClose={() => { setShowModal(false); setEditIdx(null); }} onSave={saveChapter} />
       )}
     </div>
   );
@@ -1426,11 +1401,16 @@ function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterId
 
   const saveChapter = chData => {
     const isEdit = editIdx !== null;
-    const nc = isEdit
-      ? chapters.map((c,i) => i===editIdx ? {...c,...chData} : c)
-      : [...chapters, { id: uid(), ...chData, completed: false, notes: '' }];
+    let nc;
+    if (isEdit) {
+      nc = chapters.map((c,i) => i===editIdx ? {...c,...chData} : c);
+    } else {
+      const newChapter = { id: uid(), ...chData, completed: false, notes: '' };
+      const insertAt = chapters.length > 0 ? activeChapterIdx + 1 : 0;
+      nc = [...chapters.slice(0, insertAt), newChapter, ...chapters.slice(insertAt)];
+      onSelectChapter(insertAt);
+    }
     update({ ...course, chapters: nc });
-    if (!isEdit) onSelectChapter(nc.length - 1);
     setShowModal(false); setEditIdx(null);
   };
 
@@ -1438,6 +1418,7 @@ function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterId
     if (!confirm('Delete this chapter?')) return;
     update({ ...course, chapters: chapters.filter((_,i) => i !== idx) });
   };
+
 
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
@@ -1451,18 +1432,16 @@ function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterId
         <ChapterList chapters={chapters} activeIdx={activeChapterIdx}
           onSelect={i => { onSelectChapter(i); onClose(); }}
           onEdit={i => { setEditIdx(i); setShowModal(true); }}
-          onDelete={deleteChapter} mobile />
+          onDelete={deleteChapter}
+          mobile />
       </div>
       <div className="ci-add">
         <button className="btn btn-s" style={{width:'100%',justifyContent:'center'}}
           onClick={() => { setEditIdx(null); setShowModal(true); }}>+ Add Chapter</button>
       </div>
       {showModal && (
-        <ChapterModal
-          chapter={editIdx !== null ? chapters[editIdx] : null}
-          onClose={() => { setShowModal(false); setEditIdx(null); }}
-          onSave={saveChapter}
-        />
+        <ChapterModal chapter={editIdx !== null ? chapters[editIdx] : null}
+          onClose={() => { setShowModal(false); setEditIdx(null); }} onSave={saveChapter} />
       )}
     </div>
   );
