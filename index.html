@@ -365,10 +365,55 @@ async function cloudLoad(key, password) {
 }
 
 // ── localStorage fallback (cache / offline) ──
-function loadData()   { try { const d = JSON.parse(localStorage.getItem(DATA_KEY));   return (d && d.courses) ? d : EMPTY; } catch { return EMPTY; } }
-function saveData(d)  { try { localStorage.setItem(DATA_KEY,   JSON.stringify(d)); }  catch {} }
+const META_KEY   = 'courseflow_meta';
+const COURSE_PFX = 'courseflow_c_';
+
+function loadData() {
+  try {
+    const metaRaw = localStorage.getItem(META_KEY);
+    if (metaRaw) {
+      const meta = JSON.parse(metaRaw);
+      const courses = (meta.courseIds || []).map(id => {
+        try { return JSON.parse(localStorage.getItem(COURSE_PFX + id)); } catch { return null; }
+      }).filter(Boolean);
+      return { companies: meta.companies || [], courses };
+    }
+    // Fall back to old monolithic key (migrates on next save)
+    const d = JSON.parse(localStorage.getItem(DATA_KEY));
+    return (d && d.courses) ? d : EMPTY;
+  } catch { return EMPTY; }
+}
+
+function saveData(d) {
+  try {
+    const courseIds = [];
+    for (const course of (d.courses || [])) {
+      const key = COURSE_PFX + course.id;
+      try {
+        localStorage.setItem(key, JSON.stringify(course));
+        courseIds.push(course.id);
+      } catch(e) {
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+          console.warn('CourseFlow: localStorage quota hit saving course', course.id);
+          if (localStorage.getItem(key)) courseIds.push(course.id);
+        }
+      }
+    }
+    // Remove stale course keys no longer in the list
+    const keepSet = new Set(courseIds);
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith(COURSE_PFX) && !keepSet.has(k.slice(COURSE_PFX.length)))
+        localStorage.removeItem(k);
+    });
+    const meta = { companies: d.companies || [], courseIds };
+    try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch {}
+    // Remove old monolithic key if it exists
+    localStorage.removeItem(DATA_KEY);
+  } catch(e) { console.error('CourseFlow: saveData error', e); }
+}
+
 function loadResume() { try { return JSON.parse(localStorage.getItem(RESUME_KEY) || '{}'); } catch { return {}; } }
-function saveResume(m){ try { localStorage.setItem(RESUME_KEY, JSON.stringify(m)); }  catch {} }
+function saveResume(m){ try { localStorage.setItem(RESUME_KEY, JSON.stringify(m)); } catch(e) { console.warn('CourseFlow: saveResume error', e); } }
 
 // ─────────────────────────────────────────────
 // Helpers
