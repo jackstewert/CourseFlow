@@ -345,22 +345,59 @@ function getDb() {
 }
 
 // ── Cloud save / load ──
+// NEW — courses stored individually, meta stored separately
 async function cloudSave(key, value, password) {
   const db = getDb(); if (!db) return;
-  const encrypted = await encryptData(JSON.stringify(value), password);
-  await db.collection('courseflow').doc(key).set({ data: encrypted, updatedAt: Date.now() });
+  if (key === 'data') {
+    // Save meta (companies + courseIds) as one doc, each course as its own doc
+    const courseIds = (value.courses || []).map(c => c.id);
+    const metaEnc = await encryptData(JSON.stringify({ companies: value.companies, courseIds }), password);
+    const batch = db.batch();
+    batch.set(db.collection('courseflow').doc('meta'), { data: metaEnc, updatedAt: Date.now() });
+    for (const course of (value.courses || [])) {
+      const enc = await encryptData(JSON.stringify(course), password);
+      batch.set(db.collection('courseflow').doc('course_' + course.id), { data: enc, updatedAt: Date.now() });
+    }
+    // Delete any course docs no longer in the list
+    const snapshot = await db.collection('courseflow').where(firebase.firestore.FieldPath.documentId(), '>=', 'course_').where(firebase.firestore.FieldPath.documentId(), '<=', 'course_\uf8ff').get();
+    const keepSet = new Set(courseIds.map(id => 'course_' + id));
+    snapshot.docs.forEach(doc => { if (!keepSet.has(doc.id)) batch.delete(doc.ref); });
+    await batch.commit();
+  } else {
+    const encrypted = await encryptData(JSON.stringify(value), password);
+    await db.collection('courseflow').doc(key).set({ data: encrypted, updatedAt: Date.now() });
+  }
 }
+
 async function cloudLoad(key, password) {
   const db = getDb(); if (!db) return null;
   try {
+    if (key === 'data') {
+      const metaSnap = await db.collection('courseflow').doc('meta').get();
+      if (!metaSnap.exists) {
+        // Fall back to legacy single-doc format
+        const snap = await db.collection('courseflow').doc('data').get();
+        if (!snap.exists) return null;
+        const json = await decryptData(snap.data().data, password);
+        return JSON.parse(json);
+      }
+      const meta = JSON.parse(await decryptData(metaSnap.data().data, password));
+      const courses = await Promise.all((meta.courseIds || []).map(async id => {
+        try {
+          const snap = await db.collection('courseflow').doc('course_' + id).get();
+          if (!snap.exists) return null;
+          return JSON.parse(await decryptData(snap.data().data, password));
+        } catch { return null; }
+      }));
+      return { companies: meta.companies || [], courses: courses.filter(Boolean) };
+    }
     const snap = await db.collection('courseflow').doc(key).get();
     if (!snap.exists) return null;
     const json = await decryptData(snap.data().data, password);
     return JSON.parse(json);
   } catch(e) {
-    // Re-throw Firestore errors (network, permissions) so caller can distinguish
     if (e && e.code) throw e;
-    return null; // decryption failure = wrong password
+    return null;
   }
 }
 
