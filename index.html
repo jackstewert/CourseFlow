@@ -1665,7 +1665,7 @@ function App({ sessionPw, initialData, initialResume }) {
         ]);
         setSyncStatus('saved');
         setTimeout(() => setSyncStatus(''), 2500);
-      } catch(e) { setSyncStatus('error'); }
+      } catch(e) { console.error('Sync failed:', e?.code, e?.message); setSyncStatus('error'); }
       finally {
         // Keep the flag on briefly so the snapshot echo is suppressed
         setTimeout(() => { localWriting.current = false; }, 2000);
