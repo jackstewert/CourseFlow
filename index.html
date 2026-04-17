@@ -1655,8 +1655,8 @@ function App({ sessionPw, initialData, initialResume }) {
     if (!FIREBASE_CONFIGURED || !pwRef.current) return;
     clearTimeout(syncTimer.current);
     setSyncStatus('saving');
+    localWriting.current = true;
     syncTimer.current = setTimeout(async () => {
-      localWriting.current = true;
       try {
         await Promise.all([
           cloudSave('data',   newData,   pwRef.current),
