@@ -19,7 +19,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
 :root {
-  --bg:#0a0e1a; --bg2:#111827; --bgc:#161d2e; --bgh:#1e2740; --bgs:#0d1220;
+  --bg:#0a0e1a; --sab: env(safe-area-insert-bottom); --bg2:#111827; --bgc:#161d2e; --bgh:#1e2740; --bgs:#0d1220;
   --ac:#10e68c; --acd:#0bbf76; --acg:rgba(16,230,140,.15); --ac2:#4f8ef7;
   --t1:#e8edf5; --t2:#8b95a8; --tm:#4a5568;
   --bd:#1e2d45; --bdl:#263548;
@@ -227,7 +227,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .toast{;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ac);color:#0a0e1a;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;z-index:3000;white-space:nowrap;pointer-events:none}
 
 /* ── Mobile nav ── */
-.mbn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bgs);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom, 0px);padding-bottom:max(env(safe-area-inset-bottom), 20px);z-index:200;flex-direction:row;align-items:stretch}
+.mbn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bgs);border-top:1px solid var(--bd);padding-bottom:var(--sab);z-index:200;flex-direction:row;align-items:stretch}
 .mni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 4px;min-height:52px;border:none;background:transparent;color:var(--tm);font-size:10px;font-family:inherit;font-weight:600;transition:color .12s}
 .mni.on{color:var(--ac)}
 .mni-i{font-size:20px;line-height:1}
@@ -255,7 +255,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 }
 @media(max-width:640px){
   .sb{display:none!important}.dsk{display:none!important}.mbn{display:flex}
-  .main{padding-bottom:calc(52px + max(env(safe-area-inset-bottom),16px))}
+  .main{padding-bottom:calc(52px + var(--sab))}
   .topbar{padding:max(12px,env(safe-area-inset-top)) 16px 10px;gap:8px}
   .topbar-title{font-size:16px;flex:none}
   .topbar .si-wrap{order:10;width:100%}
