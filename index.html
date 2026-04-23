@@ -1269,6 +1269,9 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
   const company = useMemo(() => data.companies.find(c => c.id === course?.companyId), [data.companies, course?.companyId]);
   const chapters = course?.chapters || [];
 
+  const dataRef2 = useRef(data);
+  useEffect(() => { dataRef2.current = data; }, [data]);
+
   const [activeIdx,  setActiveIdxRaw] = useState(initChapterIdx ?? 0);
   const [videoKey,   setVideoKey]     = useState(0);
   const [showNotes,  setShowNotes]    = useState(false);
@@ -1290,8 +1293,9 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
   const doneCount  = chapters.filter(c => c.completed).length;
 
   const updateCourse = useCallback(updated => {
-    onUpdate({ ...data, courses: data.courses.map(c => c.id === courseId ? updated : c) });
-  }, [data, courseId, onUpdate]);
+    const next = { ...dataRef2.current, courses: dataRef2.current.courses.map(c => c.id === courseId ? updated : c) };
+    onUpdate(next);
+  }, [courseId, onUpdate]);
 
   const goToChapter = useCallback(idx => {
     setActiveIdxRaw(idx);
@@ -1493,7 +1497,12 @@ function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterId
   const chapters = course.chapters || [];
   const done = chapters.filter(c => c.completed).length;
 
-  const update = updated => onUpdate({ ...data, courses: data.courses.map(c => c.id === courseId ? updated : c) });
+  const msiDataRef = useRef(data);
+  useEffect(() => { msiDataRef.current = data; }, [data]);
+
+  const update = useCallback(updated => {
+    onUpdate({ ...msiDataRef.current, courses: msiDataRef.current.courses.map(c => c.id === courseId ? updated : c) });
+  }, [courseId, onUpdate]);
 
   const saveChapter = chData => {
     const isEdit = editIdx !== null;
