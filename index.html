@@ -1076,10 +1076,15 @@ function HomePage({ data, writeData, onOpenCourse, filterCompany, setFilterCompa
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
       <div className="topbar">
         <span className="topbar-title">Course<span>Flow</span></span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', opacity: 0.8 }}>
+      <div className="sync-dot" style={{ background: syncColor, margin: 0 }} />
+      <span style={{ fontSize: '11px', color: syncColor, fontWeight: '600' }}>
+        {syncLabel}
+      </span>
+    </div>
+  </div>
         <div className="si-wrap"><span className="si-ico">🔍</span>
           <input className="fi si" placeholder="Search courses…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:210}} /></div>
-        <button className="btn btn-s btn-sm dsk" onClick={()=>setShowImport(true)}>📥 Import</button>
-        <button className="btn btn-s btn-sm dsk" onClick={doExport}>💾 Export</button>
         <button className="btn btn-p dsk" onClick={()=>{setEditCourse(null);setShowAdd(true);}}>+ Add Course</button>
       </div>
       <div className="content">
@@ -1583,8 +1588,10 @@ function App({ sessionPw, initialData, initialResume }) {
           <button className={`mni ${view==='home'?'on':''}`} onClick={goHome}><span className="mni-i">⬡</span><span>Courses</span></button>
           <button className={`mni ${view==='notes'?'on':''}`} onClick={()=>setView('notes')}><span className="mni-i">📓</span><span>Notes</span></button>
           <button className="mni" onClick={()=>setTriggerAdd(true)}><span className="mni-i">＋</span><span>Add</span></button>
-          <button className="mni" onClick={()=>setTriggerImport(true)}><span className="mni-i">📥</span><span>Import</span></button>
-          <button className="mni" onClick={()=>downloadJson({companies:data.companies,courses:data.courses},`courseflow-backup-${new Date().toISOString().slice(0,10)}.json`)}><span className="mni-i">💾</span><span style={{color:syncColor}}>{syncLabel==='Syncing…'?'Sync…':syncLabel==='Synced'?'Synced':syncLabel==='Sync error'?'Err':'Export'}</span></button>
+<div className="mni" style={{cursor: 'default'}}>
+  <span className="mni-i" style={{color: syncColor}}>{syncIcon}</span>
+  <span style={{color: syncColor}}>{syncLabel}</span>
+</div>
           <button className="mni" onClick={handleLock}><span className="mni-i">🔒</span><span>Lock</span></button>
         </>}
       </nav>
