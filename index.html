@@ -1597,6 +1597,13 @@ function LoginScreen() {
         cloudLoad('resume', pw),
       ]);
 
+      const localData = loadData();
+const localCourseCount = localData?.courses?.length || 0;
+const cloudCourseCount = cloudData?.courses?.length || 0;
+
+// Use whichever has more data as a basic freshness signal
+const finalData = localCourseCount > cloudCourseCount ? localData : (cloudData ?? localData);
+
       // First time — write sentinel
       if (!sentinelSnap.exists) await cloudSave('sentinel', { ok: true }, pw);
 
@@ -1685,6 +1692,8 @@ function App({ sessionPw, initialData, initialResume }) {
 
     const unsub1 = db.collection('courseflow').doc('meta').onSnapshot(async snap => {
   if (!snap.exists || localWriting.current) return;
+  const age = Date.now() - (snap.data()?.updatedAt || 0);
+  if (age < 5000) return;  // ignore anything updated in last 5 seconds
   try {
     const loaded = await cloudLoad('data', pwRef.current);
     if (loaded && loaded.courses) { setData(loaded); saveData(loaded); }
@@ -1726,7 +1735,7 @@ function App({ sessionPw, initialData, initialResume }) {
         // Keep the flag on briefly so the snapshot echo is suppressed
         setTimeout(() => { localWriting.current = false; }, 2000);
       }
-    }, 1200);
+    }, 0);
   }
 
   function handleLock() {
