@@ -1598,11 +1598,11 @@ function LoginScreen() {
       ]);
 
       const localData = loadData();
-const localCourseCount = localData?.courses?.length || 0;
-const cloudCourseCount = cloudData?.courses?.length || 0;
+      const localCourseCount = localData?.courses?.length || 0;
+      const cloudCourseCount = cloudData?.courses?.length || 0;
 
-// Use whichever has more data as a basic freshness signal
-const finalData = localCourseCount > cloudCourseCount ? localData : (cloudData ?? localData);
+      // Use whichever has more data as a basic freshness signal
+      const finalData = localCourseCount > cloudCourseCount ? localData : (cloudData ?? localData);
 
       // First time — write sentinel
       if (!sentinelSnap.exists) await cloudSave('sentinel', { ok: true }, pw);
