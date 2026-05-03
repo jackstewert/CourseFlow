@@ -1606,8 +1606,7 @@ function LoginScreen() {
 
       // First time — write sentinel
       if (!sentinelSnap.exists) await cloudSave('sentinel', { ok: true }, pw);
-
-      const finalData   = cloudData   ?? loadData();
+      
       const finalResume = cloudResume ?? loadResume();
 
       // Persist to localStorage so App can read synchronously on mount
