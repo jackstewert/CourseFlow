@@ -83,7 +83,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .si-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--tm);font-size:14px;pointer-events:none}
 
 /* ── Modal ── */
-.mbk{position: fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.mbk{;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
 .mo{background:var(--bgc);border-radius:var(--rl);border:1px solid var(--bdl);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6)}
 .mh{padding:20px 24px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
 .mt{font-family:'Syne',sans-serif;font-size:17px;font-weight:700}
@@ -224,7 +224,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .nc-pv mark{background:rgba(16,230,140,.22);color:var(--ac);border-radius:2px;padding:0 2px}
 
 /* ── Toast ── */
-.toast{position: fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ac);color:#0a0e1a;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;z-index:3000;white-space:nowrap;pointer-events:none}
+.toast{;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ac);color:#0a0e1a;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;z-index:3000;white-space:nowrap;pointer-events:none}
 
 /* ── Mobile nav ── */
 .mbn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bgs);border-top:1px solid var(--bd);padding-bottom:var(--sab);z-index:200;flex-direction:row;align-items:stretch}
@@ -300,7 +300,6 @@ const SORTS = [
 ];
 const EMPTY = { companies:[], courses:[] };
 
-// ── Firebase config — fill these in after creating your project ──
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyCXKu18ONnWJx8Jt4zVBu1BEze68olXvNg",
   authDomain:        "courseflow-7e19f.firebaseapp.com",
@@ -368,13 +367,9 @@ async function cloudSave(key, value, password) {
         { data: enc, updatedAt: Date.now() }
       );
     }
-    // Delete Firestore docs for courses that no longer exist
-    const keepSet = new Set(courseIds.map(id => 'course_' + id));
-    const existing = await db.collection('courseflow').get();
-    existing.docs.forEach(doc => {
-      if (doc.id.startsWith('course_') && !keepSet.has(doc.id))
-        batch.delete(doc.ref);
-    });
+    // NOTE: stale-doc cleanup removed — it caused a full collection read on every
+    // save which could fail silently and block the whole write. Orphaned docs are
+    // harmless since they're never read.
     await batch.commit();
   } else {
     const encrypted = await encryptData(JSON.stringify(value), password);
@@ -386,7 +381,6 @@ async function cloudLoad(key, password) {
   const db = getDb(); if (!db) return null;
   try {
     if (key === 'data') {
-      // Try new chunked format first
       const metaSnap = await db.collection('courseflow').doc('meta').get();
       if (metaSnap.exists) {
         const meta = JSON.parse(await decryptData(metaSnap.data().data, password));
@@ -429,7 +423,6 @@ function loadData() {
       }).filter(Boolean);
       return { companies: meta.companies || [], courses };
     }
-    // Fall back to old monolithic key (migrates on next save)
     const d = JSON.parse(localStorage.getItem(DATA_KEY));
     return (d && d.courses) ? d : EMPTY;
   } catch { return EMPTY; }
@@ -450,7 +443,6 @@ function saveData(d) {
         }
       }
     }
-    // Remove stale course keys no longer in the list
     const keepSet = new Set(courseIds);
     Object.keys(localStorage).forEach(k => {
       if (k.startsWith(COURSE_PFX) && !keepSet.has(k.slice(COURSE_PFX.length)))
@@ -458,7 +450,6 @@ function saveData(d) {
     });
     const meta = { companies: d.companies || [], courseIds };
     try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch {}
-    // Remove old monolithic key if it exists
     localStorage.removeItem(DATA_KEY);
   } catch(e) { console.error('CourseFlow: saveData error', e); }
 }
@@ -489,19 +480,13 @@ const downloadJson = (data, filename) => {
 // ─────────────────────────────────────────────
 function parseVideoUrl(url) {
   if (!url) return { type: 'none' };
-
-  // YouTube
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
   if (yt) {
     const start = url.match(/[?&](?:t|start)=(\d+)/);
     return { type: 'youtube', id: yt[1], start: start ? parseInt(start[1]) : 0 };
   }
-
-  // Vimeo
   const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
   if (vm) return { type: 'vimeo', id: vm[1] };
-
-  // Google Drive
   if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
     const f1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
     if (f1) return { type: 'gdrive', id: f1[1] };
@@ -509,21 +494,12 @@ function parseVideoUrl(url) {
     if (f2) return { type: 'gdrive', id: f2[1] };
     return { type: 'none' };
   }
-
-  // Wistia
   if (url.includes('wistia')) {
     const wid = url.match(/(?:medias|iframe)\/([a-zA-Z0-9]+)/);
     return { type: 'wistia', id: wid ? wid[1] : url.split('/').pop() };
   }
-
-  // Direct video file (.mp4, .webm, .mov, .m3u8, etc.)
-  if (/\.(mp4|webm|mov|m4v|ogg|ogv|m3u8)(\?|$)/i.test(url)) {
-    return { type: 'direct', src: url };
-  }
-
-  // Generic embed
+  if (/\.(mp4|webm|mov|m4v|ogg|ogv|m3u8)(\?|$)/i.test(url)) return { type: 'direct', src: url };
   if (url.startsWith('https')) return { type: 'embed', src: url };
-
   return { type: 'none' };
 }
 
@@ -544,9 +520,7 @@ function buildEmbedSrc(parsed) {
 function VideoPlayer({ url, videoKey, onEnded }) {
   const parsed = useMemo(() => parseVideoUrl(url), [url]);
   const [loaded, setLoaded] = useState(false);
-
   useEffect(() => { setLoaded(false); }, [videoKey]);
-
   useEffect(() => {
     if (parsed.type !== 'youtube') return;
     const handler = e => {
@@ -559,68 +533,37 @@ function VideoPlayer({ url, videoKey, onEnded }) {
     return () => window.removeEventListener('message', handler);
   }, [parsed.type, onEnded]);
 
-  if (parsed.type === 'none') {
-    return (
-      <div className="vno-url">
-        <span style={{fontSize:36}}>▶</span>
-        <span>No video URL set</span>
-      </div>
-    );
-  }
+  if (parsed.type === 'none') return <div className="vno-url"><span style={{fontSize:36}}>▶</span><span>No video URL set</span></div>;
 
-  // Direct MP4/WebM/etc — use native <video> tag
   if (parsed.type === 'direct') {
     return (
       <div className="vw">
-        <video
-          key={videoKey}
-          src={parsed.src}
-          controls
-          controlsList="nodownload"
-          playsInline
+        <video key={videoKey} src={parsed.src} controls controlsList="nodownload" playsInline
           onEnded={() => onEnded?.()}
-          style={{width:'100%',height:'100%',display:'block',background:'#000',borderRadius:'var(--rl)'}}
-        />
+          style={{width:'100%',height:'100%',display:'block',background:'#000',borderRadius:'var(--rl)'}} />
       </div>
     );
   }
 
-  // Google Drive
   if (parsed.type === 'gdrive') {
-  return (
-    <div style={{
-      width: '100%',
-      aspectRatio: '16 / 9',
-      borderRadius: 'var(--rl)',
-      overflow: 'hidden',
-      marginBottom: 20,
-      background: '#000'
-    }}>
-      <iframe
-        key={videoKey}
-        src={buildEmbedSrc(parsed)}
-        style={{ width: '100%', height: '100%', border: 'none' }}
-        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-        allowFullScreen
-      />
-    </div>
-  );
-}
+    return (
+      <div style={{width:'100%',aspectRatio:'16 / 9',borderRadius:'var(--rl)',overflow:'hidden',marginBottom:20,background:'#000'}}>
+        <iframe key={videoKey} src={buildEmbedSrc(parsed)}
+          style={{width:'100%',height:'100%',border:'none'}}
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />
+      </div>
+    );
+  }
 
   return (
     <div className="vw">
       <div className={`vsk ${loaded ? 'hidden' : ''}`}>
         <div className="vsk-spin" /><span className="vsk-txt">Loading video…</span>
       </div>
-      <iframe
-        key={videoKey}
-        src={buildEmbedSrc(parsed)}
+      <iframe key={videoKey} src={buildEmbedSrc(parsed)}
         allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-        allowFullScreen
-        webkitAllowFullScreen
-        mozAllowFullScreen
-        onLoad={() => setLoaded(true)}
-      />
+        allowFullScreen webkitAllowFullScreen mozAllowFullScreen
+        onLoad={() => setLoaded(true)} />
     </div>
   );
 }
@@ -657,9 +600,6 @@ function ProgBar({ done, total, compact = false }) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Toast
-// ─────────────────────────────────────────────
 function Toast({ msg }) {
   if (!msg) return null;
   return <div className="toast">{msg}</div>;
@@ -721,13 +661,13 @@ function AddCourseModal({ companies, courses, editCourse, onClose, onSave }) {
     if (!newName.trim()) return;
     if (companies.some(c => c.name.toLowerCase() === newName.toLowerCase())) { alert('Platform already exists'); return; }
     const co = { id: uid(), name: newName.trim(), url: newUrl.trim(), icon: newIcon.trim() || undefined };
-    onSave(null, co, null, co.id); // signal: add company + select it
+    onSave(null, co, null, co.id);
     setAddingCo(false); setNewName(''); setNewUrl(''); setNewIcon('');
   };
 
   const deletePlatform = () => {
     if (courses.some(c => c.companyId === coId)) { alert('Cannot delete: platform is used by other courses'); return; }
-    onSave(null, null, coId); // signal: delete company
+    onSave(null, null, coId);
     setCoId('');
   };
 
@@ -914,8 +854,6 @@ function ImportModal({ data, onClose, onImport }) {
     try {
       const p = JSON.parse(raw);
       if (!p.courses || !p.companies) { setErr('Invalid format: missing courses or companies.'); return; }
-
-      // Deduplicate + remap companies
       const existingNameMap = Object.fromEntries(data.companies.map(c => [c.name.toLowerCase(), c.id]));
       const idRemap = {};
       const newCompanies = [];
@@ -924,10 +862,7 @@ function ImportModal({ data, onClose, onImport }) {
         if (existingId) { idRemap[ic.id] = existingId; }
         else { newCompanies.push(ic); existingNameMap[ic.name.toLowerCase()] = ic.id; }
       });
-
       const remapped = p.courses.map(c => ({ ...c, companyId: idRemap[c.companyId] || c.companyId }));
-
-      // Merge: update existing courses with new chapters, add brand-new courses
       let newCourseCount = 0, newChapterCount = 0;
       const updatedCourses = data.courses.map(existing => {
         const match = remapped.find(ic =>
@@ -941,7 +876,6 @@ function ImportModal({ data, onClose, onImport }) {
         newChapterCount += toAdd.length;
         return { ...existing, chapters: [...(existing.chapters||[]), ...toAdd] };
       });
-
       const brandNew = remapped.filter(ic =>
         !data.courses.some(ec =>
           ec.id === ic.id ||
@@ -949,16 +883,11 @@ function ImportModal({ data, onClose, onImport }) {
         )
       );
       newCourseCount = brandNew.length;
-
       const parts = [];
-      if (newCourseCount   > 0) parts.push(`${newCourseCount} new course${newCourseCount!==1?'s':''}`);
-      if (newChapterCount  > 0) parts.push(`${newChapterCount} new chapter${newChapterCount!==1?'s':''}`);
+      if (newCourseCount  > 0) parts.push(`${newCourseCount} new course${newCourseCount!==1?'s':''}`);
+      if (newChapterCount > 0) parts.push(`${newChapterCount} new chapter${newChapterCount!==1?'s':''}`);
       const msg = parts.length > 0 ? `✓ Imported: ${parts.join(', ')}` : '✓ Nothing new to import';
-
-      onImport({
-        courses:   [...updatedCourses, ...brandNew],
-        companies: [...data.companies, ...newCompanies]
-      }, msg);
+      onImport({ courses: [...updatedCourses, ...brandNew], companies: [...data.companies, ...newCompanies] }, msg);
     } catch { setErr('Could not parse file. Make sure it is a valid CourseFlow JSON backup.'); }
   };
 
@@ -1071,11 +1000,9 @@ function HomePage({ data, onUpdate, onOpenCourse, filterCompany, setFilterCompan
 
   const showToast = useCallback(msg => { setToast(msg); setTimeout(() => setToast(''), 2800); }, []);
 
-  // Triggers from mobile nav
   useEffect(() => { if (triggerImport) { setShowImport(true); setTriggerImport(false); } }, [triggerImport]);
   useEffect(() => { if (triggerAdd)    { setEditCourse(null); setShowAdd(true); setTriggerAdd(false); } }, [triggerAdd]);
 
-  // Close card menu on outside click
   useEffect(() => {
     const h = e => { if (!e.target.closest('.card-menu')) setMenuOpen(null); };
     window.addEventListener('click', h);
@@ -1099,27 +1026,16 @@ function HomePage({ data, onUpdate, onOpenCourse, filterCompany, setFilterCompan
     return list;
   }, [courses, filterCompany, search, sortBy]);
 
-  // AddCourseModal save handler
   const handleSaveCourse = useCallback((courseData, addCompany, deleteCompanyId, selectCompanyId) => {
     let { companies: cos, courses: crs } = data;
-
-    if (deleteCompanyId) {
-      cos = cos.filter(c => c.id !== deleteCompanyId);
-      onUpdate({ ...data, companies: cos });
-      return;
-    }
-    if (addCompany) {
-      cos = [...cos, addCompany];
-      onUpdate({ ...data, companies: cos });
-      return;
-    }
+    if (deleteCompanyId) { cos = cos.filter(c => c.id !== deleteCompanyId); onUpdate({ ...data, companies: cos }); return; }
+    if (addCompany) { cos = [...cos, addCompany]; onUpdate({ ...data, companies: cos }); return; }
     if (courseData) {
       crs = editCourse
         ? crs.map(c => c.id === editCourse.id ? { ...c, ...courseData } : c)
         : [...crs, { id: uid(), ...courseData, chapters: [], createdAt: Date.now() }];
       onUpdate({ ...data, courses: crs, companies: cos });
-      setShowAdd(false);
-      setEditCourse(null);
+      setShowAdd(false); setEditCourse(null);
     }
   }, [data, editCourse, onUpdate]);
 
@@ -1194,21 +1110,15 @@ function HomePage({ data, onUpdate, onOpenCourse, filterCompany, setFilterCompan
               const resumeName = chapters[rIdx]?.name;
               return (
                 <div key={course.id} className="card" onClick={() => onOpenCourse(course.id)}>
-                  {/* Menu */}
-                  <div className="card-menu" style={{position:'absolute',top:8,left:8,zIndex:50}}
-                    onClick={e => e.stopPropagation()}>
-                    <div className="ib" style={{fontSize:10,letterSpacing:2}}
-                      onClick={() => setMenuOpen(menuOpen === course.id ? null : course.id)}>•••</div>
+                  <div className="card-menu" style={{position:'absolute',top:8,left:8,zIndex:50}} onClick={e => e.stopPropagation()}>
+                    <div className="ib" style={{fontSize:10,letterSpacing:2}} onClick={() => setMenuOpen(menuOpen === course.id ? null : course.id)}>•••</div>
                     {menuOpen === course.id && (
                       <div style={{position:'absolute',top:34,left:0,background:'var(--bgc)',border:'1px solid var(--bdl)',borderRadius:10,padding:6,display:'flex',flexDirection:'column',gap:4,minWidth:130,boxShadow:'0 10px 30px rgba(0,0,0,.5)',zIndex:100}}>
-                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,fontSize:13}}
-                          onClick={() => { setEditCourse(course); setShowAdd(true); setMenuOpen(null); }}>✏️ Edit</div>
-                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)',fontSize:13}}
-                          onClick={e => { deleteCourse(course.id, e); setMenuOpen(null); }}>🗑️ Delete</div>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,fontSize:13}} onClick={() => { setEditCourse(course); setShowAdd(true); setMenuOpen(null); }}>✏️ Edit</div>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)',fontSize:13}} onClick={e => { deleteCourse(course.id, e); setMenuOpen(null); }}>🗑️ Delete</div>
                       </div>
                     )}
                   </div>
-                  {/* Thumbnail */}
                   {course.thumbnail ? (
                     <div className="c-thumb">
                       <img src={course.thumbnail} alt={course.title} loading="lazy"
@@ -1224,7 +1134,6 @@ function HomePage({ data, onUpdate, onOpenCourse, filterCompany, setFilterCompan
                       {hasRes  && <div className="c-resume">▶ Resume</div>}
                     </div>
                   )}
-                  {/* Body */}
                   <div className="c-body">
                     <div className="c-name">{course.title}</div>
                     {hasRes && resumeName
@@ -1241,21 +1150,14 @@ function HomePage({ data, onUpdate, onOpenCourse, filterCompany, setFilterCompan
       </div>
 
       {showAdd && (
-        <AddCourseModal
-          companies={companies} courses={courses} editCourse={editCourse}
+        <AddCourseModal companies={companies} courses={courses} editCourse={editCourse}
           onClose={() => { setShowAdd(false); setEditCourse(null); }}
-          onSave={handleSaveCourse}
-        />
+          onSave={handleSaveCourse} />
       )}
-
       {showImport && (
-        <ImportModal
-          data={data}
-          onClose={() => setShowImport(false)}
-          onImport={(newData, msg) => { onUpdate(newData); setShowImport(false); showToast(msg); }}
-        />
+        <ImportModal data={data} onClose={() => setShowImport(false)}
+          onImport={(newData, msg) => { onUpdate(newData); setShowImport(false); showToast(msg); }} />
       )}
-
       <Toast msg={toast} />
     </div>
   );
@@ -1289,8 +1191,8 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
   }, [initChapterIdx]);
 
   if (!course) return null;
-  const chapter    = chapters[activeIdx];
-  const doneCount  = chapters.filter(c => c.completed).length;
+  const chapter   = chapters[activeIdx];
+  const doneCount = chapters.filter(c => c.completed).length;
 
   const updateCourse = useCallback(updated => {
     const next = { ...dataRef2.current, courses: dataRef2.current.courses.map(c => c.id === courseId ? updated : c) };
@@ -1341,7 +1243,6 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
     if (activeIdx >= nc.length) goToChapter(Math.max(0, nc.length - 1));
   }, [chapters, activeIdx, course, updateCourse, goToChapter]);
 
-
   const NotesContent = (
     <>
       <div className="np-hd">
@@ -1360,7 +1261,6 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
 
   return (
     <div className="cp" style={{height:'100%'}}>
-      {/* ── Sidebar chapter list (desktop) ── */}
       <div className="ci">
         <div className="ci-hd">
           <button className="btn btn-s btn-sm" onClick={onBack} style={{marginBottom:10}}>← Back</button>
@@ -1378,7 +1278,6 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
         </div>
       </div>
 
-      {/* ── Main content ── */}
       <div className="cm2">
         <div className="ctb">
           {company && <CompanyIcon company={company} size={22} />}
@@ -1468,7 +1367,6 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
         </div>
       </div>
 
-      {/* Mobile notes sheet */}
       <div className={`mns ${mobileNotesOpen ? 'open' : ''}`}>
         <div className="mns-bk" onClick={() => setMobileNotesOpen(false)} />
         <div className="mns-pn">
@@ -1486,7 +1384,7 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
 }
 
 // ─────────────────────────────────────────────
-// MobileSidebarIndex (chapter list drawer)
+// MobileSidebarIndex
 // ─────────────────────────────────────────────
 function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterIdx, onSelectChapter }) {
   const course = useMemo(() => data.courses.find(c => c.id === courseId), [data.courses, courseId]);
@@ -1524,7 +1422,6 @@ function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterId
     update({ ...course, chapters: chapters.filter((_,i) => i !== idx) });
   };
 
-
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
       <div className="ci-hd" style={{padding:'14px 16px'}}>
@@ -1553,8 +1450,7 @@ function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterId
 }
 
 // ─────────────────────────────────────────────
-// LoginScreen — renders into #root directly,
-// never shares a React tree with App
+// LoginScreen
 // ─────────────────────────────────────────────
 function LoginScreen() {
   const [pw, setPw]           = useState('');
@@ -1567,13 +1463,11 @@ function LoginScreen() {
     setLoading(true); setErr('');
     try {
       if (!FIREBASE_CONFIGURED) {
-        // No Firebase — just store pw and boot App
         localStorage.setItem('cf_session_pw', pw);
         bootApp(pw, loadData(), loadResume());
         return;
       }
 
-      // Verify password via sentinel doc
       const db = getDb();
       let sentinelSnap;
       try {
@@ -1597,24 +1491,21 @@ function LoginScreen() {
         cloudLoad('resume', pw),
       ]);
 
-      const localData = loadData();
-      const localCourseCount = localData?.courses?.length || 0;
-      const cloudCourseCount = cloudData?.courses?.length || 0;
-
-      // Use whichever has more data as a basic freshness signal
-      const finalData = localCourseCount > cloudCourseCount ? localData : (cloudData ?? localData);
-
       // First time — write sentinel
       if (!sentinelSnap.exists) await cloudSave('sentinel', { ok: true }, pw);
-      
-      const finalResume = cloudResume ?? loadResume();
 
-      // Persist to localStorage so App can read synchronously on mount
+      // ── FIX: smart merge — prefer whichever copy has more courses.
+      // This prevents stale cloud data from overwriting changes made offline
+      // that haven't synced yet (e.g. added content then lost connection).
+      const localSnapshot = loadData();
+      const finalData     = (cloudData && (cloudData.courses?.length || 0) >= (localSnapshot.courses?.length || 0))
+                              ? cloudData : localSnapshot;
+      const finalResume   = cloudResume ?? loadResume();
+
       localStorage.setItem('cf_session_pw', pw);
       saveData(finalData);
       saveResume(finalResume);
 
-      // Unmount LoginScreen and mount App — no React state involved
       bootApp(pw, finalData, finalResume);
 
     } catch(e) {
@@ -1658,13 +1549,13 @@ function LoginScreen() {
 }
 
 // ─────────────────────────────────────────────
-// App — only ever mounts after auth is confirmed
+// App
 // ─────────────────────────────────────────────
 function App({ sessionPw, initialData, initialResume }) {
-  const [data,      setData]      = useState(initialData);
-  const [resumeMap, setResumeMap] = useState(initialResume);
-  const [view,      setView]      = useState('home');
-  const [filter,    setFilter]    = useState('all');
+  const [data,       setData]      = useState(initialData);
+  const [resumeMap,  setResumeMap] = useState(initialResume);
+  const [view,       setView]      = useState('home');
+  const [filter,     setFilter]    = useState('all');
   const [chapterIdx, setChapterIdx] = useState(0);
   const [syncStatus, setSyncStatus] = useState('');
 
@@ -1676,45 +1567,40 @@ function App({ sessionPw, initialData, initialResume }) {
   const dataRef      = useRef(data);
   const resumeMapRef = useRef(resumeMap);
   const pwRef        = useRef(sessionPw);
-  useEffect(() => { dataRef.current = data; },          [data]);
+  useEffect(() => { dataRef.current = data; },           [data]);
   useEffect(() => { resumeMapRef.current = resumeMap; }, [resumeMap]);
 
-  // ── Real-time Firestore listeners ──
-  // Fires instantly on every device whenever another device saves.
-  // We skip applying the update if it originated from this tab
-  // (detected by a short "local write in progress" window).
   const localWriting = useRef(false);
 
   useEffect(() => {
     if (!FIREBASE_CONFIGURED || !sessionPw) return;
     const db = getDb(); if (!db) return;
 
+    // ── FIX: 5-second guard prevents the listener from echoing our own writes
+    // back and overwriting data we just saved moments ago.
     const unsub1 = db.collection('courseflow').doc('meta').onSnapshot(async snap => {
-  if (!snap.exists || localWriting.current) return;
-  const age = Date.now() - (snap.data()?.updatedAt || 0);
-  if (age < 5000) return;  // ignore anything updated in last 5 seconds
-  try {
-    const loaded = await cloudLoad('data', pwRef.current);
-    if (loaded && loaded.courses) { setData(loaded); saveData(loaded); }
-  } catch(e) {}
-});
+      if (!snap.exists || localWriting.current) return;
+      const age = Date.now() - (snap.data()?.updatedAt || 0);
+      if (age < 5000) return; // ignore snapshots within 5s of any write
+      try {
+        const loaded = await cloudLoad('data', pwRef.current);
+        if (loaded && loaded.courses) { setData(loaded); saveData(loaded); }
+      } catch(e) {}
+    });
 
     const unsub2 = db.collection('courseflow').doc('resume').onSnapshot(async snap => {
       if (!snap.exists || localWriting.current) return;
       try {
         const json = await decryptData(snap.data().data, pwRef.current);
         const parsed = JSON.parse(json);
-        if (parsed) {
-          setResumeMap(parsed);
-          saveResume(parsed);
-        }
-      } catch(e) { /* ignore */ }
+        if (parsed) { setResumeMap(parsed); saveResume(parsed); }
+      } catch(e) {}
     });
 
     return () => { unsub1(); unsub2(); };
   }, [sessionPw]);
 
-  // Debounced cloud save (marks localWriting so we don't echo our own writes)
+  // ── FIX: offline-aware sync with auto-retry on reconnect
   const syncTimer = useRef(null);
   function scheduleSync(newData, newResume) {
     if (!FIREBASE_CONFIGURED || !pwRef.current) return;
@@ -1722,6 +1608,12 @@ function App({ sessionPw, initialData, initialResume }) {
     setSyncStatus('saving');
     localWriting.current = true;
     syncTimer.current = setTimeout(async () => {
+      // Bail immediately if we're offline — don't waste time on a doomed request
+      if (!navigator.onLine) {
+        setSyncStatus('offline');
+        localWriting.current = false;
+        return;
+      }
       try {
         await Promise.all([
           cloudSave('data',   newData,   pwRef.current),
@@ -1729,18 +1621,28 @@ function App({ sessionPw, initialData, initialResume }) {
         ]);
         setSyncStatus('saved');
         setTimeout(() => setSyncStatus(''), 2500);
-      } catch(e) { console.error('Sync failed:', e?.code, e?.message); setSyncStatus('error'); }
-      finally {
-        // Keep the flag on briefly so the snapshot echo is suppressed
+      } catch(e) {
+        const isOffline = !navigator.onLine || e?.code === 'unavailable' || (e?.message||'').toLowerCase().includes('offline');
+        setSyncStatus(isOffline ? 'offline' : 'error');
+        console.error('CourseFlow sync failed:', e?.code, e?.message);
+      } finally {
         setTimeout(() => { localWriting.current = false; }, 2000);
       }
     }, 0);
   }
 
+  // Auto-retry the pending sync as soon as the device comes back online
+  useEffect(() => {
+    const handleOnline = () => {
+      if (syncStatus === 'offline') scheduleSync(dataRef.current, resumeMapRef.current);
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [syncStatus]);
+
   function handleLock() {
     clearTimeout(syncTimer.current);
     localStorage.removeItem('cf_session_pw');
-    // Unmount App, mount LoginScreen — no React state flash
     bootLogin();
   }
 
@@ -1768,7 +1670,7 @@ function App({ sessionPw, initialData, initialResume }) {
     setView(id);
   }, []);
 
-  const isCourse = view !== 'home' && view !== 'notes';
+  const isCourse   = view !== 'home' && view !== 'notes';
   const sidebarCos = useMemo(() => data.companies.filter(co => data.courses.some(c => c.companyId === co.id)), [data.companies, data.courses]);
   const activeCo   = useMemo(() => isCourse ? data.courses.find(c => c.id === view)?.companyId : null, [isCourse, data.courses, view]);
 
@@ -1777,8 +1679,9 @@ function App({ sessionPw, initialData, initialResume }) {
     downloadJson({ companies, courses }, `courseflow-backup-${new Date().toISOString().slice(0,10)}.json`);
   }, []);
 
-  const syncColor = syncStatus === 'saved' ? 'var(--ac)' : syncStatus === 'error' ? 'var(--red)' : 'var(--tm)';
-  const syncLabel = syncStatus === 'saving' ? '↑ Syncing…' : syncStatus === 'saved' ? '✓ Synced' : syncStatus === 'error' ? '✗ Sync error' : FIREBASE_CONFIGURED ? '☁ Cloud sync on' : '⚠ Local only';
+  // ── FIX: syncColor/syncLabel now properly handle 'offline' state
+  const syncColor = syncStatus === 'saved' ? 'var(--ac)' : (syncStatus === 'error' || syncStatus === 'offline') ? 'var(--red)' : 'var(--tm)';
+  const syncLabel = syncStatus === 'saving' ? '↑ Syncing…' : syncStatus === 'saved' ? '✓ Synced' : syncStatus === 'error' ? '✗ Sync error' : syncStatus === 'offline' ? '✗ Offline — will retry' : FIREBASE_CONFIGURED ? '☁ Cloud sync on' : '⚠ Local only';
 
   return (
     <div style={{display:'flex',position:'fixed',inset:0,overflow:'hidden'}}>
@@ -1802,7 +1705,7 @@ function App({ sessionPw, initialData, initialResume }) {
         ))}
         <div style={{flex:1}} />
         <div style={{fontSize:9,color:syncColor,textAlign:'center',padding:'4px',lineHeight:1.4,cursor:'default'}} title={syncLabel}>
-          {syncStatus==='saving'?'↑':syncStatus==='saved'?'✓':syncStatus==='error'?'✗':FIREBASE_CONFIGURED?'☁':'⚠'}
+          {syncStatus==='saving'?'↑':syncStatus==='saved'?'✓':(syncStatus==='error'||syncStatus==='offline')?'✗':FIREBASE_CONFIGURED?'☁':'⚠'}
         </div>
         <div className="sb-item" onClick={handleLock} title="Lock" style={{marginBottom:8}}>
           <span style={{fontSize:16}}>🔒</span><span className="sb-tip">Lock</span>
@@ -1839,7 +1742,7 @@ function App({ sessionPw, initialData, initialResume }) {
             <button className={`mni ${view==='notes'?'on':''}`} onClick={() => setView('notes')}><span className="mni-i">📓</span><span>Notes</span></button>
             <button className="mni" onClick={() => setTriggerAdd(true)}><span className="mni-i">＋</span><span>Add</span></button>
             <button className="mni" onClick={() => setTriggerImport(true)}><span className="mni-i">📥</span><span>Import</span></button>
-            <button className="mni" onClick={exportMobile}><span className="mni-i">💾</span><span style={{color:syncColor}}>{syncStatus==='saving'?'Sync…':syncStatus==='saved'?'Synced':syncStatus==='error'?'Err':'Export'}</span></button>
+            <button className="mni" onClick={exportMobile}><span className="mni-i">💾</span><span style={{color:syncColor}}>{syncStatus==='saving'?'Sync…':syncStatus==='saved'?'Synced':syncStatus==='error'?'Err':syncStatus==='offline'?'Offline':'Export'}</span></button>
             <button className="mni" onClick={handleLock}><span className="mni-i">🔒</span><span>Lock</span></button>
           </>
         )}
@@ -1861,27 +1764,15 @@ function App({ sessionPw, initialData, initialResume }) {
 }
 
 // ─────────────────────────────────────────────
-// Boot helpers — swap LoginScreen ↔ App by
-// calling ReactDOM.render on the same root.
-// No shared React tree = no blank flash ever.
+// Boot helpers
 // ─────────────────────────────────────────────
 const _root = ReactDOM.createRoot(document.getElementById('root'));
+function bootLogin() { _root.render(<LoginScreen />); }
+function bootApp(pw, data, resume) { _root.render(<App sessionPw={pw} initialData={data} initialResume={resume} />); }
 
-function bootLogin() {
-  _root.render(<LoginScreen />);
-}
-
-function bootApp(pw, data, resume) {
-  _root.render(<App sessionPw={pw} initialData={data} initialResume={resume} />);
-}
-
-// On page load: if a session exists go straight to App, else show login
 const _savedPw = localStorage.getItem('cf_session_pw');
-if (_savedPw) {
-  bootApp(_savedPw, loadData(), loadResume());
-} else {
-  bootLogin();
-}
+if (_savedPw) { bootApp(_savedPw, loadData(), loadResume()); }
+else { bootLogin(); }
 </script>
 </body>
 </html>
