@@ -1494,13 +1494,14 @@ function LoginScreen() {
       // First time — write sentinel
       if (!sentinelSnap.exists) await cloudSave('sentinel', { ok: true }, pw);
 
-      // ── FIX: smart merge — prefer whichever copy has more courses.
-      // This prevents stale cloud data from overwriting changes made offline
-      // that haven't synced yet (e.g. added content then lost connection).
-      const localSnapshot = loadData();
-      const finalData     = (cloudData && (cloudData.courses?.length || 0) >= (localSnapshot.courses?.length || 0))
-                              ? cloudData : localSnapshot;
-      const finalResume   = cloudResume ?? loadResume();
+      // Prefer whichever copy has more TOTAL CHAPTERS across all courses.
+      // Comparing course count is wrong — both will have 15 courses even
+      // when Firestore is missing a chapter inside one of them.
+      const localSnapshot  = loadData();
+      const localChapters  = (localSnapshot?.courses || []).reduce((s, c) => s + (c.chapters?.length || 0), 0);
+      const cloudChapters  = (cloudData?.courses || []).reduce((s, c) => s + (c.chapters?.length || 0), 0);
+      const finalData      = (cloudData && cloudChapters >= localChapters) ? cloudData : localSnapshot;
+      const finalResume    = cloudResume ?? loadResume();
 
       localStorage.setItem('cf_session_pw', pw);
       saveData(finalData);
@@ -1571,20 +1572,35 @@ function App({ sessionPw, initialData, initialResume }) {
   useEffect(() => { resumeMapRef.current = resumeMap; }, [resumeMap]);
 
   const localWriting = useRef(false);
+  // On boot, ignore all Firestore snapshots for 10 seconds.
+  // This prevents the listener from overwriting fresh localStorage data
+  // with whatever was last saved to Firestore (which may be older).
+  const bootTime = useRef(Date.now());
 
   useEffect(() => {
     if (!FIREBASE_CONFIGURED || !sessionPw) return;
     const db = getDb(); if (!db) return;
 
-    // ── FIX: 5-second guard prevents the listener from echoing our own writes
-    // back and overwriting data we just saved moments ago.
     const unsub1 = db.collection('courseflow').doc('meta').onSnapshot(async snap => {
       if (!snap.exists || localWriting.current) return;
-      const age = Date.now() - (snap.data()?.updatedAt || 0);
-      if (age < 5000) return; // ignore snapshots within 5s of any write
+      // Block ALL snapshots for 10 seconds after boot.
+      // The listener fires within ~1-2s of page load, always with stale
+      // Firestore data that is older than what's already in localStorage.
+      if (Date.now() - bootTime.current < 10000) return;
       try {
         const loaded = await cloudLoad('data', pwRef.current);
-        if (loaded && loaded.courses) { setData(loaded); saveData(loaded); }
+        if (!loaded || !loaded.courses) return;
+        // Count total chapters across ALL courses — never let Firestore
+        // overwrite local data with a version that has fewer total chapters.
+        // (Comparing course count is wrong — both will have 15 courses even
+        // when one has a chapter missing inside a course.)
+        const localChapters  = (dataRef.current?.courses || []).reduce((s, c) => s + (c.chapters?.length || 0), 0);
+        const loadedChapters = loaded.courses.reduce((s, c) => s + (c.chapters?.length || 0), 0);
+        if (loadedChapters < localChapters) {
+          console.warn(`CourseFlow: blocked stale Firestore snapshot (${loadedChapters} chapters vs ${localChapters} local)`);
+          return;
+        }
+        setData(loaded); saveData(loaded);
       } catch(e) {}
     });
 
