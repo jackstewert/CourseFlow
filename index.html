@@ -1494,14 +1494,26 @@ function LoginScreen() {
       // First time — write sentinel
       if (!sentinelSnap.exists) await cloudSave('sentinel', { ok: true }, pw);
 
-      // Prefer whichever copy has more TOTAL CHAPTERS across all courses.
-      // Comparing course count is wrong — both will have 15 courses even
-      // when Firestore is missing a chapter inside one of them.
-      const localSnapshot  = loadData();
-      const localChapters  = (localSnapshot?.courses || []).reduce((s, c) => s + (c.chapters?.length || 0), 0);
-      const cloudChapters  = (cloudData?.courses || []).reduce((s, c) => s + (c.chapters?.length || 0), 0);
-      const finalData      = (cloudData && cloudChapters >= localChapters) ? cloudData : localSnapshot;
-      const finalResume    = cloudResume ?? loadResume();
+      // Merge cloud and local using per-course savedAt timestamps.
+      // Takes the newer version of each course so both devices stay in sync.
+      const localSnapshot = loadData();
+      let finalData;
+      if (!cloudData) {
+        finalData = localSnapshot;
+      } else {
+        const localById = Object.fromEntries(
+          (localSnapshot?.courses || []).map(c => [c.id, c])
+        );
+        const merged = cloudData.courses.map(cloudCourse => {
+          const local = localById[cloudCourse.id];
+          if (!local) return cloudCourse;
+          return (local.savedAt || 0) > (cloudCourse.savedAt || 0) ? local : cloudCourse;
+        });
+        const cloudIds = new Set(cloudData.courses.map(c => c.id));
+        const localOnly = (localSnapshot?.courses || []).filter(c => !cloudIds.has(c.id));
+        finalData = { ...cloudData, courses: [...merged, ...localOnly] };
+      }
+      const finalResume = cloudResume ?? loadResume();
 
       localStorage.setItem('cf_session_pw', pw);
       saveData(finalData);
@@ -1572,10 +1584,6 @@ function App({ sessionPw, initialData, initialResume }) {
   useEffect(() => { resumeMapRef.current = resumeMap; }, [resumeMap]);
 
   const localWriting = useRef(false);
-  // On boot, ignore all Firestore snapshots for 10 seconds.
-  // This prevents the listener from overwriting fresh localStorage data
-  // with whatever was last saved to Firestore (which may be older).
-  const bootTime = useRef(Date.now());
 
   useEffect(() => {
     if (!FIREBASE_CONFIGURED || !sessionPw) return;
@@ -1583,24 +1591,30 @@ function App({ sessionPw, initialData, initialResume }) {
 
     const unsub1 = db.collection('courseflow').doc('meta').onSnapshot(async snap => {
       if (!snap.exists || localWriting.current) return;
-      // Block ALL snapshots for 10 seconds after boot.
-      // The listener fires within ~1-2s of page load, always with stale
-      // Firestore data that is older than what's already in localStorage.
-      if (Date.now() - bootTime.current < 10000) return;
       try {
         const loaded = await cloudLoad('data', pwRef.current);
         if (!loaded || !loaded.courses) return;
-        // Count total chapters across ALL courses — never let Firestore
-        // overwrite local data with a version that has fewer total chapters.
-        // (Comparing course count is wrong — both will have 15 courses even
-        // when one has a chapter missing inside a course.)
-        const localChapters  = (dataRef.current?.courses || []).reduce((s, c) => s + (c.chapters?.length || 0), 0);
-        const loadedChapters = loaded.courses.reduce((s, c) => s + (c.chapters?.length || 0), 0);
-        if (loadedChapters < localChapters) {
-          console.warn(`CourseFlow: blocked stale Firestore snapshot (${loadedChapters} chapters vs ${localChapters} local)`);
-          return;
-        }
-        setData(loaded); saveData(loaded);
+
+        // ── Per-course timestamp merge ──
+        // Each course carries savedAt (ms) set whenever it is modified.
+        // We compare per course so that:
+        //   • Same-device refresh: local savedAt is newer → local wins
+        //   • Another device made changes: its savedAt is newer → cloud wins
+        const localById = Object.fromEntries(
+          (dataRef.current?.courses || []).map(c => [c.id, c])
+        );
+        const merged = loaded.courses.map(cloudCourse => {
+          const local = localById[cloudCourse.id];
+          if (!local) return cloudCourse; // new course from another device
+          return (local.savedAt || 0) > (cloudCourse.savedAt || 0) ? local : cloudCourse;
+        });
+        // Preserve any local-only courses not yet in Firestore
+        const cloudIds = new Set(loaded.courses.map(c => c.id));
+        const localOnly = (dataRef.current?.courses || []).filter(c => !cloudIds.has(c.id));
+
+        const finalData = { ...loaded, courses: [...merged, ...localOnly] };
+        setData(finalData);
+        saveData(finalData);
       } catch(e) {}
     });
 
@@ -1663,8 +1677,22 @@ function App({ sessionPw, initialData, initialResume }) {
   }
 
   const updateData = useCallback(d => {
-    setData(d); saveData(d);
-    scheduleSync(d, resumeMapRef.current);
+    // Stamp savedAt on any course that changed vs what we currently have.
+    // This timestamp is used for per-course merge when syncing across devices.
+    const now = Date.now();
+    const currentById = Object.fromEntries((dataRef.current?.courses || []).map(c => [c.id, c]));
+    const stamped = {
+      ...d,
+      courses: (d.courses || []).map(c => {
+        const prev = currentById[c.id];
+        // Stamp if this is a new course or its chapters/content changed
+        const changed = !prev || JSON.stringify(prev.chapters) !== JSON.stringify(c.chapters)
+          || prev.title !== c.title || prev.description !== c.description;
+        return changed ? { ...c, savedAt: now } : c;
+      })
+    };
+    setData(stamped); saveData(stamped);
+    scheduleSync(stamped, resumeMapRef.current);
   }, []);
 
   const updateResume = useCallback(m => {
