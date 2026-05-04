@@ -1632,13 +1632,13 @@ function App({ sessionPw, initialData, initialResume }) {
 
   // ── FIX: offline-aware sync with auto-retry on reconnect
   const syncTimer = useRef(null);
-  function scheduleSync(newData, newResume) {
+  const scheduleSyncRef = useRef(null);
+  scheduleSyncRef.current = (newData, newResume) => {
     if (!FIREBASE_CONFIGURED || !pwRef.current) return;
     clearTimeout(syncTimer.current);
     setSyncStatus('saving');
     localWriting.current = true;
     syncTimer.current = setTimeout(async () => {
-      // Bail immediately if we're offline — don't waste time on a doomed request
       if (!navigator.onLine) {
         setSyncStatus('offline');
         localWriting.current = false;
@@ -1659,22 +1659,19 @@ function App({ sessionPw, initialData, initialResume }) {
         setTimeout(() => { localWriting.current = false; }, 2000);
       }
     }, 0);
-  }
+  };
+  const scheduleSync = (newData, newResume) => scheduleSyncRef.current(newData, newResume);
 
-  // Auto-retry the pending sync as soon as the device comes back online
+  const syncStatusRef = useRef(syncStatus);
+  useEffect(() => { syncStatusRef.current = syncStatus; }, [syncStatus]);
+
   useEffect(() => {
     const handleOnline = () => {
-      if (syncStatus === 'offline') scheduleSync(dataRef.current, resumeMapRef.current);
+      if (syncStatusRef.current === 'offline') scheduleSyncRef.current(dataRef.current, resumeMapRef.current);
     };
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, [syncStatus]);
-
-  function handleLock() {
-    clearTimeout(syncTimer.current);
-    localStorage.removeItem('cf_session_pw');
-    bootLogin();
-  }
+  }, []);
 
   const updateData = useCallback(d => {
     // Stamp savedAt on any course that changed vs what we currently have.
@@ -1686,8 +1683,12 @@ function App({ sessionPw, initialData, initialResume }) {
       courses: (d.courses || []).map(c => {
         const prev = currentById[c.id];
         // Stamp if this is a new course or its chapters/content changed
-        const changed = !prev || JSON.stringify(prev.chapters) !== JSON.stringify(c.chapters)
-          || prev.title !== c.title || prev.description !== c.description;
+        let changed = !prev || prev.title !== c.title || prev.description !== c.description;
+if (!changed) {
+  try {
+    changed = JSON.stringify(prev.chapters) !== JSON.stringify(c.chapters);
+  } catch(e) { changed = true; }
+}
         return changed ? { ...c, savedAt: now } : c;
       })
     };
@@ -1722,6 +1723,12 @@ function App({ sessionPw, initialData, initialResume }) {
     const { companies, courses } = dataRef.current;
     downloadJson({ companies, courses }, `courseflow-backup-${new Date().toISOString().slice(0,10)}.json`);
   }, []);
+
+  function handleLock() {
+  clearTimeout(syncTimer.current);
+  localStorage.removeItem('cf_session_pw');
+  bootLogin();
+}
 
   // ── FIX: syncColor/syncLabel now properly handle 'offline' state
   const syncColor = syncStatus === 'saved' ? 'var(--ac)' : (syncStatus === 'error' || syncStatus === 'offline') ? 'var(--red)' : 'var(--tm)';
