@@ -2,320 +2,282 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,maximum-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#080c18">
+<meta name="theme-color" content="#0a0e1a">
 <title>CourseFlow</title>
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="favicon copy.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
-:root{
-  --bg:#080c18;--bg2:#0d1120;--bg3:#121929;--bg4:#18223a;--bg5:#1e2a42;
-  --ac:#10e68c;--acd:#0cc87a;--acg:rgba(16,230,140,.1);--acg2:rgba(16,230,140,.06);
-  --blue:#4f8ef7;--red:#f56565;--pur:#a78bfa;--yel:#f6c90e;
-  --t1:#dce4f0;--t2:#7b8799;--t3:#3d4f66;
-  --bd:#1a2740;--bd2:#223050;
-  --r:12px;--r2:8px;--r3:6px;
-  --sab:env(safe-area-inset-bottom);--sat:env(safe-area-inset-top);
+:root {
+  --bg:#0a0e1a; --sab: env(safe-area-insert-bottom); --bg2:#111827; --bgc:#161d2e; --bgh:#1e2740; --bgs:#0d1220;
+  --ac:#10e68c; --acd:#0bbf76; --acg:rgba(16,230,140,.15); --ac2:#4f8ef7;
+  --t1:#e8edf5; --t2:#8b95a8; --tm:#4a5568;
+  --bd:#1e2d45; --bdl:#263548;
+  --red:#f56565; --pur:#a78bfa;
+  --rl:16px;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
 body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--t1);-webkit-text-size-adjust:100%;position:fixed;inset:0}
-#root{position:fixed;inset:0;display:flex;overflow:hidden}
-::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
-::selection{background:var(--acg);color:var(--ac)}
+#root{display:flex;position:fixed;inset:0;overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdl);border-radius:4px}
 
-/* ── Layout ─────────────────────────────── */
-.layout{display:flex;width:100%;height:100%;overflow:hidden}
-.sidebar{width:64px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;padding:14px 0 10px;gap:4px;z-index:20;overflow:hidden}
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+/* ── Sidebar ── */
+.sb{width:68px;background:var(--bgs);border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:6px;flex-shrink:0;z-index:10;overflow-y:auto;overflow-x:hidden}
+.sb-logo{width:40px;height:40px;background:var(--ac);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#0a0e1a;cursor:pointer;flex-shrink:0}
+.sb-div{width:32px;height:1px;background:var(--bd);margin:6px 0;flex-shrink:0}
+.sb-item{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,border-color .15s;position:relative;flex-shrink:0;border:2px solid transparent}
+.sb-item:hover{background:var(--bgh)}
+.sb-item.on{background:var(--acg);border-color:var(--ac)}
+.sb-tip{position:absolute;left:56px;background:#1e2740;color:var(--t1);font-size:12px;padding:4px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;border:1px solid var(--bdl);z-index:100}
+.sb-item:hover .sb-tip{opacity:1}
+.co-icon{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
 
-/* ── Sidebar items ───────────────────────── */
-.sb-logo{width:38px;height:38px;background:var(--ac);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:#040810;cursor:pointer;flex-shrink:0;transition:transform .15s,box-shadow .15s;margin-bottom:10px;letter-spacing:-.5px}
-.sb-logo:hover{transform:scale(1.06);box-shadow:0 0 20px rgba(16,230,140,.35)}
-.sb-div{width:28px;height:1px;background:var(--bd);margin:6px 0;flex-shrink:0}
-.sb-btn{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .12s,transform .12s;border:1.5px solid transparent;position:relative;flex-shrink:0}
-.sb-btn:hover{background:var(--bg4)}
-.sb-btn.active{background:var(--acg);border-color:rgba(16,230,140,.3)}
-.sb-tip{position:absolute;left:52px;top:50%;transform:translateY(-50%);background:var(--bg4);color:var(--t1);font-size:11.5px;font-weight:500;padding:5px 10px;border-radius:7px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;border:1px solid var(--bd2);z-index:999}
-.sb-btn:hover .sb-tip{opacity:1}
-.sb-ico{font-size:17px;line-height:1}
-.co-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-.sb-sync{width:6px;height:6px;border-radius:50%;margin:6px auto;flex-shrink:0;transition:background .3s}
-
-/* ── Top bar ─────────────────────────────── */
-.topbar{min-height:56px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:0 22px;flex-shrink:0;padding-top:var(--sat);position:relative}
-.topbar-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;letter-spacing:-.3px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  @media (display-mode: standalone) {
+  .mbn{padding-bottom:env(safe-area-inset-bottom)}
+  .main{padding-bottom:calc(52px + env(safe-area-inset-bottom))}
+}
+/* ── Layout ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{min-height:60px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0;padding-top:env(safe-area-inset-top,0);flex-wrap:wrap}
+.topbar-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;flex:1}
 .topbar-title span{color:var(--ac)}
-.sync-pill{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--t3);padding:3px 8px;border-radius:20px;transition:all .25s;user-select:none}
-.sync-pill.saving{color:var(--yel)}
-.sync-pill.saved{color:var(--ac)}
-.sync-pill.error{color:var(--red);cursor:pointer}
-.sync-pill.offline{color:var(--yel)}
-.sync-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.sync-pill.saving .sync-dot{animation:pulse .9s infinite}
+.content{flex:1;overflow-y:auto;padding:28px;-webkit-overflow-scrolling:touch}
 
-/* ── Content area ───────────────────────── */
-.content{flex:1;overflow-y:auto;padding:24px;-webkit-overflow-scrolling:touch}
-@media(max-width:600px){.content{padding:14px}}
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:background .12s,transform .12s;font-family:inherit;line-height:1}
+.btn-p{background:var(--ac);color:#0a0e1a}
+.btn-p:hover{background:var(--acd);transform:translateY(-1px)}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-s{background:transparent;color:var(--t2);border:1px solid var(--bdl)}
+.btn-s:hover{background:var(--bgh);color:var(--t1)}
+.btn-d{background:transparent;color:var(--red);border:1px solid rgba(245,101,101,.3)}
+.btn-d:hover{background:rgba(245,101,101,.1)}
+.btn-sm{padding:10px 14px;font-size:13px}
+.ib{width:38px;height:38px;border-radius:6px;background:rgba(10,14,26,.7);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:background .12s;flex-shrink:0}
+.ib:hover{background:var(--bgh)}
+.xb{width:38px;height:38px;border-radius:6px;background:transparent;border:none;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;transition:background .12s}
+.xb:hover{background:var(--bgh);color:var(--t1)}
 
-/* ── Buttons ─────────────────────────────── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--r2);font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:background .12s,transform .1s,box-shadow .12s;font-family:inherit;line-height:1;white-space:nowrap}
-.btn:active{transform:scale(.97)}
-.btn-p{background:var(--ac);color:#040810}
-.btn-p:hover{background:var(--acd);box-shadow:0 0 16px rgba(16,230,140,.25)}
-.btn-p:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-s{background:transparent;color:var(--t2);border:1px solid var(--bd2)}
-.btn-s:hover{background:var(--bg4);color:var(--t1);border-color:var(--bd2)}
-.btn-d{background:transparent;color:var(--red);border:1px solid rgba(245,101,101,.25)}
-.btn-d:hover{background:rgba(245,101,101,.08)}
-.btn-sm{padding:7px 12px;font-size:12.5px}
-.btn-xs{padding:5px 9px;font-size:11.5px}
-.ib{width:34px;height:34px;border-radius:var(--r3);background:transparent;border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:background .12s,border-color .12s;flex-shrink:0;color:var(--t2)}
-.ib:hover{background:var(--bg4);border-color:var(--bd2);color:var(--t1)}
-.xb{width:32px;height:32px;border-radius:var(--r3);background:transparent;border:none;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;transition:background .12s,color .12s}
-.xb:hover{background:var(--bg4);color:var(--t1)}
-
-/* ── Forms ───────────────────────────────── */
-.fg{display:flex;flex-direction:column;gap:5px}
-.fl{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3)}
-.fi,.fta,.fsel{background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r2);color:var(--t1);font-family:inherit;font-size:14px;padding:9px 12px;outline:none;transition:border-color .12s,box-shadow .12s;width:100%;-webkit-appearance:none;appearance:none}
-.fi:focus,.fta:focus,.fsel:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(16,230,140,.08)}
-.fi::placeholder,.fta::placeholder{color:var(--t3)}
-.fta{resize:vertical;min-height:80px;line-height:1.6}
+/* ── Forms ── */
+.fg{display:flex;flex-direction:column;gap:6px}
+.fl{font-size:12px;font-weight:600;color:var(--t2);letter-spacing:.04em;text-transform:uppercase}
+.fi,.fta,.fsel{background:var(--bg2);border:1px solid var(--bdl);border-radius:8px;color:var(--t1);font-family:inherit;font-size:15px;padding:10px 12px;outline:none;transition:border-color .12s;width:100%;-webkit-appearance:none;appearance:none}
+.fi:focus,.fta:focus,.fsel:focus{border-color:var(--ac)}
+.fta{resize:vertical;min-height:80px}
 .fsel{cursor:pointer}
 .si-wrap{position:relative}
-.si{padding-left:32px!important}
-.si-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:13px;pointer-events:none}
-.fi-hint{font-size:11px;color:var(--t3);line-height:1.5;margin-top:2px}
+.si{padding-left:34px!important}
+.si-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--tm);font-size:14px;pointer-events:none}
 
-/* ── Tabs ─────────────────────────────────  */
-.tabs{display:flex;gap:2px;background:var(--bg);border-radius:var(--r2);padding:3px;border:1px solid var(--bd)}
-.tab{padding:6px 14px;border-radius:var(--r3);font-size:12.5px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--t2);transition:background .12s,color .12s;font-family:inherit;letter-spacing:.01em}
-.tab.on{background:var(--bg4);color:var(--t1)}
+/* ── Modal ── */
+.mbk{;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.mo{background:var(--bgc);border-radius:var(--rl);border:1px solid var(--bdl);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.mh{padding:20px 24px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.mt{font-family:'Syne',sans-serif;font-size:17px;font-weight:700}
+.mb{padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.mf{padding:16px 24px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:10px}
 
-/* ── Modal ───────────────────────────────── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
-.modal{background:var(--bg3);border-radius:var(--r);border:1px solid var(--bd2);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.7)}
-.modal-hd{padding:18px 22px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
-.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
-.modal-body{padding:18px 22px;display:flex;flex-direction:column;gap:14px}
-.modal-foot{padding:14px 22px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:8px}
+/* ── Tabs ── */
+.tabs{display:flex;gap:2px;background:var(--bg2);border-radius:8px;padding:3px}
+.tabk{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--t2);transition:background .12s,color .12s;font-family:inherit}
+.tabk.on{background:var(--bgc);color:var(--t1)}
 
-/* ── Chips / filter pills ───────────────── */
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
-.chip{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;cursor:pointer;border:1px solid var(--bd);background:var(--bg3);font-size:12px;font-weight:600;color:var(--t2);transition:all .12s;white-space:nowrap}
-.chip:hover{border-color:var(--bd2);background:var(--bg4);color:var(--t1)}
-.chip.on{border-color:rgba(16,230,140,.4);background:var(--acg);color:var(--ac)}
+/* ── Home page ── */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.st{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+.sc{font-size:13px;color:var(--t2);margin-left:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
+.sort-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sk{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--bdl);background:transparent;color:var(--t2);transition:all .12s;font-family:inherit}
+.sk.on{border-color:var(--ac);color:var(--ac);background:var(--acg)}
+.sk:hover:not(.on){background:var(--bgh);color:var(--t1)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.chip{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;cursor:pointer;border:1.5px solid var(--bd);background:var(--bgc);font-size:12.5px;font-weight:600;transition:all .12s}
+.chip:hover{border-color:var(--bdl);background:var(--bgh)}
+.chip.on{border-color:var(--ac);background:var(--acg);color:var(--ac)}
 
-/* ── Sort row ───────────────────────────── */
-.sort-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.sk{padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:transparent;color:var(--t2);transition:all .12s;font-family:inherit}
-.sk.on{border-color:rgba(16,230,140,.4);color:var(--ac);background:var(--acg)}
-.sk:hover:not(.on){background:var(--bg4);color:var(--t1)}
+/* ── Course card ── */
+.card{background:var(--bgc);border-radius:var(--rl);overflow:hidden;cursor:pointer;border:1px solid var(--bd);transition:border-color .15s,transform .15s,box-shadow .15s;position:relative}
+.card:hover{border-color:var(--bdl);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.c-thumb{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.c-thumb img{width:100%;height:100%;object-fit:cover}
+.c-ph{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;overflow:hidden}
+.c-badge{position:absolute;bottom:8px;right:8px;width:28px;height:28px;border-radius:6px;background:rgba(10,14,26,0);border:0px solid var(--bd);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.c-resume{position:absolute;bottom:8px;left:8px;background:rgba(16,230,140,.92);color:#0a0e1a;font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;letter-spacing:.04em}
+.c-body{padding:14px 16px 16px}
+.c-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:5px;line-height:1.3}
+.c-desc{font-size:12.5px;color:var(--t2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:12px}
+.g0{background:linear-gradient(135deg,#1a2a4a,#0d3d2b)}
+.g1{background:linear-gradient(135deg,#2d1a4a,#1a0d3d)}
+.g2{background:linear-gradient(135deg,#4a1a1a,#3d0d0d)}
+.g3{background:linear-gradient(135deg,#1a4a2d,#0d3d1a)}
+.g4{background:linear-gradient(135deg,#4a3a1a,#3d2d0d)}
+.g5{background:linear-gradient(135deg,#1a3a4a,#0d2d3d)}
 
-/* ── Course grid ────────────────────────── */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
-.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:8px}
-.sh-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.4px}
-.sh-count{font-size:12.5px;color:var(--t2);margin-left:7px;font-weight:500}
+/* ── Progress bar ── */
+.pw{margin-top:4px}
+.pl{display:flex;justify-content:space-between;font-size:11px;color:var(--tm);margin-bottom:5px}
+.pb{height:3px;background:var(--bd);border-radius:10px;overflow:hidden}
+.pf{height:100%;background:var(--ac);border-radius:10px;transition:width .3s}
 
-/* ── Course card ────────────────────────── */
-.card{background:var(--bg3);border-radius:var(--r);border:1px solid var(--bd);cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s;position:relative;overflow:hidden}
-.card:hover{border-color:var(--bd2);transform:translateY(-2px);box-shadow:0 16px 48px rgba(0,0,0,.45)}
-.card-thumb{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.card-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .25s}
-.card:hover .card-thumb img{transform:scale(1.04)}
-.card-ph{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:38px;position:relative}
-.card-badge{position:absolute;bottom:8px;right:8px;width:26px;height:26px;border-radius:5px;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.card-resume{position:absolute;bottom:8px;left:8px;background:rgba(16,230,140,.92);color:#040810;font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;letter-spacing:.05em;backdrop-filter:blur(4px)}
-.card-body{padding:13px 15px 15px}
-.card-name{font-family:'Syne',sans-serif;font-size:14.5px;font-weight:700;line-height:1.35;margin-bottom:5px;letter-spacing:-.2px}
-.card-desc{font-size:12px;color:var(--t2);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:11px}
-.card-menu-btn{position:absolute;top:8px;left:8px;z-index:30}
-.card-dropdown{position:absolute;top:34px;left:0;background:var(--bg4);border:1px solid var(--bd2);border-radius:10px;padding:5px;display:flex;flex-direction:column;gap:3px;min-width:130px;box-shadow:0 12px 36px rgba(0,0,0,.55);z-index:40}
-.card-ddi{padding:7px 10px;border-radius:6px;font-size:12.5px;cursor:pointer;transition:background .1s;white-space:nowrap}
-.card-ddi:hover{background:var(--bg5)}
-.card-ddi.danger{color:var(--red)}
-.g0{background:linear-gradient(135deg,#0d1e3d 0%,#092b1e 100%)}
-.g1{background:linear-gradient(135deg,#1c0f35 0%,#110930 100%)}
-.g2{background:linear-gradient(135deg,#2e0f0f 0%,#1a0808 100%)}
-.g3{background:linear-gradient(135deg,#0c2918 0%,#071a10 100%)}
-.g4{background:linear-gradient(135deg,#2a200a 0%,#1c1505 100%)}
-.g5{background:linear-gradient(135deg,#0c1e2e 0%,#061420 100%)}
+/* ── Empty state ── */
+.es{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;gap:16px}
+.es-ico{font-size:56px;opacity:.3}
+.es-t{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--t2)}
+.es-s{font-size:14px;color:var(--tm);max-width:300px;line-height:1.6}
 
-/* ── Progress bar ───────────────────────── */
-.prog{margin-top:2px}
-.prog-row{display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-bottom:5px}
-.prog-row span:last-child{color:var(--ac);font-weight:600}
-.prog-track{height:3px;background:var(--bd);border-radius:10px;overflow:hidden}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--acd));border-radius:10px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+/* ── Course page ── */
+.cp{display:flex;height:100%;overflow:hidden}
+.ci{width:280px;flex-shrink:0;background:var(--bgs);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
+.ci-hd{padding:16px;border-bottom:1px solid var(--bd);flex-shrink:0}
+.ci-lbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t2);margin-bottom:10px}
+.ci-ttl{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;line-height:1.4;margin-bottom:10px}
+.ci-list{flex:1;overflow-y:auto;padding:10px 0;-webkit-overflow-scrolling:touch}
+.ci-add{padding:10px 16px;border-top:1px solid var(--bd);flex-shrink:0}
+.modh{padding:20px 16px 6px}
+.modlbl{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--tm)}
 
-/* ── Empty state ─────────────────────────── */
-.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:72px 24px;text-align:center;gap:14px}
-.empty-ico{font-size:52px;opacity:.25;margin-bottom:4px}
-.empty-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--t2)}
-.empty-sub{font-size:13px;color:var(--t3);max-width:280px;line-height:1.65}
+/* ── Chapter row ── */
+.cr{display:flex;align-items:center;gap:12px;padding:11px 14px 11px 20px;cursor:pointer;transition:background .1s;border-left:3px solid transparent}
+.cr:hover{background:var(--bgh)}
+.cr.on{background:var(--acg);border-left-color:var(--ac)}
+.cn{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.05);border:1.5px solid var(--bdl);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:var(--t2);transition:all .12s}
+.cr.on .cn{background:var(--ac);border-color:var(--ac);color:#0a0e1a}
+.cr.dn .cn{background:var(--acd);border-color:var(--acd);color:#0a0e1a}
+.ci2{flex:1;min-width:0}
+.cn2{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t2);line-height:1.3}
+.cr.on .cn2{color:var(--t1)}
+.cm{display:flex;align-items:center;gap:6px;margin-top:3px}
+.cbv{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:800;letter-spacing:.04em}
+.bv{background:rgba(79,142,247,.18);color:var(--ac2)}
+.bt{background:rgba(167,139,250,.18);color:var(--pur)}
+.cd{font-size:10.5px;color:var(--tm)}
+.cr-acts{display:flex;gap:4px;opacity:0;transition:opacity .1s;flex-shrink:0}
+.cr:hover .cr-acts{opacity:1}
 
-/* ── Course page ─────────────────────────── */
-.course-layout{display:flex;height:100%;overflow:hidden}
-.course-sidebar{width:272px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
-.course-sidebar-hd{padding:14px 14px 10px;border-bottom:1px solid var(--bd);flex-shrink:0}
-.sidebar-label{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
-.sidebar-course-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;line-height:1.4;margin-bottom:10px;color:var(--t1)}
-.chapter-list{flex:1;overflow-y:auto;padding:6px 0;-webkit-overflow-scrolling:touch}
-.sidebar-add{padding:8px 12px;border-top:1px solid var(--bd);flex-shrink:0}
-.mod-header{padding:16px 16px 5px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
-.mod-header:first-child{padding-top:10px}
+/* ── Content area ── */
+.cm2{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.ctb{min-height:56px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.cttl{flex:1;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cca{flex:1;display:flex;overflow:hidden}
+.cv{flex:1;overflow-y:auto;padding:24px;-webkit-overflow-scrolling:touch}
 
-/* ── Chapter row ─────────────────────────── */
-.ch-row{display:flex;align-items:center;gap:10px;padding:9px 12px 9px 16px;cursor:pointer;transition:background .1s;border-left:2.5px solid transparent;min-width:0}
-.ch-row:hover{background:var(--bg4)}
-.ch-row.active{background:rgba(16,230,140,.07);border-left-color:var(--ac)}
-.ch-row.done .ch-num{background:var(--ac);border-color:var(--ac);color:#040810}
-.ch-num{width:26px;height:26px;border-radius:50%;background:var(--bg4);border:1.5px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex-shrink:0;color:var(--t3);transition:all .15s}
-.ch-row.active .ch-num{background:var(--ac);border-color:var(--ac);color:#040810}
-.ch-info{flex:1;min-width:0}
-.ch-name{font-size:12.5px;font-weight:600;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;transition:color .1s}
-.ch-row.active .ch-name{color:var(--t1)}
-.ch-meta{display:flex;align-items:center;gap:5px;margin-top:2px}
-.ch-badge{font-size:9.5px;padding:2px 5px;border-radius:4px;font-weight:700;letter-spacing:.03em}
-.ch-badge.video{background:rgba(79,142,247,.15);color:var(--blue)}
-.ch-badge.text{background:rgba(167,139,250,.15);color:var(--pur)}
-.ch-dur{font-size:10px;color:var(--t3)}
-.ch-actions{display:flex;gap:3px;opacity:0;transition:opacity .1s;flex-shrink:0}
-.ch-row:hover .ch-actions{opacity:1}
-
-/* ── Course content ──────────────────────── */
-.course-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.course-topbar{min-height:52px;background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:8px 18px;flex-shrink:0;flex-wrap:wrap}
-.course-topbar-title{flex:1;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.course-body{flex:1;display:flex;overflow:hidden}
-.course-content{flex:1;overflow-y:auto;padding:22px;-webkit-overflow-scrolling:touch}
-
-/* ── Mark complete button ───────────────── */
-.mark-btn{display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;padding:7px 12px;border-radius:var(--r2);border:1.5px solid var(--bd2);background:transparent;color:var(--t2);font-size:12.5px;font-weight:600;font-family:inherit;transition:all .12s}
-.mark-btn:hover{border-color:rgba(16,230,140,.4);color:var(--ac);background:var(--acg2)}
-.mark-btn.done{border-color:rgba(16,230,140,.5);color:var(--ac);background:var(--acg)}
-.mark-btn .cb{width:16px;height:16px;border-radius:4px;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;transition:all .12s}
-.mark-btn.done .cb{background:var(--ac);border-color:var(--ac);color:#040810}
-@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.3)}70%{transform:scale(.93)}100%{transform:scale(1)}}
-.mark-btn.pop{animation:pop .3s ease}
-
-/* ── Video ────────────────────────────────── */
-.video-wrap{width:100%;aspect-ratio:16/9;background:#000;border-radius:var(--r);margin-bottom:18px;position:relative;overflow:hidden}
-.video-wrap iframe,.video-wrap video{width:100%;height:100%;border:none;display:block}
-.video-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--bg3);transition:opacity .3s}
-.video-overlay.hide{opacity:0;pointer-events:none}
-.video-spin{width:36px;height:36px;border-radius:50%;border:2.5px solid var(--bd2);border-top-color:var(--ac);animation:spin .65s linear infinite}
+/* ── Video player ── */
+.vw{width:100%;aspect-ratio:16/9;background:#000;border-radius:var(--rl);margin-bottom:20px;position:relative}
+.vw iframe{width:100%;height:100%;border:none;display:block}
+.vw iframe:fullscreen,.vw iframe:-webkit-full-screen{width:100vw;height:100vh;border-radius:0}
+.vsk{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bgc);border-radius:var(--rl);z-index:2;transition:opacity .25s}
+.vsk.hidden{opacity:0;pointer-events:none}
+.vsk-spin{width:40px;height:40px;border-radius:50%;border:3px solid var(--bdl);border-top-color:var(--ac);animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.video-none{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--bg3);border-radius:var(--r);color:var(--t3);font-size:13px;margin-bottom:18px;border:2px dashed var(--bd2)}
+.vsk-txt{font-size:13px;color:var(--tm);font-weight:600}
+.vno-url{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--bgc);border-radius:var(--rl);color:var(--tm);font-size:14px;margin-bottom:20px;border:2px dashed var(--bdl)}
 
-/* ── Content blocks ─────────────────────── */
-.block{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:16px}
-.block-title{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:11px}
-.block-text{font-size:13.5px;color:var(--t2);line-height:1.75;white-space:pre-wrap}
-.link-list{display:flex;flex-direction:column;gap:5px}
-.link-item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--blue);padding:5px 0;text-decoration:none;transition:color .12s}
-.link-item:hover{color:var(--ac)}
-.file-list{display:flex;flex-direction:column;gap:7px}
-.file-item{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--bg4);border-radius:var(--r2);border:1px solid var(--bd);text-decoration:none;color:inherit;transition:border-color .12s}
-.file-item:hover{border-color:var(--bd2)}
-.file-name{font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ── Chapter content blocks ── */
+.ds{background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rl);padding:20px;margin-bottom:20px}
+.ds-t{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:12px;color:var(--t2);text-transform:uppercase;letter-spacing:.06em}
+.ds-p{font-size:14px;color:var(--t2);line-height:1.7;white-space:pre-wrap}
+.ll{display:flex;flex-direction:column;gap:6px}
+.li{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ac2);padding:6px 0;text-decoration:none}
+.li:hover{color:var(--ac)}
+.fl2{display:flex;flex-direction:column;gap:8px}
+.fi2{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bgh);border-radius:8px;border:1px solid var(--bd);text-decoration:none;color:inherit}
+.fi2-n{font-size:13px;flex:1}
 
-/* ── Notes panel ─────────────────────────── */
-.notes-panel{width:290px;flex-shrink:0;background:var(--bg3);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:width .2s cubic-bezier(.4,0,.2,1)}
-.notes-panel.hidden{width:0}
-.notes-hd{padding:12px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px}
-.notes-label{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3)}
-.notes-ch-name{font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
-.notes-body{flex:1;padding:10px;display:flex;flex-direction:column;overflow:hidden;gap:6px}
-.notes-ta{width:100%;flex:1;background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r2);color:var(--t1);font-family:inherit;font-size:13.5px;line-height:1.7;padding:11px;outline:none;resize:none;transition:border-color .12s,box-shadow .12s;min-height:0}
-.notes-ta:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(16,230,140,.06)}
-.notes-ta::placeholder{color:var(--t3)}
-.notes-saved{font-size:11px;color:var(--ac);text-align:right;height:14px;flex-shrink:0;opacity:0;transition:opacity .25s}
-.notes-saved.show{opacity:1}
+/* ── Mark complete ── */
+.cbtn{display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0}
+.chk{width:18px;height:18px;border-radius:4px;border:2px solid var(--bdl);display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;font-size:11px;font-weight:700;color:#0a0e1a}
+.chk.on{background:var(--ac);border-color:var(--ac)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.3)}70%{transform:scale(.92)}100%{transform:scale(1)}}
+.chk.pop{animation:pop .32s ease}
 
-/* ── Global notes page ──────────────────── */
-.notes-grid{display:flex;flex-direction:column;gap:12px}
-.note-card{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:15px 17px;cursor:pointer;transition:border-color .12s,transform .12s}
-.note-card:hover{border-color:var(--bd2);transform:translateX(3px)}
-.note-co{font-size:10.5px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
-.note-ch{font-family:'Syne',sans-serif;font-size:13.5px;font-weight:700;margin-bottom:8px;letter-spacing:-.1px}
-.note-preview{font-size:12.5px;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.note-preview mark{background:rgba(16,230,140,.18);color:var(--ac);border-radius:2px;padding:0 2px}
+/* ── Notes panel ── */
+.np{width:300px;flex-shrink:0;background:var(--bgc);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:width .18s}
+.np.hide{width:0}
+.np-hd{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.np-lbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t2)}
+.na{flex:1;padding:12px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.nta{width:100%;flex:1;background:var(--bg2);border:1px solid var(--bdl);border-radius:8px;color:var(--t1);font-family:inherit;font-size:14px;padding:12px;outline:none;resize:none;transition:border-color .12s;min-height:0;-webkit-appearance:none}
+.nta:focus{border-color:var(--ac)}
+.nsv{font-size:11px;color:var(--ac);text-align:right;height:14px;flex-shrink:0}
 
-/* ── Toast ───────────────────────────────── */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--ac);color:#040810;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;z-index:3000;white-space:nowrap;pointer-events:none;box-shadow:0 8px 24px rgba(16,230,140,.3);animation:toast-in .2s ease}
-@keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* ── Global notes page ── */
+.ngl{display:flex;flex-direction:column;gap:14px}
+.nc{background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rl);padding:16px 18px;cursor:pointer;transition:border-color .12s}
+.nc:hover{border-color:var(--bdl)}
+.nc-co{font-size:11px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.nc-ch{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:8px}
+.nc-pv{font-size:13px;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.nc-pv mark{background:rgba(16,230,140,.22);color:var(--ac);border-radius:2px;padding:0 2px}
 
-/* ── Mobile nav ──────────────────────────── */
-.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--bd);z-index:200;flex-direction:row;padding-bottom:var(--sab)}
-.mn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 4px;min-height:50px;border:none;background:transparent;color:var(--t3);font-size:9.5px;font-family:inherit;font-weight:600;transition:color .12s;letter-spacing:.02em}
-.mn-btn.active{color:var(--ac)}
-.mn-ico{font-size:19px;line-height:1}
+/* ── Toast ── */
+.toast{;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ac);color:#0a0e1a;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;z-index:3000;white-space:nowrap;pointer-events:none}
 
-/* ── Mobile slide-in sidebar ─────────────── */
-.m-sidebar{position:fixed;inset:0;z-index:500;pointer-events:none;display:flex}
-.m-sidebar.open{pointer-events:all}
-.m-sidebar-bk{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:1;opacity:0;transition:opacity .22s}
-.m-sidebar.open .m-sidebar-bk{opacity:1}
-.m-sidebar-panel{position:absolute;top:0;bottom:0;left:0;width:82%;max-width:300px;background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;padding-top:var(--sat);z-index:2;transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1)}
-.m-sidebar.open .m-sidebar-panel{transform:translateX(0)}
+/* ── Mobile nav ── */
+.mbn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bgs);border-top:1px solid var(--bd);padding-bottom:var(--sab);z-index:200;flex-direction:row;align-items:stretch}
+.mni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 4px;min-height:52px;border:none;background:transparent;color:var(--tm);font-size:10px;font-family:inherit;font-weight:600;transition:color .12s}
+.mni.on{color:var(--ac)}
+.mni-i{font-size:20px;line-height:1}
 
-/* ── Mobile bottom sheet ─────────────────── */
-.m-sheet{position:fixed;inset:0;z-index:500;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end}
-.m-sheet.open{pointer-events:all}
-.m-sheet-bk{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);opacity:0;transition:opacity .25s}
-.m-sheet.open .m-sheet-bk{opacity:1}
-.m-sheet-panel{position:relative;z-index:1;background:var(--bg3);border-radius:18px 18px 0 0;border-top:1px solid var(--bd2);display:flex;flex-direction:column;height:72vh;padding-bottom:var(--sab);transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}
-.m-sheet.open .m-sheet-panel{transform:translateY(0)}
-.m-sheet-handle{width:34px;height:4px;background:var(--bd2);border-radius:2px;margin:10px auto 4px;flex-shrink:0}
+/* ── Mobile slide-in sidebar ── */
+.mss{position:fixed;inset:0;z-index:500;pointer-events:none;display:flex}
+.mss.open{pointer-events:all}
+.mss-bk{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:1;opacity:0;transition:opacity .22s}
+.mss.open .mss-bk{opacity:1}
+.mss-pn{position:absolute;top:0;bottom:0;left:0;width:80%;max-width:320px;background:var(--bgs);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;padding-top:env(safe-area-inset-top);z-index:2;transform:translateX(-100%);transition:transform .22s}
+.mss.open .mss-pn{transform:translateX(0)}
 
-/* ── Login ───────────────────────────────── */
-.login-wrap{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
-.login-card{background:var(--bg3);border:1px solid var(--bd2);border-radius:var(--r);padding:30px 26px;width:100%;max-width:360px;box-shadow:0 32px 80px rgba(0,0,0,.7)}
-.login-logo{width:42px;height:42px;background:var(--ac);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#040810;flex-shrink:0}
-.login-err{font-size:12px;color:var(--red);background:rgba(245,101,101,.09);border:1px solid rgba(245,101,101,.22);border-radius:var(--r2);padding:8px 11px;line-height:1.5}
-.login-note{font-size:11px;color:var(--t3);line-height:1.6;text-align:center}
+/* ── Mobile bottom sheet (notes) ── */
+.mns{position:fixed;inset:0;z-index:500;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end}
+.mns.open{pointer-events:all}
+.mns-bk{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);opacity:0;transition:opacity .28s}
+.mns.open .mns-bk{opacity:1}
+.mns-pn{position:relative;z-index:1;background:var(--bgc);border-radius:20px 20px 0 0;border-top:1px solid var(--bdl);display:flex;flex-direction:column;height:72vh;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .28s}
+.mns.open .mns-pn{transform:translateY(0)}
+.mns-hnd{width:36px;height:4px;background:var(--bdl);border-radius:2px;margin:10px auto 6px;flex-shrink:0}
 
-/* ── Responsive ──────────────────────────── */
-@media(max-width:640px){
-  .sidebar{display:none!important}
-  .desktop-only{display:none!important}
-  .mobile-nav{display:flex}
-  .main{padding-bottom:calc(50px + var(--sab))}
-  .topbar{padding:max(10px,var(--sat)) 14px 10px;gap:7px;min-height:50px}
-  .topbar-title{font-size:15px}
-  .course-sidebar,.notes-panel{display:none!important}
-  .course-topbar{padding:max(9px,var(--sat)) 12px 9px;flex-wrap:wrap}
-  .course-topbar-title{font-size:13px}
-  .course-content{padding:14px}
-  .grid{grid-template-columns:1fr;gap:12px}
-  .overlay{padding:0;align-items:flex-end}
-  .modal{max-width:100%;max-height:92vh;border-radius:18px 18px 0 0;padding-bottom:var(--sab)}
-  .modal-body{padding:14px 16px}
-  .modal-hd{padding:14px 16px 12px}
-  .modal-foot{padding:10px 16px;padding-bottom:max(14px,var(--sab))}
-  .ch-actions{opacity:1!important}
-  .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
-  .chip{flex-shrink:0}
-  .empty{padding:48px 16px}
-  .video-wrap{border-radius:var(--r2)}
-  .content{padding:14px}
+/* ── Responsive ── */
+@media(max-width:768px){
+  .ci{width:220px}.np{width:240px}.grid{grid-template-columns:1fr 1fr}
 }
-@media(min-width:641px) and (max-width:900px){
-  .course-sidebar{width:230px}
-  .notes-panel{width:240px}
-  .grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+@media(max-width:640px){
+  .sb{display:none!important}.dsk{display:none!important}.mbn{display:flex}
+  .main{padding-bottom:calc(52px + var(--sab))}
+  .topbar{padding:max(12px,env(safe-area-inset-top)) 16px 10px;gap:8px}
+  .topbar-title{font-size:16px;flex:none}
+  .topbar .si-wrap{order:10;width:100%}
+  .grid{grid-template-columns:1fr;gap:14px}
+  .ib{width:36px;height:36px;font-size:14px}
+  .content{padding:16px}
+  .cp{flex-direction:column}.ci{display:none!important}.np{display:none!important}
+  .ctb{padding:max(10px,env(safe-area-inset-top)) 12px 10px}
+  .cttl{font-size:13px}.cv{padding:14px}
+  .mbk{padding:0;align-items:flex-end}
+  .mo{max-width:100%;max-height:92vh;border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+  .mb{padding:16px;gap:14px}.mh{padding:16px 16px 12px}
+  .mf{padding:12px 16px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+  .cr-acts{opacity:1!important}
+  .btn{padding:10px 18px;font-size:14px}.btn-sm{padding:10px 14px;font-size:13px}
+  .es{padding:48px 20px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}.chip{flex-shrink:0}
+  .sh{margin-bottom:14px}.sort-row{gap:4px}.sk{padding:5px 8px;font-size:11px}
+  .tabk{padding:8px 10px;font-size:12px}.ngl{gap:10px}
+}
+@media(min-width:641px) and (max-width:768px){
+  .sb{width:60px}.grid{grid-template-columns:1fr 1fr}.topbar{padding:0 16px}
 }
 </style>
 </head>
@@ -324,9 +286,20 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-// ══════════════════════════════════════════════
-// CONSTANTS
-// ══════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// Constants & storage
+// ─────────────────────────────────────────────
+const DATA_KEY   = 'courseflow_v2';
+const RESUME_KEY = 'courseflow_resume';
+const ACCENT_COLORS = ['#10e68c','#4f8ef7','#f56565','#f6c90e','#a78bfa','#fb923c'];
+const SORTS = [
+  { k:'recent',   l:'⏱ Recent'   },
+  { k:'added',    l:'Date Added' },
+  { k:'az',       l:'A–Z'        },
+  { k:'progress', l:'Completed'  },
+];
+const EMPTY = { companies:[], courses:[] };
+
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyCXKu18ONnWJx8Jt4zVBu1BEze68olXvNg",
   authDomain:        "courseflow-7e19f.firebaseapp.com",
@@ -335,557 +308,538 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "1042718851199",
   appId:             "1:1042718851199:web:852906be7d21cd1c0b3f4a",
 };
-const FB_OK = !FIREBASE_CONFIG.apiKey.startsWith('REPLACE');
+const FIREBASE_CONFIGURED = !FIREBASE_CONFIG.apiKey.startsWith('REPLACE');
 
-const ACCENT_COLORS = ['#10e68c','#4f8ef7','#f56565','#f6c90e','#a78bfa','#fb923c'];
-const META_KEY   = 'cf_meta_v2';
-const COURSE_PFX = 'cf_c_';
-const RESUME_KEY = 'cf_resume';
-const SORTS = [
-  { k: 'recent',   l: '⏱ Recent' },
-  { k: 'added',    l: 'Date Added' },
-  { k: 'az',       l: 'A–Z' },
-  { k: 'done',     l: 'Completed' },
-];
-const EMPTY = { companies: [], courses: [] };
-
-// ══════════════════════════════════════════════
-// AES-GCM ENCRYPTION
-// ══════════════════════════════════════════════
+// ── AES-GCM encryption helpers ──
 async function deriveKey(password, salt) {
-  const raw = await crypto.subtle.importKey(
-    'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']
-  );
+  const enc = new TextEncoder();
+  const km = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' },
-    raw, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+    { name:'PBKDF2', salt, iterations:200000, hash:'SHA-256' },
+    km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']
   );
 }
-async function encrypt(plaintext, password) {
+async function encryptData(plaintext, password) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv   = crypto.getRandomValues(new Uint8Array(12));
   const key  = await deriveKey(password, salt);
-  const ct   = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
+  const ct   = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
   const buf  = new Uint8Array(16 + 12 + ct.byteLength);
-  buf.set(salt, 0); buf.set(iv, 16); buf.set(new Uint8Array(ct), 28);
-  let bin = '', sz = 8192;
-  for (let i = 0; i < buf.length; i += sz) bin += String.fromCharCode(...buf.subarray(i, i + sz));
+  buf.set(salt,0); buf.set(iv,16); buf.set(new Uint8Array(ct),28);
+  let bin = '';
+  const chunkSize = 8192;
+  for (let i = 0; i < buf.length; i += chunkSize) {
+    bin += String.fromCharCode(...buf.subarray(i, i + chunkSize));
+  }
   return btoa(bin);
 }
-async function decrypt(b64, password) {
+async function decryptData(b64, password) {
   const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-  const key = await deriveKey(password, buf.slice(0, 16));
-  const pt  = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(16, 28) }, key, buf.slice(28));
+  const key = await deriveKey(password, buf.slice(0,16));
+  const pt  = await crypto.subtle.decrypt({ name:'AES-GCM', iv: buf.slice(16,28) }, key, buf.slice(28));
   return new TextDecoder().decode(pt);
 }
 
-// ══════════════════════════════════════════════
-// FIREBASE
-// ══════════════════════════════════════════════
+// ── Firebase singleton ──
 let _db = null;
 function getDb() {
   if (_db) return _db;
-  if (!FB_OK) return null;
+  if (!FIREBASE_CONFIGURED) return null;
   try {
     if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     _db = firebase.firestore();
     return _db;
-  } catch(e) { console.error('Firebase init:', e); return null; }
+  } catch(e) { console.error('Firebase init failed', e); return null; }
 }
 
-async function cloudSave(key, value, pw) {
+// ── Cloud save / load ──
+async function cloudSave(key, value, password) {
   const db = getDb(); if (!db) return;
   if (key === 'data') {
     const courseIds = (value.courses || []).map(c => c.id);
-    const metaEnc = await encrypt(JSON.stringify({ companies: value.companies, courseIds }), pw);
+    const metaEnc = await encryptData(
+      JSON.stringify({ companies: value.companies, courseIds }), password
+    );
     const batch = db.batch();
-    batch.set(db.collection('cf').doc('meta'), { data: metaEnc, updatedAt: Date.now() });
+    batch.set(
+      db.collection('courseflow').doc('meta'),
+      { data: metaEnc, updatedAt: Date.now() }
+    );
     for (const course of (value.courses || [])) {
-      const enc = await encrypt(JSON.stringify(course), pw);
-      batch.set(db.collection('cf').doc('c_' + course.id), { data: enc, updatedAt: Date.now() });
+      const enc = await encryptData(JSON.stringify(course), password);
+      batch.set(
+        db.collection('courseflow').doc('course_' + course.id),
+        { data: enc, updatedAt: Date.now() }
+      );
     }
+    // NOTE: stale-doc cleanup removed — it caused a full collection read on every
+    // save which could fail silently and block the whole write. Orphaned docs are
+    // harmless since they're never read.
     await batch.commit();
   } else {
-    const enc = await encrypt(JSON.stringify(value), pw);
-    await db.collection('cf').doc(key).set({ data: enc, updatedAt: Date.now() });
+    const encrypted = await encryptData(JSON.stringify(value), password);
+    await db.collection('courseflow').doc(key).set({ data: encrypted, updatedAt: Date.now() });
   }
 }
 
-async function cloudLoad(key, pw) {
+async function cloudLoad(key, password) {
   const db = getDb(); if (!db) return null;
   try {
     if (key === 'data') {
-      const snap = await db.collection('cf').doc('meta').get();
+      const metaSnap = await db.collection('courseflow').doc('meta').get();
+      if (metaSnap.exists) {
+        const meta = JSON.parse(await decryptData(metaSnap.data().data, password));
+        const courses = await Promise.all((meta.courseIds || []).map(async id => {
+          try {
+            const snap = await db.collection('courseflow').doc('course_' + id).get();
+            if (!snap.exists) return null;
+            return JSON.parse(await decryptData(snap.data().data, password));
+          } catch { return null; }
+        }));
+        return { companies: meta.companies || [], courses: courses.filter(Boolean) };
+      }
+      // Fall back to old single-doc format
+      const snap = await db.collection('courseflow').doc('data').get();
       if (!snap.exists) return null;
-      const meta = JSON.parse(await decrypt(snap.data().data, pw));
-      const courses = await Promise.all((meta.courseIds || []).map(async id => {
-        try {
-          const s = await db.collection('cf').doc('c_' + id).get();
-          if (!s.exists) return null;
-          return JSON.parse(await decrypt(s.data().data, pw));
-        } catch { return null; }
-      }));
-      return { companies: meta.companies || [], courses: courses.filter(Boolean) };
+      const json = await decryptData(snap.data().data, password);
+      return JSON.parse(json);
     }
-    const snap = await db.collection('cf').doc(key).get();
+    const snap = await db.collection('courseflow').doc(key).get();
     if (!snap.exists) return null;
-    return JSON.parse(await decrypt(snap.data().data, pw));
+    const json = await decryptData(snap.data().data, password);
+    return JSON.parse(json);
   } catch(e) {
-    if (e?.code) throw e;
+    if (e && e.code) throw e;
     return null;
   }
 }
 
-// ══════════════════════════════════════════════
-// LOCAL STORAGE
-// ══════════════════════════════════════════════
+// ── localStorage fallback (cache / offline) ──
+const META_KEY   = 'courseflow_meta';
+const COURSE_PFX = 'courseflow_c_';
+
 function loadData() {
   try {
-    const meta = JSON.parse(localStorage.getItem(META_KEY));
-    if (meta?.courseIds) {
-      const courses = meta.courseIds.map(id => {
+    const metaRaw = localStorage.getItem(META_KEY);
+    if (metaRaw) {
+      const meta = JSON.parse(metaRaw);
+      const courses = (meta.courseIds || []).map(id => {
         try { return JSON.parse(localStorage.getItem(COURSE_PFX + id)); } catch { return null; }
       }).filter(Boolean);
       return { companies: meta.companies || [], courses };
     }
-    return EMPTY;
+    const d = JSON.parse(localStorage.getItem(DATA_KEY));
+    return (d && d.courses) ? d : EMPTY;
   } catch { return EMPTY; }
 }
 
 function saveData(d) {
-  const saved = [];
-  for (const course of (d.courses || [])) {
-    try {
-      localStorage.setItem(COURSE_PFX + course.id, JSON.stringify(course));
-      saved.push(course.id);
-    } catch(e) {
-      if (localStorage.getItem(COURSE_PFX + course.id)) saved.push(course.id);
+  try {
+    const courseIds = [];
+    for (const course of (d.courses || [])) {
+      const key = COURSE_PFX + course.id;
+      try {
+        localStorage.setItem(key, JSON.stringify(course));
+        courseIds.push(course.id);
+      } catch(e) {
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+          console.warn('CourseFlow: localStorage quota hit saving course', course.id);
+          if (localStorage.getItem(key)) courseIds.push(course.id);
+        }
+      }
     }
-  }
-  const keep = new Set(saved);
-  Object.keys(localStorage).forEach(k => {
-    if (k.startsWith(COURSE_PFX) && !keep.has(k.slice(COURSE_PFX.length)))
-      localStorage.removeItem(k);
-  });
-  try { localStorage.setItem(META_KEY, JSON.stringify({ companies: d.companies || [], courseIds: saved })); } catch {}
+    const keepSet = new Set(courseIds);
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith(COURSE_PFX) && !keepSet.has(k.slice(COURSE_PFX.length)))
+        localStorage.removeItem(k);
+    });
+    const meta = { companies: d.companies || [], courseIds };
+    try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch {}
+    localStorage.removeItem(DATA_KEY);
+  } catch(e) { console.error('CourseFlow: saveData error', e); }
 }
 
 function loadResume() { try { return JSON.parse(localStorage.getItem(RESUME_KEY) || '{}'); } catch { return {}; } }
-function saveResume(m) { try { localStorage.setItem(RESUME_KEY, JSON.stringify(m)); } catch {} }
+function saveResume(m){ try { localStorage.setItem(RESUME_KEY, JSON.stringify(m)); } catch(e) { console.warn('CourseFlow: saveResume error', e); } }
 
-// ══════════════════════════════════════════════
-// SYNC MANAGER  ← completely rewritten
-// ══════════════════════════════════════════════
-// Fixes in this version:
-//  1. isSyncing guard prevents concurrent writes entirely
-//  2. lastWrite timestamp → isEcho() suppresses own-write Firestore snapshots
-//  3. pending always holds the *latest* state; debounce collapses rapid updates
-//  4. Exponential backoff retry (1s → 2s → 4s … up to 30s)
-//  5. Online listener retries immediately when connection restored
-//  6. destroy() prevents any activity after unmount / lock
-
-class SyncManager {
-  constructor(db, pw, onStatus) {
-    this._db       = db;
-    this._pw       = pw;
-    this._onStatus = onStatus;
-    this._pending  = null;   // { data, resume } – latest to write
-    this._timer    = null;
-    this._running  = false;  // write in flight
-    this._lastWrite = 0;     // ms timestamp of last successful write
-    this._retries  = 0;
-    this._alive    = true;
-    this._status   = 'idle';
-  }
-
-  // Call this whenever data or resume changes.
-  schedule(data, resume) {
-    if (!this._alive || !this._db) return;
-    this._pending = { data, resume };
-    clearTimeout(this._timer);
-    if (this._status !== 'saving') this._emit('pending');
-    this._timer = setTimeout(() => this._run(), 800);
-  }
-
-  // Force an immediate attempt (e.g. on reconnect).
-  flush() {
-    if (!this._alive || !this._db || !this._pending) return;
-    clearTimeout(this._timer);
-    this._run();
-  }
-
-  // Returns true if a Firestore snapshot was likely triggered by our own write.
-  // The listener should skip processing when this is true.
-  isEcho() { return Date.now() - this._lastWrite < 7000; }
-
-  destroy() {
-    this._alive = false;
-    clearTimeout(this._timer);
-  }
-
-  async _run() {
-    if (!this._alive) return;
-
-    // Another write is already in flight – re-schedule after it finishes
-    if (this._running) {
-      this._timer = setTimeout(() => this._run(), 1200);
-      return;
-    }
-
-    if (!navigator.onLine) {
-      this._emit('offline');
-      return;
-    }
-
-    const snap = this._pending;
-    if (!snap) return;
-
-    this._running = true;
-    this._emit('saving');
-
-    try {
-      await Promise.all([
-        cloudSave('data',   snap.data,   this._pw),
-        cloudSave('resume', snap.resume, this._pw),
-      ]);
-      this._lastWrite = Date.now();
-      this._retries = 0;
-      // Only clear pending if nothing new arrived while we were writing
-      if (this._pending === snap) this._pending = null;
-      this._emit('saved');
-      setTimeout(() => { if (this._alive && this._status === 'saved') this._emit('idle'); }, 2500);
-    } catch(err) {
-      if (!this._alive) return;
-      this._retries = Math.min(this._retries + 1, 6);
-      const delay = Math.min(1000 * Math.pow(2, this._retries - 1), 30000);
-      this._emit('error');
-      this._timer = setTimeout(() => this._run(), delay);
-    } finally {
-      this._running = false;
-    }
-  }
-
-  _emit(s) {
-    this._status = s;
-    if (this._alive) this._onStatus(s);
-  }
-}
-
-// ══════════════════════════════════════════════
-// UTILITIES
-// ══════════════════════════════════════════════
-const uid     = () => Math.random().toString(36).slice(2, 10);
-const haptic  = (t = 'light') => { try { navigator.vibrate?.(t === 'medium' ? [25,15,25] : 40); } catch {} };
-const pct     = c => { const t = c.chapters?.length || 0, d = c.chapters?.filter(x => x.completed).length || 0; return t > 0 ? Math.round(d / t * 100) : 0; };
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2, 10);
+const haptic = (t = 'light') => { try { navigator.vibrate?.(t === 'medium' ? [30,20,30] : 50); } catch {} };
+const pct = c => { const t = c.chapters?.length || 0, d = c.chapters?.filter(x => x.completed).length || 0; return t > 0 ? Math.round(d / t * 100) : 0; };
 const faviconUrl = url => {
   if (!url) return null;
   try { return `https://www.google.com/s2/favicons?domain=${new URL(url.startsWith('http') ? url : 'https://' + url).hostname}&sz=64`; }
   catch { return null; }
 };
-const downloadJson = (data, name) => {
-  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })), download: name });
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+const downloadJson = (data, filename) => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 };
 
-// ══════════════════════════════════════════════
-// VIDEO PARSING
-// ══════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// Video URL parsing
+// ─────────────────────────────────────────────
 function parseVideoUrl(url) {
   if (!url) return { type: 'none' };
   const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-  if (yt) { const t = url.match(/[?&](?:t|start)=(\d+)/); return { type: 'yt', id: yt[1], start: t ? +t[1] : 0 }; }
+  if (yt) {
+    const start = url.match(/[?&](?:t|start)=(\d+)/);
+    return { type: 'youtube', id: yt[1], start: start ? parseInt(start[1]) : 0 };
+  }
   const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
   if (vm) return { type: 'vimeo', id: vm[1] };
   if (url.includes('drive.google.com') || url.includes('docs.google.com')) {
-    const f = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    return f ? { type: 'gdrive', id: f[1] } : { type: 'none' };
+    const f1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (f1) return { type: 'gdrive', id: f1[1] };
+    const f2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (f2) return { type: 'gdrive', id: f2[1] };
+    return { type: 'none' };
   }
   if (url.includes('wistia')) {
-    const w = url.match(/(?:medias|iframe)\/([a-zA-Z0-9]+)/);
-    return { type: 'wistia', id: w ? w[1] : url.split('/').pop() };
+    const wid = url.match(/(?:medias|iframe)\/([a-zA-Z0-9]+)/);
+    return { type: 'wistia', id: wid ? wid[1] : url.split('/').pop() };
   }
-  if (/\.(mp4|webm|mov|m4v|ogg|ogv)(\?|$)/i.test(url)) return { type: 'direct', src: url };
+  if (/\.(mp4|webm|mov|m4v|ogg|ogv|m3u8)(\?|$)/i.test(url)) return { type: 'direct', src: url };
   if (url.startsWith('https')) return { type: 'embed', src: url };
   return { type: 'none' };
 }
-function buildEmbed(p) {
-  switch (p.type) {
-    case 'yt':     return `https://www.youtube.com/embed/${p.id}?enablejsapi=1${p.start ? `&start=${p.start}` : ''}&origin=${encodeURIComponent(location.origin)}`;
-    case 'vimeo':  return `https://player.vimeo.com/video/${p.id}?title=0&byline=0&portrait=0`;
-    case 'gdrive': return `https://drive.google.com/file/d/${p.id}/preview`;
-    case 'wistia': return `https://fast.wistia.net/embed/iframe/${p.id}`;
-    case 'embed':  return p.src;
-    default:       return null;
+
+function buildEmbedSrc(parsed) {
+  switch (parsed.type) {
+    case 'youtube': return `https://www.youtube.com/embed/${parsed.id}?enablejsapi=1${parsed.start ? `&start=${parsed.start}` : ''}&origin=${encodeURIComponent(location.origin)}`;
+    case 'vimeo':   return `https://player.vimeo.com/video/${parsed.id}?title=0&byline=0&portrait=0`;
+    case 'gdrive':  return `https://drive.google.com/file/d/${parsed.id}/preview`;
+    case 'wistia':  return `https://fast.wistia.net/embed/iframe/${parsed.id}`;
+    case 'embed':   return parsed.src;
+    default:        return null;
   }
 }
 
-// ══════════════════════════════════════════════
-// COMPONENTS
-// ══════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// VideoPlayer
+// ─────────────────────────────────────────────
+function VideoPlayer({ url, videoKey, onEnded }) {
+  const parsed = useMemo(() => parseVideoUrl(url), [url]);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { setLoaded(false); }, [videoKey]);
+  useEffect(() => {
+    if (parsed.type !== 'youtube') return;
+    const handler = e => {
+      try {
+        const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (d?.event === 'onStateChange' && d?.info === 0) onEnded?.();
+      } catch {}
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [parsed.type, onEnded]);
+
+  if (parsed.type === 'none') return <div className="vno-url"><span style={{fontSize:36}}>▶</span><span>No video URL set</span></div>;
+
+  if (parsed.type === 'direct') {
+    return (
+      <div className="vw">
+        <video key={videoKey} src={parsed.src} controls controlsList="nodownload" playsInline
+          onEnded={() => onEnded?.()}
+          style={{width:'100%',height:'100%',display:'block',background:'#000',borderRadius:'var(--rl)'}} />
+      </div>
+    );
+  }
+
+  if (parsed.type === 'gdrive') {
+    return (
+      <div style={{width:'100%',aspectRatio:'16 / 9',borderRadius:'var(--rl)',overflow:'hidden',marginBottom:20,background:'#000'}}>
+        <iframe key={videoKey} src={buildEmbedSrc(parsed)}
+          style={{width:'100%',height:'100%',border:'none'}}
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />
+      </div>
+    );
+  }
+
+  return (
+    <div className="vw">
+      <div className={`vsk ${loaded ? 'hidden' : ''}`}>
+        <div className="vsk-spin" /><span className="vsk-txt">Loading video…</span>
+      </div>
+      <iframe key={videoKey} src={buildEmbedSrc(parsed)}
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+        allowFullScreen webkitAllowFullScreen mozAllowFullScreen
+        onLoad={() => setLoaded(true)} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// CompanyIcon
+// ─────────────────────────────────────────────
+const CompanyIcon = React.memo(function CompanyIcon({ company, size = 26 }) {
+  const [err, setErr] = useState(false);
+  const src   = company?.icon || faviconUrl(company?.url);
+  const color = ACCENT_COLORS[(company?.name || '').charCodeAt(0) % ACCENT_COLORS.length];
+  if (src && !err)
+    return <img src={src} width={size} height={size} style={{borderRadius:5,objectFit:'contain',flexShrink:0}} onError={() => setErr(true)} loading="lazy" />;
+  return (
+    <div className="co-icon" style={{width:size,height:size,background:color+'22',color,fontSize:size*.5,flexShrink:0}}>
+      {(company?.name || '?')[0].toUpperCase()}
+    </div>
+  );
+});
+
+// ─────────────────────────────────────────────
+// ProgressBar
+// ─────────────────────────────────────────────
+function ProgBar({ done, total, compact = false }) {
+  const p = total > 0 ? Math.round(done / total * 100) : 0;
+  return (
+    <div className="pw">
+      <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--tm)',marginBottom:4}}>
+        <span>{compact ? `${done}/${total}` : (total > 0 ? `${done}/${total} chapters` : 'No chapters')}</span>
+        <span style={{color:'var(--ac)'}}>{p}%</span>
+      </div>
+      <div className="pb"><div className="pf" style={{width:`${p}%`}} /></div>
+    </div>
+  );
+}
 
 function Toast({ msg }) {
   if (!msg) return null;
   return <div className="toast">{msg}</div>;
 }
 
-const CoIcon = React.memo(function CoIcon({ co, size = 26 }) {
-  const [err, setErr] = useState(false);
-  const src   = co?.icon || faviconUrl(co?.url);
-  const color = ACCENT_COLORS[(co?.name || '').charCodeAt(0) % ACCENT_COLORS.length];
-  if (src && !err)
-    return <img src={src} width={size} height={size} style={{ borderRadius: 5, objectFit: 'contain', flexShrink: 0 }} onError={() => setErr(true)} loading="lazy" />;
-  return (
-    <div className="co-ico" style={{ width: size, height: size, background: color + '22', color, fontSize: size * .48, flexShrink: 0 }}>
-      {(co?.name || '?')[0].toUpperCase()}
-    </div>
-  );
-});
-
-function ProgBar({ done, total, compact }) {
-  const p = total > 0 ? Math.round(done / total * 100) : 0;
-  return (
-    <div className="prog">
-      <div className="prog-row">
-        <span>{compact ? `${done}/${total}` : `${done}/${total} chapter${total !== 1 ? 's' : ''}`}</span>
-        <span>{p}%</span>
-      </div>
-      <div className="prog-track"><div className="prog-fill" style={{ width: `${p}%` }} /></div>
-    </div>
-  );
-}
-
-function VideoPlayer({ url, vkey, onEnded }) {
-  const parsed  = useMemo(() => parseVideoUrl(url), [url]);
-  const [ready, setReady] = useState(false);
-  useEffect(() => { setReady(false); }, [vkey]);
-
-  useEffect(() => {
-    if (parsed.type !== 'yt') return;
-    const h = e => {
-      try { const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; if (d?.event === 'onStateChange' && d?.info === 0) onEnded?.(); } catch {}
-    };
-    window.addEventListener('message', h);
-    return () => window.removeEventListener('message', h);
-  }, [parsed.type, onEnded]);
-
-  if (parsed.type === 'none') return <div className="video-none"><span style={{ fontSize: 34 }}>▶</span><span>No video URL</span></div>;
-
-  if (parsed.type === 'direct') {
-    return (
-      <div className="video-wrap">
-        <video key={vkey} src={parsed.src} controls controlsList="nodownload" playsInline
-          onEnded={onEnded} style={{ width: '100%', height: '100%', display: 'block', background: '#000' }} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="video-wrap">
-      <div className={`video-overlay ${ready ? 'hide' : ''}`}>
-        <div className="video-spin" />
-        <span style={{ fontSize: 12, color: 'var(--t3)' }}>Loading…</span>
-      </div>
-      <iframe key={vkey} src={buildEmbed(parsed)}
-        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-        allowFullScreen onLoad={() => setReady(true)} />
-    </div>
-  );
-}
-
-function ChapterRow({ ch, idx, isActive, onSelect, onEdit, onDelete, mobile }) {
-  const sz = mobile ? 30 : 28;
-  return (
-    <div className={`ch-row ${isActive ? 'active' : ''} ${ch.completed ? 'done' : ''}`} onClick={() => onSelect(idx)}>
-      <div className="ch-num">{ch.completed ? '✓' : idx + 1}</div>
-      <div className="ch-info">
-        <div className="ch-name">{ch.name}</div>
-        <div className="ch-meta">
-          <span className={`ch-badge ${ch.type === 'video' ? 'video' : 'text'}`}>{ch.type === 'video' ? '▶' : '✦'} {ch.type}</span>
-          {ch.duration && <span className="ch-dur">{ch.duration}</span>}
-        </div>
-      </div>
-      <div className="ch-actions" style={mobile ? { opacity: 1 } : {}}>
-        <div className="ib" style={{ width: sz, height: sz, fontSize: 11 }} onClick={e => { e.stopPropagation(); onEdit(idx); }}>✏️</div>
-        <div className="ib" style={{ width: sz, height: sz, fontSize: 11 }} onClick={e => { e.stopPropagation(); onDelete(idx); }}>🗑️</div>
-      </div>
-    </div>
-  );
-}
-
-function ChapterListView({ chapters, activeIdx, onSelect, onEdit, onDelete, mobile }) {
-  if (!chapters.length)
-    return <div style={{ padding: '28px 16px', color: 'var(--t3)', fontSize: 13, textAlign: 'center', lineHeight: 1.7 }}>No chapters yet.<br />Add your first one below.</div>;
+// ─────────────────────────────────────────────
+// ChapterList
+// ─────────────────────────────────────────────
+function ChapterList({ chapters, activeIdx, onSelect, onEdit, onDelete, mobile = false }) {
+  if (chapters.length === 0)
+    return <div style={{padding:'28px 16px',color:'var(--tm)',fontSize:13,textAlign:'center',lineHeight:1.7}}>No chapters yet.<br/>Add your first one below.</div>;
 
   return chapters.map((ch, i) => {
-    const showMod = ch.module && (i === 0 || ch.module !== chapters[i - 1].module);
+    const prevMod = i > 0 ? (chapters[i-1].module || '') : null;
+    const thisMod = ch.module || '';
+    const showHeader = thisMod && thisMod !== prevMod;
+    const sz = mobile ? 32 : 24;
     return (
       <React.Fragment key={ch.id || i}>
-        {showMod && <div className="mod-header">{ch.module}</div>}
-        <ChapterRow ch={ch} idx={i} isActive={i === activeIdx} onSelect={onSelect} onEdit={onEdit} onDelete={onDelete} mobile={mobile} />
+        {showHeader && <div className="modh" style={{paddingTop: i===0 ? 12 : 20}}><span className="modlbl">{thisMod}</span></div>}
+        <div className={`cr ${i===activeIdx?'on':''} ${ch.completed?'dn':''}`} onClick={() => onSelect(i)}>
+          <div className="cn">{ch.completed ? '✓' : i+1}</div>
+          <div className="ci2">
+            <div className="cn2">{ch.name}</div>
+            <div className="cm">
+              <span className={`cbv ${ch.type==='video'?'bv':'bt'}`}>{ch.type==='video' ? '▶ Video' : '✦ Text'}</span>
+              {ch.duration && <span className="cd">{ch.duration}</span>}
+            </div>
+          </div>
+          <div className="cr-acts" style={mobile ? {opacity:1} : {}}>
+            <div className="ib" style={{width:sz,height:sz,fontSize:11}} onClick={e=>{e.stopPropagation();onEdit(i);}}>✏️</div>
+            <div className="ib" style={{width:sz,height:sz,fontSize:11}} onClick={e=>{e.stopPropagation();onDelete(i);}}>🗑️</div>
+          </div>
+        </div>
       </React.Fragment>
     );
   });
 }
 
-// ══════════════════════════════════════════════
-// MODALS
-// ══════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// AddCourseModal
+// ─────────────────────────────────────────────
+function AddCourseModal({ companies, courses, editCourse, onClose, onSave }) {
+  const [title,    setTitle]    = useState(editCourse?.title || '');
+  const [thumb,    setThumb]    = useState(editCourse?.thumbnail || '');
+  const [coId,     setCoId]     = useState(editCourse?.companyId || '');
+  const [desc,     setDesc]     = useState(editCourse?.description || '');
+  const [addingCo, setAddingCo] = useState(false);
+  const [newName,  setNewName]  = useState('');
+  const [newUrl,   setNewUrl]   = useState('');
+  const [newIcon,  setNewIcon]  = useState('');
 
-function CourseModal({ companies, courses, editing, onClose, onSave }) {
-  const [title, setTitle]   = useState(editing?.title || '');
-  const [thumb, setThumb]   = useState(editing?.thumbnail || '');
-  const [coId,  setCoId]    = useState(editing?.companyId || '');
-  const [desc,  setDesc]    = useState(editing?.description || '');
-  const [newCo, setNewCo]   = useState(false);
-  const [nName, setNName]   = useState('');
-  const [nUrl,  setNUrl]    = useState('');
-  const [nIcon, setNIcon]   = useState('');
-
-  const save = () => { if (!title.trim()) return; onSave('course', { title: title.trim(), thumbnail: thumb.trim(), companyId: coId, description: desc.trim() }); };
-
-  const addCo = () => {
-    if (!nName.trim()) return;
-    if (companies.some(c => c.name.toLowerCase() === nName.toLowerCase())) { alert('Platform already exists'); return; }
-    const co = { id: uid(), name: nName.trim(), url: nUrl.trim(), icon: nIcon.trim() || undefined };
-    onSave('addco', co);
-    setCoId(co.id); setNewCo(false); setNName(''); setNUrl(''); setNIcon('');
+  const save = () => {
+    if (!title.trim()) return;
+    onSave({ title: title.trim(), thumbnail: thumb.trim(), companyId: coId, description: desc.trim() });
   };
 
-  const delCo = () => {
+  const addPlatform = () => {
+    if (!newName.trim()) return;
+    if (companies.some(c => c.name.toLowerCase() === newName.toLowerCase())) { alert('Platform already exists'); return; }
+    const co = { id: uid(), name: newName.trim(), url: newUrl.trim(), icon: newIcon.trim() || undefined };
+    onSave(null, co, null, co.id);
+    setAddingCo(false); setNewName(''); setNewUrl(''); setNewIcon('');
+  };
+
+  const deletePlatform = () => {
     if (courses.some(c => c.companyId === coId)) { alert('Cannot delete: platform is used by other courses'); return; }
-    onSave('delco', coId); setCoId('');
+    onSave(null, null, coId);
+    setCoId('');
   };
 
   return (
-    <div className="overlay" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal">
-        <div className="modal-hd"><span className="modal-title">{editing ? 'Edit Course' : 'Add Course'}</span><button className="xb" onClick={onClose}>×</button></div>
-        <div className="modal-body">
-          <div className="fg"><label className="fl">Course Title *</label>
-            <input className="fi" placeholder="e.g. Complete JavaScript Bootcamp" value={title} onChange={e => setTitle(e.target.value)} autoFocus />
+    <div className="mbk" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="mo">
+        <div className="mh">
+          <span className="mt">{editCourse ? 'Edit Course' : 'Add Course'}</span>
+          <button className="xb" onClick={onClose}>×</button>
+        </div>
+        <div className="mb">
+          <div className="fg">
+            <label className="fl">Course Title *</label>
+            <input className="fi" placeholder="e.g. Complete JavaScript Bootcamp" value={title} onChange={e=>setTitle(e.target.value)} autoFocus />
           </div>
-          <div className="fg"><label className="fl">Thumbnail URL</label>
-            <input className="fi" placeholder="https://…" value={thumb} onChange={e => setThumb(e.target.value)} />
+          <div className="fg">
+            <label className="fl">Thumbnail URL</label>
+            <input className="fi" placeholder="https://..." value={thumb} onChange={e=>setThumb(e.target.value)} />
           </div>
-          <div className="fg"><label className="fl">Platform</label>
-            {!newCo ? (
-              <div style={{ display: 'flex', gap: 7 }}>
-                <select className="fsel" style={{ flex: 1 }} value={coId} onChange={e => setCoId(e.target.value)}>
+          <div className="fg">
+            <label className="fl">Platform / Company</label>
+            {!addingCo ? (
+              <div style={{display:'flex',gap:8}}>
+                <select className="fsel" style={{flex:1}} value={coId} onChange={e=>setCoId(e.target.value)}>
                   <option value="">— None —</option>
                   {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                {coId && <button className="btn btn-d btn-sm" onClick={delCo}>🗑️</button>}
-                <button className="btn btn-s btn-sm" onClick={() => setNewCo(true)}>+ New</button>
+                {coId && <button className="btn btn-d btn-sm" onClick={deletePlatform}>🗑️</button>}
+                <button className="btn btn-s btn-sm" onClick={() => setAddingCo(true)}>+ New</button>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7, padding: 12, background: 'var(--bg2)', borderRadius: 8, border: '1px solid var(--bd)' }}>
-                <input className="fi" placeholder="Platform name *" value={nName} onChange={e => setNName(e.target.value)} autoFocus />
-                <input className="fi" placeholder="Website URL (for auto favicon)" value={nUrl} onChange={e => setNUrl(e.target.value)} />
-                <input className="fi" placeholder="Custom icon URL (optional)" value={nIcon} onChange={e => setNIcon(e.target.value)} />
-                <div style={{ display: 'flex', gap: 7 }}>
-                  <button className="btn btn-p btn-sm" onClick={addCo} disabled={!nName.trim()}>Add Platform</button>
-                  <button className="btn btn-s btn-sm" onClick={() => setNewCo(false)}>Cancel</button>
+              <div style={{display:'flex',flexDirection:'column',gap:8,padding:12,background:'var(--bg2)',borderRadius:8,border:'1px solid var(--bdl)'}}>
+                <input className="fi" placeholder="Platform name *" value={newName} onChange={e=>setNewName(e.target.value)} autoFocus />
+                <input className="fi" placeholder="Website URL (for auto favicon)" value={newUrl} onChange={e=>setNewUrl(e.target.value)} />
+                <input className="fi" placeholder="Custom icon URL (optional)" value={newIcon} onChange={e=>setNewIcon(e.target.value)} />
+                <div style={{display:'flex',gap:8}}>
+                  <button className="btn btn-p btn-sm" onClick={addPlatform} disabled={!newName.trim()}>Add Platform</button>
+                  <button className="btn btn-s btn-sm" onClick={() => setAddingCo(false)}>Cancel</button>
                 </div>
               </div>
             )}
           </div>
-          <div className="fg"><label className="fl">Description</label>
-            <textarea className="fta" placeholder="Brief overview…" value={desc} onChange={e => setDesc(e.target.value)} />
+          <div className="fg">
+            <label className="fl">Description (optional)</label>
+            <textarea className="fta" placeholder="Brief overview…" value={desc} onChange={e=>setDesc(e.target.value)} />
           </div>
         </div>
-        <div className="modal-foot">
+        <div className="mf">
           <button className="btn btn-s" onClick={onClose}>Cancel</button>
-          <button className="btn btn-p" onClick={save} disabled={!title.trim()}>{editing ? 'Save Changes' : 'Add Course'}</button>
+          <button className="btn btn-p" onClick={save} disabled={!title.trim()}>{editCourse ? 'Save Changes' : 'Add Course'}</button>
         </div>
       </div>
     </div>
   );
 }
 
+// ─────────────────────────────────────────────
+// ChapterModal
+// ─────────────────────────────────────────────
 function ChapterModal({ chapter, onClose, onSave }) {
-  const norm = a => (a || []).map(x => typeof x === 'string' ? { label: x, url: x } : x);
-  const normF = a => (a || []).map(x => typeof x === 'string' ? { name: x, url: '' } : x);
+  const toLinks = a => (a || []).map(l => typeof l === 'string' ? {label:l,url:l} : l);
+  const toFiles = a => (a || []).map(f => typeof f === 'string' ? {name:f,url:''} : f);
 
-  const [name,  setName]  = useState(chapter?.name || '');
-  const [mod,   setMod]   = useState(chapter?.module || '');
-  const [type,  setType]  = useState(chapter?.type || 'video');
-  const [dur,   setDur]   = useState(chapter?.duration || '');
-  const [vUrl,  setVUrl]  = useState(chapter?.videoUrl || '');
-  const [desc,  setDesc]  = useState(chapter?.description || '');
-  const [links, setLinks] = useState(norm(chapter?.links));
-  const [files, setFiles] = useState(normF(chapter?.files));
-  const [tab,   setTab]   = useState('basic');
+  const [name,     setName]     = useState(chapter?.name || '');
+  const [module,   setModule]   = useState(chapter?.module || '');
+  const [type,     setType]     = useState(chapter?.type || 'video');
+  const [duration, setDuration] = useState(chapter?.duration || '');
+  const [videoUrl, setVideoUrl] = useState(chapter?.videoUrl || '');
+  const [desc,     setDesc]     = useState(chapter?.description || '');
+  const [links,    setLinks]    = useState(toLinks(chapter?.links));
+  const [files,    setFiles]    = useState(toFiles(chapter?.files));
+  const [tab,      setTab]      = useState('basic');
 
-  const save = () => { if (!name.trim()) return; onSave({ name: name.trim(), module: mod, type, duration: dur, videoUrl: vUrl.trim(), description: desc, links, files }); };
-  const upd  = (arr, setFn, i, k, v) => { const a = [...arr]; a[i] = { ...a[i], [k]: v }; setFn(a); };
+  const save = () => {
+    if (!name.trim()) return;
+    onSave({ name: name.trim(), module, type, duration, videoUrl: videoUrl.trim(), description: desc, links, files });
+  };
+
+  const updLink = (i, field, val) => setLinks(p => { const u=[...p]; u[i]={...u[i],[field]:val}; return u; });
+  const updFile = (i, field, val) => setFiles(p => { const u=[...p]; u[i]={...u[i],[field]:val}; return u; });
 
   return (
-    <div className="overlay" style={{ zIndex: 1100 }} onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal" style={{ maxWidth: 580 }}>
-        <div className="modal-hd"><span className="modal-title">{chapter?.id ? 'Edit Chapter' : 'Add Chapter'}</span><button className="xb" onClick={onClose}>×</button></div>
-        <div className="modal-body">
+    <div className="mbk" style={{zIndex:1100}} onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="mo" style={{maxWidth:600}}>
+        <div className="mh">
+          <span className="mt">{chapter?.id ? 'Edit Chapter' : 'Add Chapter'}</span>
+          <button className="xb" onClick={onClose}>×</button>
+        </div>
+        <div className="mb">
           <div className="tabs">
-            {['basic', 'content', 'files'].map(t => <button key={t} className={`tab ${tab === t ? 'on' : ''}`} onClick={() => setTab(t)}>{t[0].toUpperCase() + t.slice(1)}</button>)}
+            {['basic','content','files'].map(t =>
+              <button key={t} className={`tabk ${tab===t?'on':''}`} onClick={()=>setTab(t)}>
+                {t[0].toUpperCase()+t.slice(1)}
+              </button>
+            )}
           </div>
 
           {tab === 'basic' && <>
-            <div className="fg"><label className="fl">Chapter Name *</label>
-              <input className="fi" placeholder="e.g. Introduction to Variables" value={name} onChange={e => setName(e.target.value)} autoFocus />
+            <div className="fg">
+              <label className="fl">Chapter Name *</label>
+              <input className="fi" placeholder="e.g. Introduction to Variables" value={name} onChange={e=>setName(e.target.value)} autoFocus />
             </div>
-            <div className="fg"><label className="fl">Module / Section</label>
-              <input className="fi" placeholder="e.g. Module 1: Foundations" value={mod} onChange={e => setMod(e.target.value)} />
-              <span className="fi-hint">A heading appears when the module name changes. Leave blank for none.</span>
+            <div className="fg">
+              <label className="fl">Module / Section</label>
+              <input className="fi" placeholder="e.g. Module 1: Foundations" value={module} onChange={e=>setModule(e.target.value)} />
+              <span style={{fontSize:11,color:'var(--tm)'}}>A header shows above chapters when the module name changes. Leave blank for none.</span>
             </div>
-            <div className="fg"><label className="fl">Type</label>
-              <div style={{ display: 'flex', gap: 7 }}>
-                {['video', 'text'].map(t => <button key={t} className={`btn ${type === t ? 'btn-p' : 'btn-s'}`} style={{ flex: 1 }} onClick={() => setType(t)}>{t === 'video' ? '📹 Video' : '📝 Text'}</button>)}
+            <div className="fg">
+              <label className="fl">Chapter Type</label>
+              <div style={{display:'flex',gap:8}}>
+                {['video','text'].map(t =>
+                  <button key={t} className={`btn ${type===t?'btn-p':'btn-s'}`} style={{flex:1}} onClick={()=>setType(t)}>
+                    {t === 'video' ? '📹 Video' : '📝 Text Only'}
+                  </button>
+                )}
               </div>
             </div>
-            <div className="fg"><label className="fl">Duration (optional)</label>
-              <input className="fi" placeholder="e.g. 6:30 or 15 min" value={dur} onChange={e => setDur(e.target.value)} />
+            <div className="fg">
+              <label className="fl">Duration (optional)</label>
+              <input className="fi" placeholder="e.g. 6:30 or 15 min" value={duration} onChange={e=>setDuration(e.target.value)} />
             </div>
           </>}
 
           {tab === 'content' && <>
             {type === 'video' && (
-              <div className="fg"><label className="fl">Video URL</label>
-                <input className="fi" placeholder="YouTube, Vimeo, Wistia, Google Drive, or any embed URL" value={vUrl} onChange={e => setVUrl(e.target.value)} />
-                <span className="fi-hint">Google Drive files must be shared as "Anyone with the link".</span>
+              <div className="fg">
+                <label className="fl">Video URL</label>
+                <input className="fi" placeholder="YouTube, Vimeo, Wistia, Google Drive, or any embed URL" value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} />
+                <span style={{fontSize:11,color:'var(--tm)'}}>YouTube, Vimeo, Wistia, or any embed URL. For Google Drive, the file must be shared as "Anyone with the link".</span>
               </div>
             )}
-            <div className="fg"><label className="fl">Description / Notes</label>
-              <textarea className="fta" style={{ minHeight: 120 }} placeholder="Key points, code snippets, notes…" value={desc} onChange={e => setDesc(e.target.value)} />
+            <div className="fg">
+              <label className="fl">Description / Notes</label>
+              <textarea className="fta" style={{minHeight:120}} placeholder="Chapter notes, key points, code snippets…" value={desc} onChange={e=>setDesc(e.target.value)} />
             </div>
-            <div className="fg"><label className="fl">Links</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                {links.map((l, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <input className="fi" placeholder="Label" value={l.label || ''} onChange={e => upd(links, setLinks, i, 'label', e.target.value)} />
-                    <input className="fi" placeholder="https://…" value={l.url || ''} onChange={e => upd(links, setLinks, i, 'url', e.target.value)} />
-                    <button className="btn btn-d btn-sm" onClick={() => setLinks(p => p.filter((_, x) => x !== i))}>×</button>
+            <div className="fg">
+              <label className="fl">Links</label>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {links.map((l,i) => (
+                  <div key={i} style={{display:'flex',gap:6,alignItems:'center'}}>
+                    <input className="fi" placeholder="Label" value={l.label||''} onChange={e=>updLink(i,'label',e.target.value)} />
+                    <input className="fi" placeholder="https://…" value={l.url||''} onChange={e=>updLink(i,'url',e.target.value)} />
+                    <button className="btn btn-d btn-sm" onClick={()=>setLinks(p=>p.filter((_,x)=>x!==i))}>×</button>
                   </div>
                 ))}
-                <button className="btn btn-s btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => setLinks(p => [...p, { label: '', url: '' }])}>+ Add Link</button>
+                <button className="btn btn-s btn-sm" style={{alignSelf:'flex-start'}} onClick={()=>setLinks(p=>[...p,{label:'',url:''}])}>+ Add Link</button>
               </div>
             </div>
           </>}
 
           {tab === 'files' && (
-            <div className="fg"><label className="fl">Files</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                {files.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <input className="fi" placeholder="File name" value={f.name || ''} onChange={e => upd(files, setFiles, i, 'name', e.target.value)} />
-                    <input className="fi" placeholder="https://…" value={f.url || ''} onChange={e => upd(files, setFiles, i, 'url', e.target.value)} />
-                    <button className="btn btn-d btn-sm" onClick={() => setFiles(p => p.filter((_, x) => x !== i))}>×</button>
+            <div className="fg">
+              <label className="fl">Files</label>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {files.map((f,i) => (
+                  <div key={i} style={{display:'flex',gap:6,alignItems:'center'}}>
+                    <input className="fi" placeholder="File name" value={f.name||''} onChange={e=>updFile(i,'name',e.target.value)} />
+                    <input className="fi" placeholder="https://…" value={f.url||''} onChange={e=>updFile(i,'url',e.target.value)} />
+                    <button className="btn btn-d btn-sm" onClick={()=>setFiles(p=>p.filter((_,x)=>x!==i))}>×</button>
                   </div>
                 ))}
-                <button className="btn btn-s btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => setFiles(p => [...p, { name: '', url: '' }])}>+ Add File</button>
+                <button className="btn btn-s btn-sm" style={{alignSelf:'flex-start'}} onClick={()=>setFiles(p=>[...p,{name:'',url:''}])}>+ Add File</button>
               </div>
             </div>
           )}
         </div>
-        <div className="modal-foot">
+        <div className="mf">
           <button className="btn btn-s" onClick={onClose}>Cancel</button>
           <button className="btn btn-p" onClick={save} disabled={!name.trim()}>Save Chapter</button>
         </div>
@@ -894,239 +848,92 @@ function ChapterModal({ chapter, onClose, onSave }) {
   );
 }
 
+// ─────────────────────────────────────────────
+// ImportModal
+// ─────────────────────────────────────────────
 function ImportModal({ data, onClose, onImport }) {
-  const [err, setErr]   = useState('');
-  const [fname, setFname] = useState('');
+  const [err,  setErr]  = useState('');
+  const [file, setFile] = useState('');
 
   const process = raw => {
     try {
       const p = JSON.parse(raw);
       if (!p.courses || !p.companies) { setErr('Invalid format: missing courses or companies.'); return; }
-
-      const nameToId = Object.fromEntries(data.companies.map(c => [c.name.toLowerCase(), c.id]));
-      const remap = {};
-      const newCos = [];
+      const existingNameMap = Object.fromEntries(data.companies.map(c => [c.name.toLowerCase(), c.id]));
+      const idRemap = {};
+      const newCompanies = [];
       p.companies.forEach(ic => {
-        const existing = nameToId[ic.name.toLowerCase()];
-        if (existing) { remap[ic.id] = existing; }
-        else { newCos.push(ic); nameToId[ic.name.toLowerCase()] = ic.id; }
+        const existingId = existingNameMap[ic.name.toLowerCase()];
+        if (existingId) { idRemap[ic.id] = existingId; }
+        else { newCompanies.push(ic); existingNameMap[ic.name.toLowerCase()] = ic.id; }
       });
-
-      const remapped = p.courses.map(c => ({ ...c, companyId: remap[c.companyId] || c.companyId }));
-      let newCourses = 0, newChapters = 0;
-
-      const updated = data.courses.map(ex => {
+      const remapped = p.courses.map(c => ({ ...c, companyId: idRemap[c.companyId] || c.companyId }));
+      let newCourseCount = 0, newChapterCount = 0;
+      const updatedCourses = data.courses.map(existing => {
         const match = remapped.find(ic =>
-          ic.id === ex.id || (ic.title.toLowerCase() === ex.title.toLowerCase() && (ic.companyId || '') === (ex.companyId || ''))
+          ic.id === existing.id ||
+          (ic.title.toLowerCase() === existing.title.toLowerCase() && (ic.companyId||'') === (existing.companyId||''))
         );
-        if (!match) return ex;
-        const exIds   = new Set((ex.chapters || []).map(c => c.id));
-        const exNames = new Set((ex.chapters || []).map(c => c.name.toLowerCase()));
-        const add = (match.chapters || []).filter(c => !exIds.has(c.id) && !exNames.has(c.name.toLowerCase()));
-        newChapters += add.length;
-        return { ...ex, chapters: [...(ex.chapters || []), ...add] };
+        if (!match) return existing;
+        const existingIds   = new Set((existing.chapters||[]).map(ch => ch.id));
+        const existingNames = new Set((existing.chapters||[]).map(ch => ch.name.toLowerCase()));
+        const toAdd = (match.chapters||[]).filter(ch => !existingIds.has(ch.id) && !existingNames.has(ch.name.toLowerCase()));
+        newChapterCount += toAdd.length;
+        return { ...existing, chapters: [...(existing.chapters||[]), ...toAdd] };
       });
-
-      const brandNew = remapped.filter(ic => !data.courses.some(ec =>
-        ec.id === ic.id || (ic.title.toLowerCase() === ec.title.toLowerCase() && (ic.companyId || '') === (ec.companyId || ''))
-      ));
-      newCourses = brandNew.length;
-
+      const brandNew = remapped.filter(ic =>
+        !data.courses.some(ec =>
+          ec.id === ic.id ||
+          (ic.title.toLowerCase() === ec.title.toLowerCase() && (ic.companyId||'') === (ec.companyId||''))
+        )
+      );
+      newCourseCount = brandNew.length;
       const parts = [];
-      if (newCourses  > 0) parts.push(`${newCourses} new course${newCourses !== 1 ? 's' : ''}`);
-      if (newChapters > 0) parts.push(`${newChapters} new chapter${newChapters !== 1 ? 's' : ''}`);
-      const msg = parts.length ? `✓ Imported: ${parts.join(', ')}` : '✓ Nothing new to import';
-      onImport({ courses: [...updated, ...brandNew], companies: [...data.companies, ...newCos] }, msg);
+      if (newCourseCount  > 0) parts.push(`${newCourseCount} new course${newCourseCount!==1?'s':''}`);
+      if (newChapterCount > 0) parts.push(`${newChapterCount} new chapter${newChapterCount!==1?'s':''}`);
+      const msg = parts.length > 0 ? `✓ Imported: ${parts.join(', ')}` : '✓ Nothing new to import';
+      onImport({ courses: [...updatedCourses, ...brandNew], companies: [...data.companies, ...newCompanies] }, msg);
     } catch { setErr('Could not parse file. Make sure it is a valid CourseFlow JSON backup.'); }
   };
 
-  const onFile = e => { const f = e.target.files[0]; if (!f) return; setFname(f.name); setErr(''); const r = new FileReader(); r.onload = ev => process(ev.target.result); r.readAsText(f); };
-  const onDrop = e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (!f) return; setFname(f.name); setErr(''); const r = new FileReader(); r.onload = ev => process(ev.target.result); r.readAsText(f); };
+  const onFileChange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    setFile(f.name); setErr('');
+    const r = new FileReader(); r.onload = ev => process(ev.target.result); r.readAsText(f);
+  };
+  const onDrop = e => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0]; if (!f) return;
+    setFile(f.name); setErr('');
+    const r = new FileReader(); r.onload = ev => process(ev.target.result); r.readAsText(f);
+  };
 
   return (
-    <div className="overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal">
-        <div className="modal-hd"><span className="modal-title">Import Backup</span><button className="xb" onClick={onClose}>×</button></div>
-        <div className="modal-body">
-          <div className="fg"><label className="fl">Upload JSON Backup</label>
-            <input id="imp-file" type="file" accept=".json" style={{ display: 'none' }} onChange={onFile} />
-            <label htmlFor="imp-file" onDrop={onDrop} onDragOver={e => e.preventDefault()}
-              style={{ border: '2px dashed var(--bd2)', borderRadius: 10, padding: '26px 20px', textAlign: 'center', cursor: 'pointer', display: 'block', transition: 'border-color .12s' }}>
-              <div style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 10 }}>📁 Drag & drop or click to choose</div>
+    <div className="mbk" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="mo">
+        <div className="mh"><span className="mt">Import Backup</span><button className="xb" onClick={onClose}>×</button></div>
+        <div className="mb">
+          <div className="fg">
+            <label className="fl">Upload JSON Backup</label>
+            <input id="imp-file" type="file" accept=".json" style={{display:'none'}} onChange={onFileChange} />
+            <label htmlFor="imp-file" onDrop={onDrop} onDragOver={e=>e.preventDefault()}
+              style={{border:'2px dashed var(--bdl)',borderRadius:10,padding:24,textAlign:'center',cursor:'pointer',display:'block'}}>
+              <div style={{marginBottom:10,fontSize:13,color:'var(--t2)'}}>📁 Drag & drop or click to choose</div>
               <span className="btn btn-s btn-sm">Choose File</span>
-              {fname && <div style={{ marginTop: 10, fontSize: 12, color: 'var(--ac)' }}>📎 {fname}</div>}
+              {file && <div style={{marginTop:10,fontSize:12,color:'var(--ac)'}}>{file}</div>}
             </label>
           </div>
-          {err && <div style={{ color: 'var(--red)', fontSize: 13, background: 'rgba(245,101,101,.08)', padding: '9px 12px', borderRadius: 8, border: '1px solid rgba(245,101,101,.2)' }}>{err}</div>}
+          {err && <div style={{color:'var(--red)',fontSize:13}}>{err}</div>}
         </div>
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════
-// HOME PAGE
-// ══════════════════════════════════════════════
-function HomePage({ data, onUpdate, onOpenCourse, filterCo, setFilterCo, resumeMap, triggerAdd, setTriggerAdd, triggerImport, setTriggerImport }) {
-  const [showModal, setShowModal] = useState(false);
-  const [editing,   setEditing]   = useState(null);
-  const [showImp,   setShowImp]   = useState(false);
-  const [search,    setSearch]    = useState('');
-  const [sortBy,    setSortBy]    = useState('recent');
-  const [menuOpen,  setMenuOpen]  = useState(null);
-  const [toast,     setToast]     = useState('');
-
-  useEffect(() => { if (triggerAdd) { setEditing(null); setShowModal(true); setTriggerAdd(false); } }, [triggerAdd]);
-  useEffect(() => { if (triggerImport) { setShowImp(true); setTriggerImport(false); } }, [triggerImport]);
-  useEffect(() => {
-    const h = e => { if (!e.target.closest('.card-menu-btn')) setMenuOpen(null); };
-    window.addEventListener('click', h);
-    return () => window.removeEventListener('click', h);
-  }, []);
-
-  const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 2800); };
-
-  const { companies, courses } = data;
-  const coMap = useMemo(() => Object.fromEntries(companies.map(c => [c.id, c])), [companies]);
-  const visibleCos = useMemo(() => companies.filter(co => courses.some(c => c.companyId === co.id)), [companies, courses]);
-
-  const displayed = useMemo(() => {
-    const q = search.toLowerCase();
-    let list = courses.filter(c => {
-      const matchCo = filterCo === 'all' || c.companyId === filterCo;
-      const matchQ  = !q || c.title.toLowerCase().includes(q);
-      return matchCo && matchQ;
-    });
-    if (sortBy === 'az')     list = [...list].sort((a, b) => a.title.localeCompare(b.title));
-    if (sortBy === 'done')   list = list.filter(c => pct(c) === 100);
-    if (sortBy === 'recent') list = [...list].sort((a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0));
-    return list;
-  }, [courses, filterCo, search, sortBy]);
-
-  const handleModal = (type, payload) => {
-    if (type === 'addco') { onUpdate({ ...data, companies: [...companies, payload] }); return; }
-    if (type === 'delco') { onUpdate({ ...data, companies: companies.filter(c => c.id !== payload) }); return; }
-    if (type === 'course') {
-      const crs = editing
-        ? courses.map(c => c.id === editing.id ? { ...c, ...payload } : c)
-        : [...courses, { id: uid(), ...payload, chapters: [], createdAt: Date.now() }];
-      onUpdate({ ...data, courses: crs });
-      setShowModal(false); setEditing(null);
-    }
-  };
-
-  const deleteCourse = (id, e) => {
-    e.stopPropagation();
-    const c = courses.find(x => x.id === id);
-    if (!confirm(`Delete "${c?.title}"? This cannot be undone.`)) return;
-    const remaining = courses.filter(x => x.id !== id);
-    const usedCos   = new Set(remaining.map(x => x.companyId).filter(Boolean));
-    onUpdate({ ...data, courses: remaining, companies: companies.filter(co => usedCos.has(co.id)) });
-    setMenuOpen(null);
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div className="topbar">
-        <span className="topbar-title">Course<span>Flow</span></span>
-        <div className="si-wrap" style={{ flex: 1, maxWidth: 240 }}>
-          <span className="si-ico">🔍</span>
-          <input className="fi si" placeholder="Search courses…" value={search} onChange={e => setSearch(e.target.value)} style={{ height: 34 }} />
-        </div>
-        <button className="btn btn-s btn-sm desktop-only" onClick={() => setShowImp(true)}>📥 Import</button>
-        <button className="btn btn-s btn-sm desktop-only" onClick={() => downloadJson({ companies, courses }, `courseflow-${new Date().toISOString().slice(0, 10)}.json`) || showToast('✓ Backup downloaded')}>💾 Export</button>
-        <button className="btn btn-p desktop-only" onClick={() => { setEditing(null); setShowModal(true); }}>+ Add Course</button>
-      </div>
-
-      <div className="content">
-        {visibleCos.length > 0 && (
-          <div className="chips">
-            <div className={`chip ${filterCo === 'all' ? 'on' : ''}`} onClick={() => setFilterCo('all')}>⬡ All ({courses.length})</div>
-            {visibleCos.map(co => (
-              <div key={co.id} className={`chip ${filterCo === co.id ? 'on' : ''}`} onClick={() => setFilterCo(filterCo === co.id ? 'all' : co.id)}>
-                <CoIcon co={co} size={14} /> {co.name} ({courses.filter(c => c.companyId === co.id).length})
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="sh">
-          <div>
-            <span className="sh-title">{filterCo === 'all' ? 'All Courses' : (coMap[filterCo]?.name || 'Courses')}</span>
-            <span className="sh-count">{displayed.length} course{displayed.length !== 1 ? 's' : ''}</span>
-          </div>
-          <div className="sort-row">
-            {SORTS.map(s => <button key={s.k} className={`sk ${sortBy === s.k ? 'on' : ''}`} onClick={() => setSortBy(s.k)}>{s.l}</button>)}
-          </div>
-        </div>
-
-        {displayed.length === 0 ? (
-          <div className="empty">
-            <div className="empty-ico">📚</div>
-            <div className="empty-title">{courses.length === 0 ? 'No courses yet' : 'No courses found'}</div>
-            <div className="empty-sub">{courses.length === 0 ? 'Start by adding your first course.' : 'Try adjusting your search or filter.'}</div>
-            {courses.length === 0 && <button className="btn btn-p" onClick={() => setShowModal(true)}>Add Your First Course</button>}
-          </div>
-        ) : (
-          <div className="grid">
-            {displayed.map((course, i) => {
-              const co       = coMap[course.companyId];
-              const chs      = course.chapters || [];
-              const rIdx     = resumeMap[course.id] ?? 0;
-              const hasResume = Object.prototype.hasOwnProperty.call(resumeMap, course.id);
-              const resumeName = chs[rIdx]?.name;
-              return (
-                <div key={course.id} className="card" onClick={() => onOpenCourse(course.id)}>
-                  <div className="card-menu-btn" onClick={e => e.stopPropagation()}>
-                    <div className="ib" style={{ fontSize: 10, letterSpacing: 2 }} onClick={() => setMenuOpen(menuOpen === course.id ? null : course.id)}>•••</div>
-                    {menuOpen === course.id && (
-                      <div className="card-dropdown">
-                        <div className="card-ddi" onClick={() => { setEditing(course); setShowModal(true); setMenuOpen(null); }}>✏️ Edit</div>
-                        <div className="card-ddi danger" onClick={e => deleteCourse(course.id, e)}>🗑️ Delete</div>
-                      </div>
-                    )}
-                  </div>
-                  {course.thumbnail ? (
-                    <div className="card-thumb">
-                      <img src={course.thumbnail} alt={course.title} loading="lazy"
-                        onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
-                      <div style={{ display: 'none' }} className={`card-ph g${i % 6}`}>📖</div>
-                      {co        && <div className="card-badge"><CoIcon co={co} size={18} /></div>}
-                      {hasResume && <div className="card-resume">▶ Resume</div>}
-                    </div>
-                  ) : (
-                    <div className={`card-ph g${i % 6}`}>
-                      <span>📖</span>
-                      {co        && <div className="card-badge"><CoIcon co={co} size={18} /></div>}
-                      {hasResume && <div className="card-resume">▶ Resume</div>}
-                    </div>
-                  )}
-                  <div className="card-body">
-                    <div className="card-name">{course.title}</div>
-                    {hasResume && resumeName
-                      ? <div className="card-desc" style={{ color: 'var(--ac)', opacity: .85 }}>▶ Continue: {resumeName}</div>
-                      : course.description && <div className="card-desc">{course.description}</div>
-                    }
-                    <ProgBar done={chs.filter(c => c.completed).length} total={chs.length} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {showModal && <CourseModal companies={companies} courses={courses} editing={editing} onClose={() => { setShowModal(false); setEditing(null); }} onSave={handleModal} />}
-      {showImp    && <ImportModal data={data} onClose={() => setShowImp(false)} onImport={(d, msg) => { onUpdate(d); setShowImp(false); showToast(msg); }} />}
-      <Toast msg={toast} />
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════
-// NOTES PAGE
-// ══════════════════════════════════════════════
-function NotesPage({ data, onOpenCourse }) {
+// ─────────────────────────────────────────────
+// GlobalNotesPage
+// ─────────────────────────────────────────────
+function GlobalNotesPage({ data, onOpenCourse }) {
   const [search, setSearch] = useState('');
   const q = search.trim().toLowerCase();
 
@@ -1137,38 +944,43 @@ function NotesPage({ data, onOpenCourse }) {
         if (ch.notes?.trim()) all.push({ course, chapter: ch, idx });
       });
     });
-    return { all, filtered: q ? all.filter(n => n.chapter.notes.toLowerCase().includes(q) || n.chapter.name.toLowerCase().includes(q) || n.course.title.toLowerCase().includes(q)) : all };
+    const filtered = q ? all.filter(n =>
+      n.chapter.notes.toLowerCase().includes(q) ||
+      n.chapter.name.toLowerCase().includes(q)  ||
+      n.course.title.toLowerCase().includes(q)
+    ) : all;
+    return { all, filtered };
   }, [data.courses, q]);
 
-  const hl = txt => {
-    if (!q) return txt;
-    const lo = txt.toLowerCase(), i = lo.indexOf(q);
-    if (i < 0) return txt;
-    return <>{txt.slice(0, i)}<mark>{txt.slice(i, i + q.length)}</mark>{txt.slice(i + q.length)}</>;
+  const hl = text => {
+    if (!q) return text;
+    const lo = text.toLowerCase(), i = lo.indexOf(q);
+    if (i < 0) return text;
+    return <>{text.slice(0,i)}<mark>{text.slice(i,i+q.length)}</mark>{text.slice(i+q.length)}</>;
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
       <div className="topbar">
         <span className="topbar-title">📓 <span>My Notes</span></span>
-        <div className="si-wrap" style={{ flex: 1, maxWidth: 240 }}>
+        <div className="si-wrap">
           <span className="si-ico">🔍</span>
-          <input className="fi si" placeholder="Search notes…" value={search} onChange={e => setSearch(e.target.value)} style={{ height: 34 }} />
+          <input className="fi si" placeholder="Search notes…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220}} />
         </div>
       </div>
       <div className="content">
         {all.length === 0
-          ? <div className="empty"><div className="empty-ico">📓</div><div className="empty-title">No notes yet</div><div className="empty-sub">Open any course chapter and start writing — all notes appear here.</div></div>
+          ? <div className="es"><div className="es-ico">📓</div><div className="es-t">No notes yet</div><div className="es-s">Open any course chapter and write notes — they'll all appear here.</div></div>
           : filtered.length === 0
-            ? <div className="empty"><div className="empty-ico">🔍</div><div className="empty-title">No matches</div><div className="empty-sub">No notes match "{search}".</div></div>
+            ? <div className="es"><div className="es-ico">🔍</div><div className="es-t">No matches</div><div className="es-s">No notes match "{search}".</div></div>
             : <>
-                <div style={{ marginBottom: 14, fontSize: 12.5, color: 'var(--t3)' }}>{filtered.length} note{filtered.length !== 1 ? 's' : ''}{q ? ` matching "${search}"` : ''} — click to jump</div>
-                <div className="notes-grid">
+                <div style={{marginBottom:16,fontSize:13,color:'var(--tm)'}}>{filtered.length} note{filtered.length!==1?'s':''}{q?` matching "${search}"`:''} — click to jump</div>
+                <div className="ngl">
                   {filtered.map(({ course, chapter, idx }) => (
-                    <div key={`${course.id}-${idx}`} className="note-card" onClick={() => onOpenCourse(course.id, idx, true)}>
-                      <div className="note-co">{course.title}</div>
-                      <div className="note-ch">Ch.{idx + 1} — {chapter.name}</div>
-                      <div className="note-preview">{hl(chapter.notes)}</div>
+                    <div key={`${course.id}-${idx}`} className="nc" onClick={() => onOpenCourse(course.id, idx, true)}>
+                      <div className="nc-co">{course.title}</div>
+                      <div className="nc-ch">Ch.{idx+1} — {chapter.name}</div>
+                      <div className="nc-pv">{hl(chapter.notes)}</div>
                     </div>
                   ))}
                 </div>
@@ -1179,592 +991,844 @@ function NotesPage({ data, onOpenCourse }) {
   );
 }
 
-// ══════════════════════════════════════════════
-// COURSE PAGE
-// ══════════════════════════════════════════════
-function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdate, mobileChaptersOpen, setMobileChaptersOpen, mobileNotesOpen, setMobileNotesOpen, initIdx, onIdxChange }) {
+// ─────────────────────────────────────────────
+// HomePage
+// ─────────────────────────────────────────────
+function HomePage({ data, onUpdate, onOpenCourse, filterCompany, setFilterCompany, resumeMap, triggerImport, setTriggerImport, triggerAdd, setTriggerAdd }) {
+  const [showAdd,    setShowAdd]    = useState(false);
+  const [editCourse, setEditCourse] = useState(null);
+  const [showImport, setShowImport] = useState(false);
+  const [search,     setSearch]     = useState('');
+  const [sortBy,     setSortBy]     = useState('recent');
+  const [menuOpen,   setMenuOpen]   = useState(null);
+  const [toast,      setToast]      = useState('');
+
+  const showToast = useCallback(msg => { setToast(msg); setTimeout(() => setToast(''), 2800); }, []);
+
+  useEffect(() => { if (triggerImport) { setShowImport(true); setTriggerImport(false); } }, [triggerImport]);
+  useEffect(() => { if (triggerAdd)    { setEditCourse(null); setShowAdd(true); setTriggerAdd(false); } }, [triggerAdd]);
+
+  useEffect(() => {
+    const h = e => { if (!e.target.closest('.card-menu')) setMenuOpen(null); };
+    window.addEventListener('click', h);
+    return () => window.removeEventListener('click', h);
+  }, []);
+
+  const { companies, courses } = data;
+  const coMap = useMemo(() => Object.fromEntries(companies.map(c => [c.id, c])), [companies]);
+  const visibleCos = useMemo(() => companies.filter(co => courses.some(c => c.companyId === co.id)), [companies, courses]);
+
+  const displayed = useMemo(() => {
+    const sq = search.toLowerCase();
+    let list = courses.filter(c => {
+      const matchCo = filterCompany === 'all' || c.companyId === filterCompany;
+      const matchQ  = !sq || c.title.toLowerCase().includes(sq);
+      return matchCo && matchQ;
+    });
+    if (sortBy === 'az')       list = [...list].sort((a,b) => a.title.localeCompare(b.title));
+    if (sortBy === 'progress') list = list.filter(c => pct(c) === 100);
+    if (sortBy === 'recent')   list = [...list].sort((a,b) => (b.lastAccessed||0) - (a.lastAccessed||0));
+    return list;
+  }, [courses, filterCompany, search, sortBy]);
+
+  const handleSaveCourse = useCallback((courseData, addCompany, deleteCompanyId, selectCompanyId) => {
+    let { companies: cos, courses: crs } = data;
+    if (deleteCompanyId) { cos = cos.filter(c => c.id !== deleteCompanyId); onUpdate({ ...data, companies: cos }); return; }
+    if (addCompany) { cos = [...cos, addCompany]; onUpdate({ ...data, companies: cos }); return; }
+    if (courseData) {
+      crs = editCourse
+        ? crs.map(c => c.id === editCourse.id ? { ...c, ...courseData } : c)
+        : [...crs, { id: uid(), ...courseData, chapters: [], createdAt: Date.now() }];
+      onUpdate({ ...data, courses: crs, companies: cos });
+      setShowAdd(false); setEditCourse(null);
+    }
+  }, [data, editCourse, onUpdate]);
+
+  const deleteCourse = useCallback((id, e) => {
+    e.stopPropagation();
+    const c = data.courses.find(x => x.id === id);
+    if (!confirm(`Delete "${c?.title}"? This cannot be undone.`)) return;
+    const remaining = data.courses.filter(x => x.id !== id);
+    const usedCos   = new Set(remaining.map(x => x.companyId).filter(Boolean));
+    onUpdate({ ...data, courses: remaining, companies: data.companies.filter(co => usedCos.has(co.id)) });
+  }, [data, onUpdate]);
+
+  const doExport = useCallback(() => {
+    downloadJson({ companies, courses }, `courseflow-backup-${new Date().toISOString().slice(0,10)}.json`);
+    showToast('✓ Backup downloaded');
+  }, [companies, courses]);
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
+      <div className="topbar">
+        <span className="topbar-title">Course<span>Flow</span></span>
+        <div className="si-wrap">
+          <span className="si-ico">🔍</span>
+          <input className="fi si" placeholder="Search courses…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:210}} />
+        </div>
+        <button className="btn btn-s btn-sm dsk" onClick={() => setShowImport(true)}>📥 Import</button>
+        <button className="btn btn-s btn-sm dsk" onClick={doExport}>💾 Export</button>
+        <button className="btn btn-p dsk" onClick={() => { setEditCourse(null); setShowAdd(true); }}>+ Add Course</button>
+      </div>
+
+      <div className="content">
+        {visibleCos.length > 0 && (
+          <div className="chips">
+            <div className={`chip ${filterCompany==='all'?'on':''}`} onClick={() => setFilterCompany('all')}>
+              ⬡ All ({courses.length})
+            </div>
+            {visibleCos.map(co => (
+              <div key={co.id} className={`chip ${filterCompany===co.id?'on':''}`}
+                onClick={() => setFilterCompany(filterCompany === co.id ? 'all' : co.id)}>
+                <CompanyIcon company={co} size={16} /> {co.name} ({courses.filter(c=>c.companyId===co.id).length})
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="sh">
+          <div>
+            <span className="st">{filterCompany==='all' ? 'All Courses' : (coMap[filterCompany]?.name || 'Courses')}</span>
+            <span className="sc">{displayed.length} course{displayed.length!==1?'s':''}</span>
+          </div>
+          <div className="sort-row">
+            {SORTS.map(s => (
+              <button key={s.k} className={`sk ${sortBy===s.k?'on':''}`} onClick={() => setSortBy(s.k)}>{s.l}</button>
+            ))}
+          </div>
+        </div>
+
+        {displayed.length === 0 ? (
+          <div className="es">
+            <div className="es-ico">📚</div>
+            <div className="es-t">{courses.length === 0 ? 'No courses yet' : 'No courses found'}</div>
+            <div className="es-s">{courses.length === 0 ? 'Start by adding your first course.' : 'Try adjusting your search or filter.'}</div>
+            {courses.length === 0 && <button className="btn btn-p" onClick={() => setShowAdd(true)}>Add Your First Course</button>}
+          </div>
+        ) : (
+          <div className="grid">
+            {displayed.map((course, i) => {
+              const company  = coMap[course.companyId];
+              const rIdx     = resumeMap[course.id] ?? 0;
+              const hasRes   = Object.prototype.hasOwnProperty.call(resumeMap, course.id);
+              const chapters = course.chapters || [];
+              const resumeName = chapters[rIdx]?.name;
+              return (
+                <div key={course.id} className="card" onClick={() => onOpenCourse(course.id)}>
+                  <div className="card-menu" style={{position:'absolute',top:8,left:8,zIndex:50}} onClick={e => e.stopPropagation()}>
+                    <div className="ib" style={{fontSize:10,letterSpacing:2}} onClick={() => setMenuOpen(menuOpen === course.id ? null : course.id)}>•••</div>
+                    {menuOpen === course.id && (
+                      <div style={{position:'absolute',top:34,left:0,background:'var(--bgc)',border:'1px solid var(--bdl)',borderRadius:10,padding:6,display:'flex',flexDirection:'column',gap:4,minWidth:130,boxShadow:'0 10px 30px rgba(0,0,0,.5)',zIndex:100}}>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,fontSize:13}} onClick={() => { setEditCourse(course); setShowAdd(true); setMenuOpen(null); }}>✏️ Edit</div>
+                        <div style={{padding:'6px 10px',cursor:'pointer',borderRadius:6,color:'var(--red)',fontSize:13}} onClick={e => { deleteCourse(course.id, e); setMenuOpen(null); }}>🗑️ Delete</div>
+                      </div>
+                    )}
+                  </div>
+                  {course.thumbnail ? (
+                    <div className="c-thumb">
+                      <img src={course.thumbnail} alt={course.title} loading="lazy"
+                        onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                      <div style={{display:'none'}} className={`c-ph g${i%6}`}>📖</div>
+                      {company && <div className="c-badge"><CompanyIcon company={company} size={18} /></div>}
+                      {hasRes  && <div className="c-resume">▶ Resume</div>}
+                    </div>
+                  ) : (
+                    <div className={`c-ph g${i%6}`}>
+                      <span>📖</span>
+                      {company && <div className="c-badge"><CompanyIcon company={company} size={18} /></div>}
+                      {hasRes  && <div className="c-resume">▶ Resume</div>}
+                    </div>
+                  )}
+                  <div className="c-body">
+                    <div className="c-name">{course.title}</div>
+                    {hasRes && resumeName
+                      ? <div className="c-desc" style={{color:'var(--ac)',opacity:.9}}>▶ Continue: {resumeName}</div>
+                      : course.description && <div className="c-desc">{course.description}</div>
+                    }
+                    <ProgBar done={chapters.filter(c=>c.completed).length} total={chapters.length} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {showAdd && (
+        <AddCourseModal companies={companies} courses={courses} editCourse={editCourse}
+          onClose={() => { setShowAdd(false); setEditCourse(null); }}
+          onSave={handleSaveCourse} />
+      )}
+      {showImport && (
+        <ImportModal data={data} onClose={() => setShowImport(false)}
+          onImport={(newData, msg) => { onUpdate(newData); setShowImport(false); showToast(msg); }} />
+      )}
+      <Toast msg={toast} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// CoursePage
+// ─────────────────────────────────────────────
+function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdate, mobileNotesOpen, setMobileNotesOpen, initChapterIdx, onChapterChange }) {
   const course  = useMemo(() => data.courses.find(c => c.id === courseId), [data.courses, courseId]);
-  const co      = useMemo(() => data.companies.find(c => c.id === course?.companyId), [data.companies, course?.companyId]);
+  const company = useMemo(() => data.companies.find(c => c.id === course?.companyId), [data.companies, course?.companyId]);
   const chapters = course?.chapters || [];
 
-  // We keep a ref to the latest data so callbacks don't capture stale closure
-  const dataRef = useRef(data);
-  useEffect(() => { dataRef.current = data; }, [data]);
+  const dataRef2 = useRef(data);
+  useEffect(() => { dataRef2.current = data; }, [data]);
 
-  const [activeIdx, setActiveIdx] = useState(initIdx ?? 0);
-  const [vKey,      setVKey]      = useState(0);
-  const [showNotes, setShowNotes] = useState(false);
-  const [showChMod, setShowChMod] = useState(false);
-  const [editIdx,   setEditIdx]   = useState(null);
-  const [noteLocal, setNoteLocal] = useState('');
-  const [noteSaved, setNoteSaved] = useState(false);
-  const [popAnim,   setPopAnim]   = useState(false);
-  const noteTimer  = useRef(null);
-  const notePersist = useRef(null);
+  const [activeIdx,  setActiveIdxRaw] = useState(initChapterIdx ?? 0);
+  const [videoKey,   setVideoKey]     = useState(0);
+  const [showNotes,  setShowNotes]    = useState(false);
+  const [showModal,  setShowModal]    = useState(false);
+  const [editIdx,    setEditIdx]      = useState(null);
+  const [noteSaved,  setNoteSaved]    = useState(false);
+  const [popAnim,    setPopAnim]      = useState(false);
+  const noteSaveTimer = useRef(null);
 
-  // Sync initIdx from parent (e.g. coming from notes page)
   useEffect(() => {
-    if (initIdx !== undefined && initIdx !== activeIdx) {
-      setActiveIdx(initIdx);
-      setVKey(k => k + 1);
+    if (initChapterIdx !== undefined && initChapterIdx !== activeIdx) {
+      setActiveIdxRaw(initChapterIdx);
+      setVideoKey(k => k + 1);
     }
-  }, [initIdx]);
-
-  // Keep noteLocal in sync with the current chapter's saved notes
-  useEffect(() => {
-    const ch = chapters[activeIdx];
-    setNoteLocal(ch?.notes || '');
-    setNoteSaved(false);
-  }, [courseId, activeIdx]);
+  }, [initChapterIdx]);
 
   if (!course) return null;
-
   const chapter   = chapters[activeIdx];
   const doneCount = chapters.filter(c => c.completed).length;
 
   const updateCourse = useCallback(updated => {
-    const next = { ...dataRef.current, courses: dataRef.current.courses.map(c => c.id === courseId ? updated : c) };
+    const next = { ...dataRef2.current, courses: dataRef2.current.courses.map(c => c.id === courseId ? updated : c) };
     onUpdate(next);
   }, [courseId, onUpdate]);
 
-  const goTo = useCallback(idx => {
-    setActiveIdx(idx);
-    setVKey(k => k + 1);
-    const nm = { ...resumeMap, [courseId]: idx };
-    onResumeUpdate(nm);
-    onIdxChange?.(idx);
-  }, [resumeMap, courseId, onResumeUpdate, onIdxChange]);
+  const goToChapter = useCallback(idx => {
+    setActiveIdxRaw(idx);
+    setVideoKey(k => k + 1);
+    const newMap = { ...resumeMap, [courseId]: idx };
+    onResumeUpdate(newMap);
+    onChapterChange?.(idx);
+  }, [resumeMap, courseId, onResumeUpdate, onChapterChange]);
 
-  const markDone = useCallback((force) => {
-    if (!chapter) return;
-    const will = force !== undefined ? force : !chapter.completed;
-    updateCourse({ ...course, chapters: chapters.map((c, i) => i === activeIdx ? { ...c, completed: will } : c) });
+  const markComplete = useCallback((force) => {
+    const will = force !== undefined ? force : !chapter?.completed;
+    updateCourse({ ...course, chapters: chapters.map((c,i) => i===activeIdx ? {...c,completed:will} : c) });
     if (will) { haptic('medium'); setPopAnim(true); setTimeout(() => setPopAnim(false), 400); }
-    else haptic();
+    else haptic('light');
   }, [chapter, chapters, activeIdx, course, updateCourse]);
 
-  // Notes: update local state immediately, debounce the actual save
-  const onNoteChange = useCallback(val => {
-    setNoteLocal(val);
+  const saveNote = useCallback(val => {
+    updateCourse({ ...course, chapters: chapters.map((c,i) => i===activeIdx ? {...c,notes:val} : c) });
     setNoteSaved(false);
-    clearTimeout(noteTimer.current);
-    noteTimer.current = setTimeout(() => {
-      const d = dataRef.current;
-      const c = d.courses.find(x => x.id === courseId);
-      if (!c) return;
-      const chs = c.chapters.map((ch, i) => i === activeIdx ? { ...ch, notes: val } : ch);
-      onUpdate({ ...d, courses: d.courses.map(x => x.id === courseId ? { ...c, chapters: chs } : x) });
-      setNoteSaved(true);
-      clearTimeout(notePersist.current);
-      notePersist.current = setTimeout(() => setNoteSaved(false), 2500);
-    }, 900);
-  }, [courseId, activeIdx, onUpdate]);
+    clearTimeout(noteSaveTimer.current);
+    noteSaveTimer.current = setTimeout(() => setNoteSaved(true), 500);
+  }, [chapters, activeIdx, course, updateCourse]);
 
-  useEffect(() => () => { clearTimeout(noteTimer.current); clearTimeout(notePersist.current); }, []);
+  useEffect(() => () => clearTimeout(noteSaveTimer.current), []);
 
   const saveChapter = useCallback(chData => {
     if (editIdx !== null) {
-      updateCourse({ ...course, chapters: chapters.map((c, i) => i === editIdx ? { ...c, ...chData } : c) });
+      updateCourse({ ...course, chapters: chapters.map((c,i) => i===editIdx ? {...c,...chData} : c) });
     } else {
-      const ch = { id: uid(), ...chData, completed: false, notes: '' };
-      const at = chapters.length > 0 ? activeIdx + 1 : 0;
-      const nc = [...chapters.slice(0, at), ch, ...chapters.slice(at)];
+      const newChapter = { id: uid(), ...chData, completed: false, notes: '' };
+      const insertAt = chapters.length > 0 ? activeIdx + 1 : 0;
+      const nc = [...chapters.slice(0, insertAt), newChapter, ...chapters.slice(insertAt)];
       updateCourse({ ...course, chapters: nc });
-      goTo(at);
+      goToChapter(insertAt);
     }
-    setShowChMod(false); setEditIdx(null);
-  }, [chapters, editIdx, activeIdx, course, updateCourse, goTo]);
+    setShowModal(false); setEditIdx(null);
+  }, [chapters, editIdx, activeIdx, course, updateCourse, goToChapter]);
 
   const deleteChapter = useCallback(idx => {
     if (!confirm('Delete this chapter?')) return;
-    const nc = chapters.filter((_, i) => i !== idx);
+    const nc = chapters.filter((_,i) => i !== idx);
     updateCourse({ ...course, chapters: nc });
-    if (activeIdx >= nc.length) goTo(Math.max(0, nc.length - 1));
-  }, [chapters, activeIdx, course, updateCourse, goTo]);
+    if (activeIdx >= nc.length) goToChapter(Math.max(0, nc.length - 1));
+  }, [chapters, activeIdx, course, updateCourse, goToChapter]);
 
-  const notesContent = (
+  const NotesContent = (
     <>
-      <div className="notes-hd">
-        <span className="notes-label">📓 Notes</span>
-        <span className="notes-ch-name">{chapter?.name}</span>
+      <div className="np-hd">
+        <span className="np-lbl">📓 Notes</span>
+        <span style={{fontSize:11,color:'var(--tm)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:120}}>{chapter?.name}</span>
       </div>
-      <div className="notes-body">
-        <textarea className="notes-ta"
+      <div className="na">
+        <textarea className="nta"
           placeholder={`Notes for "${chapter?.name || 'this chapter'}"…\n\nKey points, questions, code snippets.`}
-          value={noteLocal}
-          onChange={e => onNoteChange(e.target.value)}
-          disabled={!chapter}
-        />
-        <div className={`notes-saved ${noteSaved ? 'show' : ''}`}>✓ Saved</div>
-      </div>
-    </>
-  );
-
-  // Inline sidebar content (shared between desktop sidebar and mobile overlay)
-  const sidebarContent = (
-    <>
-      <div className="course-sidebar-hd">
-        <button className="btn btn-s btn-sm" onClick={() => { onBack(); setMobileChaptersOpen?.(false); }} style={{ marginBottom: 10 }}>← Back</button>
-        <div className="sidebar-label">Course Index</div>
-        <div className="sidebar-course-title">{course.title}</div>
-        <ProgBar done={doneCount} total={chapters.length} compact />
-      </div>
-      <div className="chapter-list">
-        <ChapterListView chapters={chapters} activeIdx={activeIdx}
-          onSelect={i => { goTo(i); setMobileChaptersOpen?.(false); }}
-          onEdit={i => { setEditIdx(i); setShowChMod(true); }}
-          onDelete={deleteChapter}
-          mobile={!!setMobileChaptersOpen} />
-      </div>
-      <div className="sidebar-add">
-        <button className="btn btn-s" style={{ width: '100%', justifyContent: 'center' }} onClick={() => { setEditIdx(null); setShowChMod(true); }}>+ Add Chapter</button>
+          value={chapter?.notes || ''}
+          onChange={e => saveNote(e.target.value)} />
+        <div className="nsv">{noteSaved ? '✓ Saved' : ''}</div>
       </div>
     </>
   );
 
   return (
-    <div className="course-layout">
-      {/* Desktop sidebar */}
-      <div className="course-sidebar">{sidebarContent}</div>
+    <div className="cp" style={{height:'100%'}}>
+      <div className="ci">
+        <div className="ci-hd">
+          <button className="btn btn-s btn-sm" onClick={onBack} style={{marginBottom:10}}>← Back</button>
+          <div className="ci-lbl">Course Index</div>
+          <div className="ci-ttl">{course.title}</div>
+          <ProgBar done={doneCount} total={chapters.length} compact />
+        </div>
+        <div className="ci-list">
+          <ChapterList chapters={chapters} activeIdx={activeIdx}
+            onSelect={goToChapter} onEdit={i=>{setEditIdx(i);setShowModal(true);}} onDelete={deleteChapter} />
+        </div>
+        <div className="ci-add">
+          <button className="btn btn-s" style={{width:'100%',justifyContent:'center'}}
+            onClick={() => { setEditIdx(null); setShowModal(true); }}>+ Add Chapter</button>
+        </div>
+      </div>
 
-      {/* Main content */}
-      <div className="course-main">
-        <div className="course-topbar">
-          {co && <CoIcon co={co} size={20} />}
-          <div className="course-topbar-title">{chapter?.name || 'Select a chapter'}</div>
+      <div className="cm2">
+        <div className="ctb">
+          {company && <CompanyIcon company={company} size={22} />}
+          <div className="cttl">{chapter?.name || 'Select a chapter'}</div>
           {chapter && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
-              <button className="btn btn-s btn-sm" disabled={activeIdx === 0} onClick={() => goTo(activeIdx - 1)}
-                style={{ opacity: activeIdx === 0 ? .4 : 1 }}>← Prev</button>
+            <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+              <button className="btn btn-s btn-sm" disabled={activeIdx === 0} onClick={() => goToChapter(activeIdx - 1)} style={{opacity: activeIdx === 0 ? 0.4 : 1}}>← Prev</button>
               {activeIdx < chapters.length - 1 ? (
                 <button className={`btn btn-sm ${chapter.completed ? 'btn-s' : 'btn-p'}`}
-                  onClick={() => { if (!chapter.completed) markDone(true); goTo(activeIdx + 1); }}>
-                  {chapter.completed ? 'Next →' : '✓ Complete & Next'}
+                  onClick={() => { if (!chapter.completed) markComplete(true); goToChapter(activeIdx + 1); }}>
+                  {chapter.completed ? 'Next →' : '✓ Complete & Continue'}
                 </button>
               ) : (
-                <button className={`mark-btn ${chapter.completed ? 'done' : ''} ${popAnim ? 'pop' : ''}`} onClick={() => markDone()}>
-                  <div className="cb">{chapter.completed ? '✓' : ''}</div>
-                  {chapter.completed ? 'Completed' : 'Mark Complete'}
+                <button className={`btn btn-sm ${chapter.completed ? 'btn-s' : 'btn-p'}`}
+                  onClick={() => markComplete()} style={{opacity: chapter.completed ? 0.6 : 1}}>
+                  {chapter.completed ? '✓ Completed' : '✓ Mark Complete'}
                 </button>
               )}
             </div>
           )}
-          <button className="btn btn-s btn-sm desktop-only" onClick={() => setShowNotes(v => !v)}>
-            {showNotes ? '⊟ Hide Notes' : '📓 Notes'}
+          <button className="btn btn-s btn-sm dsk" onClick={() => setShowNotes(v => !v)}>
+            {showNotes ? '⊟ Hide Notes' : '⊞ Notes'}
           </button>
         </div>
 
-        <div className="course-body">
-          <div className="course-content">
+        <div className="cca">
+          <div className="cv">
             {!chapter ? (
-              <div className="empty" style={{ padding: '56px 20px' }}>
-                <div className="empty-ico">📖</div>
-                <div className="empty-title">No chapters yet</div>
-                <div className="empty-sub">Add chapters to start building your course content.</div>
-                <button className="btn btn-p" onClick={() => { setEditIdx(null); setShowChMod(true); }}>Add First Chapter</button>
+              <div className="es" style={{padding:'60px 20px'}}>
+                <div className="es-ico">📖</div>
+                <div className="es-t">No chapters yet</div>
+                <div className="es-s">Add chapters to start building your course content.</div>
+                <button className="btn btn-p" onClick={() => setShowModal(true)}>Add First Chapter</button>
               </div>
             ) : (
               <>
                 {chapter.type === 'video' && (
                   chapter.videoUrl
-                    ? <VideoPlayer url={chapter.videoUrl} vkey={`${courseId}-${activeIdx}-${vKey}`}
-                        onEnded={() => { if (!chapter.completed) markDone(true); if (activeIdx < chapters.length - 1) setTimeout(() => goTo(activeIdx + 1), 700); }} />
-                    : <div className="video-none">
-                        <span style={{ fontSize: 34 }}>▶</span>
+                    ? <VideoPlayer url={chapter.videoUrl} videoKey={`${courseId}-${activeIdx}-${videoKey}`}
+                        onEnded={() => { if (!chapter.completed) markComplete(true); if (activeIdx < chapters.length - 1) { setTimeout(() => goToChapter(activeIdx + 1), 800); } }} />
+                    : <div className="vno-url">
+                        <span style={{fontSize:36}}>▶</span>
                         <span>No video URL set</span>
-                        <button className="btn btn-s btn-sm" onClick={() => { setEditIdx(activeIdx); setShowChMod(true); }}>Add Video URL</button>
+                        <button className="btn btn-s btn-sm" onClick={() => { setEditIdx(activeIdx); setShowModal(true); }}>Add Video URL</button>
                       </div>
                 )}
                 {chapter.description && (
-                  <div className="block"><div className="block-title">📋 Description</div><div className="block-text">{chapter.description}</div></div>
+                  <div className="ds"><div className="ds-t">📋 Description</div><div className="ds-p">{chapter.description}</div></div>
                 )}
-                {(chapter.links?.length > 0) && (
-                  <div className="block"><div className="block-title">🔗 Resources</div>
-                    <div className="link-list">
-                      {chapter.links.map((l, i) => { const lk = typeof l === 'string' ? { label: l, url: l } : l; return <a key={i} href={lk.url} target="_blank" rel="noopener noreferrer" className="link-item">🔗 {lk.label || lk.url}</a>; })}
+                {chapter.links?.length > 0 && (
+                  <div className="ds">
+                    <div className="ds-t">🔗 Resources</div>
+                    <div className="ll">
+                      {chapter.links.map((l,i) => {
+                        const lk = typeof l === 'string' ? {label:l,url:l} : l;
+                        return <a key={i} href={lk.url} target="_blank" rel="noopener noreferrer" className="li">🔗 {lk.label || lk.url}</a>;
+                      })}
                     </div>
                   </div>
                 )}
-                {(chapter.files?.length > 0) && (
-                  <div className="block"><div className="block-title">📁 Files</div>
-                    <div className="file-list">
-                      {chapter.files.map((f, i) => { const fi = typeof f === 'string' ? { name: f, url: '' } : f; return <a key={i} href={fi.url || '#'} target="_blank" rel="noopener noreferrer" className="file-item" style={{ cursor: fi.url ? 'pointer' : 'default' }}><span style={{ fontSize: 18 }}>📄</span><span className="file-name">{fi.name || fi.url}</span></a>; })}
+                {chapter.files?.length > 0 && (
+                  <div className="ds">
+                    <div className="ds-t">📁 Files</div>
+                    <div className="fl2">
+                      {chapter.files.map((f,i) => {
+                        const fi = typeof f === 'string' ? {name:f,url:''} : f;
+                        return (
+                          <a key={i} href={fi.url||'#'} target="_blank" rel="noopener noreferrer" className="fi2" style={{cursor:fi.url?'pointer':'default'}}>
+                            <span style={{fontSize:18}}>📄</span><span className="fi2-n">{fi.name || fi.url}</span>
+                          </a>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
-                {chapter.type === 'text' && !chapter.description && !chapter.links?.length && !chapter.files?.length && (
-                  <div className="block" style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--t3)' }}>
-                    <div style={{ fontSize: 30, marginBottom: 10 }}>📝</div>
-                    <div style={{ fontSize: 13 }}>No content yet.</div>
-                    <button className="btn btn-s btn-sm" style={{ marginTop: 12 }} onClick={() => { setEditIdx(activeIdx); setShowChMod(true); }}>Add Content</button>
+                {!chapter.description && !chapter.links?.length && !chapter.files?.length && chapter.type === 'text' && (
+                  <div className="ds" style={{textAlign:'center',padding:'40px 20px',color:'var(--tm)'}}>
+                    <div style={{fontSize:32,marginBottom:10}}>📝</div>
+                    <div>No content yet.</div>
+                    <button className="btn btn-s btn-sm" style={{marginTop:12}} onClick={() => { setEditIdx(activeIdx); setShowModal(true); }}>Add Content</button>
                   </div>
                 )}
               </>
             )}
           </div>
-
-          {/* Desktop notes panel */}
-          <div className={`notes-panel ${showNotes ? '' : 'hidden'}`}>
-            {showNotes && notesContent}
-          </div>
+          <div className={`np ${showNotes ? '' : 'hide'}`}>{showNotes && NotesContent}</div>
         </div>
       </div>
 
-      {/* Mobile: chapters slide-in */}
-      <div className={`m-sidebar ${mobileChaptersOpen ? 'open' : ''}`}>
-        <div className="m-sidebar-bk" onClick={() => setMobileChaptersOpen(false)} />
-        <div className="m-sidebar-panel">{sidebarContent}</div>
-      </div>
-
-      {/* Mobile: notes bottom sheet */}
-      <div className={`m-sheet ${mobileNotesOpen ? 'open' : ''}`}>
-        <div className="m-sheet-bk" onClick={() => setMobileNotesOpen(false)} />
-        <div className="m-sheet-panel">
-          <div className="m-sheet-handle" />
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>{notesContent}</div>
+      <div className={`mns ${mobileNotesOpen ? 'open' : ''}`}>
+        <div className="mns-bk" onClick={() => setMobileNotesOpen(false)} />
+        <div className="mns-pn">
+          <div className="mns-hnd" />
+          <div style={{display:'flex',flexDirection:'column',flex:1,overflow:'hidden'}}>{NotesContent}</div>
         </div>
       </div>
 
-      {showChMod && (
+      {showModal && (
         <ChapterModal chapter={editIdx !== null ? chapters[editIdx] : null}
-          onClose={() => { setShowChMod(false); setEditIdx(null); }} onSave={saveChapter} />
+          onClose={() => { setShowModal(false); setEditIdx(null); }} onSave={saveChapter} />
       )}
     </div>
   );
 }
 
-// ══════════════════════════════════════════════
-// LOGIN SCREEN
-// ══════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// MobileSidebarIndex
+// ─────────────────────────────────────────────
+function MobileSidebarIndex({ courseId, data, onUpdate, onClose, activeChapterIdx, onSelectChapter }) {
+  const course = useMemo(() => data.courses.find(c => c.id === courseId), [data.courses, courseId]);
+  const [showModal, setShowModal] = useState(false);
+  const [editIdx,   setEditIdx]   = useState(null);
+  if (!course) return null;
+
+  const chapters = course.chapters || [];
+  const done = chapters.filter(c => c.completed).length;
+
+  const msiDataRef = useRef(data);
+  useEffect(() => { msiDataRef.current = data; }, [data]);
+
+  const update = useCallback(updated => {
+    onUpdate({ ...msiDataRef.current, courses: msiDataRef.current.courses.map(c => c.id === courseId ? updated : c) });
+  }, [courseId, onUpdate]);
+
+  const saveChapter = chData => {
+    const isEdit = editIdx !== null;
+    let nc;
+    if (isEdit) {
+      nc = chapters.map((c,i) => i===editIdx ? {...c,...chData} : c);
+    } else {
+      const newChapter = { id: uid(), ...chData, completed: false, notes: '' };
+      const insertAt = chapters.length > 0 ? activeChapterIdx + 1 : 0;
+      nc = [...chapters.slice(0, insertAt), newChapter, ...chapters.slice(insertAt)];
+      onSelectChapter(insertAt);
+    }
+    update({ ...course, chapters: nc });
+    setShowModal(false); setEditIdx(null);
+  };
+
+  const deleteChapter = idx => {
+    if (!confirm('Delete this chapter?')) return;
+    update({ ...course, chapters: chapters.filter((_,i) => i !== idx) });
+  };
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
+      <div className="ci-hd" style={{padding:'14px 16px'}}>
+        <button className="btn btn-s btn-sm" onClick={onClose} style={{marginBottom:10}}>× Close</button>
+        <div className="ci-lbl">Course Index</div>
+        <div className="ci-ttl">{course.title}</div>
+        <ProgBar done={done} total={chapters.length} compact />
+      </div>
+      <div className="ci-list" style={{flex:1,overflowY:'auto',WebkitOverflowScrolling:'touch'}}>
+        <ChapterList chapters={chapters} activeIdx={activeChapterIdx}
+          onSelect={i => { onSelectChapter(i); onClose(); }}
+          onEdit={i => { setEditIdx(i); setShowModal(true); }}
+          onDelete={deleteChapter}
+          mobile />
+      </div>
+      <div className="ci-add">
+        <button className="btn btn-s" style={{width:'100%',justifyContent:'center'}}
+          onClick={() => { setEditIdx(null); setShowModal(true); }}>+ Add Chapter</button>
+      </div>
+      {showModal && (
+        <ChapterModal chapter={editIdx !== null ? chapters[editIdx] : null}
+          onClose={() => { setShowModal(false); setEditIdx(null); }} onSave={saveChapter} />
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// LoginScreen
+// ─────────────────────────────────────────────
 function LoginScreen() {
-  const [pw,      setPw]      = useState('');
-  const [err,     setErr]     = useState('');
+  const [pw, setPw]           = useState('');
+  const [err, setErr]         = useState('');
   const [loading, setLoading] = useState(false);
 
-  const submit = async e => {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!pw.trim()) return;
     setLoading(true); setErr('');
     try {
-      if (!FB_OK) {
-        localStorage.setItem('cf_pw', pw);
+      if (!FIREBASE_CONFIGURED) {
+        localStorage.setItem('cf_session_pw', pw);
         bootApp(pw, loadData(), loadResume());
         return;
       }
+
       const db = getDb();
-      let sentinel;
-      try { sentinel = await db.collection('cf').doc('sentinel').get(); }
-      catch(e) {
-        const m = e.message || '';
-        if (m.includes('ermission')) setErr('Firebase permissions error. Set Firestore rules to: allow read, write: if true;');
-        else if (m.includes('roject') || m.includes('NOT_FOUND')) setErr('Firebase project not found. Check your config.');
-        else setErr('Firebase error: ' + m);
+      let sentinelSnap;
+      try {
+        sentinelSnap = await db.collection('courseflow').doc('sentinel').get();
+      } catch(e) {
+        const msg = e.message || String(e);
+        if (msg.includes('ermission')) setErr('Firebase permissions error. Set Firestore rules to: allow read, write: if true;');
+        else if (msg.includes('roject') || msg.includes('NOT_FOUND')) setErr('Firebase project not found. Check your projectId.');
+        else setErr('Firebase error: ' + msg);
         setLoading(false); return;
       }
-      if (sentinel.exists) {
-        try { await decrypt(sentinel.data().data, pw); }
-        catch { setErr('Wrong password. Try again.'); setLoading(false); return; }
-      }
-      const [cloudData, cloudResume] = await Promise.all([cloudLoad('data', pw), cloudLoad('resume', pw)]);
-      if (!sentinel.exists) await db.collection('cf').doc('sentinel').set({ data: await encrypt(JSON.stringify({ ok: true }), pw) });
 
-      // Merge cloud + local: for each course, keep the one with the newer savedAt
-      const local = loadData();
+      if (sentinelSnap.exists) {
+        try { await decryptData(sentinelSnap.data().data, pw); }
+        catch(e) { setErr('Wrong password. Try again.'); setLoading(false); return; }
+      }
+
+      // Load cloud data
+      const [cloudData, cloudResume] = await Promise.all([
+        cloudLoad('data',   pw),
+        cloudLoad('resume', pw),
+      ]);
+
+      // First time — write sentinel
+      if (!sentinelSnap.exists) await cloudSave('sentinel', { ok: true }, pw);
+
+      // Merge cloud and local using per-course savedAt timestamps.
+      // Takes the newer version of each course so both devices stay in sync.
+      const localSnapshot = loadData();
       let finalData;
       if (!cloudData) {
-        finalData = local;
+        finalData = localSnapshot;
       } else {
-        const localById = Object.fromEntries((local.courses || []).map(c => [c.id, c]));
-        const merged = (cloudData.courses || []).map(cc => {
-          const lc = localById[cc.id];
-          if (!lc) return cc;
-          return (lc.savedAt || 0) > (cc.savedAt || 0) ? lc : cc;
+        const localById = Object.fromEntries(
+          (localSnapshot?.courses || []).map(c => [c.id, c])
+        );
+        const merged = cloudData.courses.map(cloudCourse => {
+          const local = localById[cloudCourse.id];
+          if (!local) return cloudCourse;
+          return (local.savedAt || 0) > (cloudCourse.savedAt || 0) ? local : cloudCourse;
         });
-        const cloudIds = new Set((cloudData.courses || []).map(c => c.id));
-        const localOnly = (local.courses || []).filter(c => !cloudIds.has(c.id));
+        const cloudIds = new Set(cloudData.courses.map(c => c.id));
+        const localOnly = (localSnapshot?.courses || []).filter(c => !cloudIds.has(c.id));
         finalData = { ...cloudData, courses: [...merged, ...localOnly] };
       }
-
       const finalResume = cloudResume ?? loadResume();
-      localStorage.setItem('cf_pw', pw);
+
+      localStorage.setItem('cf_session_pw', pw);
       saveData(finalData);
       saveResume(finalResume);
+
       bootApp(pw, finalData, finalResume);
+
     } catch(e) {
       setErr('Unexpected error: ' + (e.message || e));
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="login-wrap">
-      <div className="login-card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-          <div className="login-logo">CF</div>
+    <div style={{position:'fixed',inset:0,background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+      <div style={{background:'var(--bgc)',border:'1px solid var(--bdl)',borderRadius:16,padding:'32px 28px',width:'100%',maxWidth:360,boxShadow:'0 24px 80px rgba(0,0,0,.6)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:24}}>
+          <div style={{width:40,height:40,background:'var(--ac)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:15,color:'#0a0e1a',flexShrink:0}}>CF</div>
           <div>
-            <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 19, letterSpacing: '-.3px' }}>CourseFlow</div>
-            <div style={{ fontSize: 12, color: 'var(--t2)', marginTop: 1 }}>Enter your password to unlock</div>
+            <div style={{fontFamily:'Syne,sans-serif',fontWeight:800,fontSize:18}}>CourseFlow</div>
+            <div style={{fontSize:12,color:'var(--t2)'}}>Enter your password to unlock</div>
           </div>
         </div>
-        {!FB_OK && (
-          <div style={{ background: 'rgba(246,201,14,.1)', border: '1px solid rgba(246,201,14,.25)', borderRadius: 8, padding: '9px 12px', marginBottom: 16, fontSize: 12, color: 'var(--yel)', lineHeight: 1.6 }}>
-            ⚠️ Firebase not configured — running in local-only mode.
+        {!FIREBASE_CONFIGURED && (
+          <div style={{background:'rgba(247,144,9,.12)',border:'1px solid rgba(247,144,9,.3)',borderRadius:8,padding:'10px 12px',marginBottom:16,fontSize:12,color:'#f6c90e',lineHeight:1.6}}>
+            ⚠️ Firebase not configured. Running in local-only mode.
           </div>
         )}
-        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <form onSubmit={handleSubmit} style={{display:'flex',flexDirection:'column',gap:12}}>
           <div className="fg">
             <label className="fl">Password</label>
-            <input className="fi" type="password" autoFocus placeholder="Your secret password" value={pw} onChange={e => setPw(e.target.value)} />
+            <input className="fi" type="password" autoFocus placeholder="Your secret password"
+              value={pw} onChange={e => setPw(e.target.value)} />
           </div>
-          {err && <div className="login-err">{err}</div>}
-          <button className="btn btn-p" type="submit" disabled={loading || !pw.trim()} style={{ justifyContent: 'center', marginTop: 4 }}>
-            {loading ? 'Unlocking…' : 'Unlock →'}
+          {err && <div style={{fontSize:12,color:'var(--red)',background:'rgba(245,101,101,.1)',border:'1px solid rgba(245,101,101,.25)',borderRadius:6,padding:'8px 10px'}}>{err}</div>}
+          <button className="btn btn-p" type="submit" disabled={loading || !pw.trim()} style={{justifyContent:'center',marginTop:4}}>
+            {loading ? 'Unlocking…' : 'Unlock'}
           </button>
         </form>
-        <div className="login-note" style={{ marginTop: 16 }}>AES-256 encrypted before leaving this device.</div>
+        <div style={{marginTop:16,fontSize:11,color:'var(--tm)',lineHeight:1.6,textAlign:'center'}}>
+          AES-256 encrypted before leaving this device.
+        </div>
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════
-// APP
-// ══════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// App
+// ─────────────────────────────────────────────
 function App({ sessionPw, initialData, initialResume }) {
-  const [data,       setDataState]  = useState(initialData);
-  const [resumeMap,  setResumeState] = useState(initialResume);
-  const [view,       setView]       = useState('home');
-  const [filterCo,   setFilterCo]   = useState('all');
-  const [chIdx,      setChIdx]      = useState(0);
-  const [syncStatus, setSyncStatus] = useState('idle');
-  const [mobChaps,   setMobChaps]   = useState(false);
-  const [mobNotes,   setMobNotes]   = useState(false);
-  const [triggerAdd, setTriggerAdd] = useState(false);
-  const [triggerImp, setTriggerImp] = useState(false);
+  const [data,       setData]      = useState(initialData);
+  const [resumeMap,  setResumeMap] = useState(initialResume);
+  const [view,       setView]      = useState('home');
+  const [filter,     setFilter]    = useState('all');
+  const [chapterIdx, setChapterIdx] = useState(0);
+  const [syncStatus, setSyncStatus] = useState('');
 
-  const dataRef   = useRef(initialData);
-  const resumeRef = useRef(initialResume);
-  const syncMgr   = useRef(null);
+  const [mobileSidebar, setMobileSidebar] = useState(false);
+  const [mobileNotes,   setMobileNotes]   = useState(false);
+  const [triggerImport, setTriggerImport] = useState(false);
+  const [triggerAdd,    setTriggerAdd]    = useState(false);
 
-  // Initialise SyncManager once
+  const dataRef      = useRef(data);
+  const resumeMapRef = useRef(resumeMap);
+  const pwRef        = useRef(sessionPw);
+  useEffect(() => { dataRef.current = data; },           [data]);
+  useEffect(() => { resumeMapRef.current = resumeMap; }, [resumeMap]);
+
+  const localWriting = useRef(false);
+
   useEffect(() => {
-    const db = getDb();
-    if (!FB_OK || !db) return;
-    const mgr = new SyncManager(db, sessionPw, setSyncStatus);
-    syncMgr.current = mgr;
-    return () => mgr.destroy();
-  }, [sessionPw]);
-
-  // Online → retry immediately
-  useEffect(() => {
-    const h = () => syncMgr.current?.flush();
-    window.addEventListener('online', h);
-    return () => window.removeEventListener('online', h);
-  }, []);
-
-  // Firestore real-time listener (other devices)
-  useEffect(() => {
-    if (!FB_OK) return;
+    if (!FIREBASE_CONFIGURED || !sessionPw) return;
     const db = getDb(); if (!db) return;
 
-    const unsub = db.collection('cf').doc('meta').onSnapshot(async snap => {
-      if (!snap.exists) return;
-      if (syncMgr.current?.isEcho()) return; // ← suppress our own writes echoing back
-
+    const unsub1 = db.collection('courseflow').doc('meta').onSnapshot(async snap => {
+      if (!snap.exists || localWriting.current) return;
       try {
-        const loaded = await cloudLoad('data', sessionPw);
-        if (!loaded) return;
+        const loaded = await cloudLoad('data', pwRef.current);
+        if (!loaded || !loaded.courses) return;
 
-        // Functional update guarantees we have the latest local state
-        setDataState(current => {
-          const byId = Object.fromEntries((current.courses || []).map(c => [c.id, c]));
-          const merged = (loaded.courses || []).map(cc => {
-            const lc = byId[cc.id];
-            if (!lc) return cc; // new from another device
-            return (lc.savedAt || 0) >= (cc.savedAt || 0) ? lc : cc; // keep newer
-          });
-          const cloudIds = new Set((loaded.courses || []).map(c => c.id));
-          const localOnly = (current.courses || []).filter(c => !cloudIds.has(c.id));
-          const result = { ...loaded, courses: [...merged, ...localOnly] };
-          dataRef.current = result;
-          saveData(result);
-          return result;
+        // ── Per-course timestamp merge ──
+        // Each course carries savedAt (ms) set whenever it is modified.
+        // We compare per course so that:
+        //   • Same-device refresh: local savedAt is newer → local wins
+        //   • Another device made changes: its savedAt is newer → cloud wins
+        const localById = Object.fromEntries(
+          (dataRef.current?.courses || []).map(c => [c.id, c])
+        );
+        const merged = loaded.courses.map(cloudCourse => {
+          const local = localById[cloudCourse.id];
+          if (!local) return cloudCourse; // new course from another device
+          return (local.savedAt || 0) > (cloudCourse.savedAt || 0) ? local : cloudCourse;
         });
-      } catch {}
+        // Preserve any local-only courses not yet in Firestore
+        const cloudIds = new Set(loaded.courses.map(c => c.id));
+        const localOnly = (dataRef.current?.courses || []).filter(c => !cloudIds.has(c.id));
+
+        const finalData = { ...loaded, courses: [...merged, ...localOnly] };
+        setData(finalData);
+        saveData(finalData);
+      } catch(e) {}
     });
 
-    return () => unsub();
+    const unsub2 = db.collection('courseflow').doc('resume').onSnapshot(async snap => {
+      if (!snap.exists || localWriting.current) return;
+      try {
+        const json = await decryptData(snap.data().data, pwRef.current);
+        const parsed = JSON.parse(json);
+        if (parsed) { setResumeMap(parsed); saveResume(parsed); }
+      } catch(e) {}
+    });
+
+    return () => { unsub1(); unsub2(); };
   }, [sessionPw]);
 
-  // ── Data update: stamps savedAt, persists locally, schedules cloud sync
-  const updateData = useCallback(newData => {
-    const now = Date.now();
-    const prevById = Object.fromEntries((dataRef.current.courses || []).map(c => [c.id, c]));
-    const stamped = {
-      ...newData,
-      courses: (newData.courses || []).map(c => {
-        const prev = prevById[c.id];
-        if (!prev) return { ...c, savedAt: now }; // new course
-        const changed = prev !== c; // identity check (we always use spread when mutating)
-        return changed ? { ...c, savedAt: now } : c;
-      }),
+  // ── FIX: offline-aware sync with auto-retry on reconnect
+  const syncTimer = useRef(null);
+  const scheduleSyncRef = useRef(null);
+  scheduleSyncRef.current = (newData, newResume) => {
+    if (!FIREBASE_CONFIGURED || !pwRef.current) return;
+    clearTimeout(syncTimer.current);
+    setSyncStatus('saving');
+    localWriting.current = true;
+    syncTimer.current = setTimeout(async () => {
+      if (!navigator.onLine) {
+        setSyncStatus('offline');
+        localWriting.current = false;
+        return;
+      }
+      try {
+        await Promise.all([
+          cloudSave('data',   newData,   pwRef.current),
+          cloudSave('resume', newResume, pwRef.current),
+        ]);
+        setSyncStatus('saved');
+        setTimeout(() => setSyncStatus(''), 2500);
+      } catch(e) {
+        const isOffline = !navigator.onLine || e?.code === 'unavailable' || (e?.message||'').toLowerCase().includes('offline');
+        setSyncStatus(isOffline ? 'offline' : 'error');
+        console.error('CourseFlow sync failed:', e?.code, e?.message);
+      } finally {
+        setTimeout(() => { localWriting.current = false; }, 2000);
+      }
+    }, 0);
+  };
+  const scheduleSync = (newData, newResume) => scheduleSyncRef.current(newData, newResume);
+
+  const syncStatusRef = useRef(syncStatus);
+  useEffect(() => { syncStatusRef.current = syncStatus; }, [syncStatus]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      if (syncStatusRef.current === 'offline') scheduleSyncRef.current(dataRef.current, resumeMapRef.current);
     };
-    dataRef.current = stamped;
-    setDataState(stamped);
-    saveData(stamped);
-    syncMgr.current?.schedule(stamped, resumeRef.current);
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
+
+  const updateData = useCallback(d => {
+    // Stamp savedAt on any course that changed vs what we currently have.
+    // This timestamp is used for per-course merge when syncing across devices.
+    const now = Date.now();
+    const currentById = Object.fromEntries((dataRef.current?.courses || []).map(c => [c.id, c]));
+    const stamped = {
+      ...d,
+      courses: (d.courses || []).map(c => {
+        const prev = currentById[c.id];
+        // Stamp if this is a new course or its chapters/content changed
+        let changed = !prev || prev.title !== c.title || prev.description !== c.description;
+if (!changed) {
+  try {
+    changed = JSON.stringify(prev.chapters) !== JSON.stringify(c.chapters);
+  } catch(e) { changed = true; }
+}
+        return changed ? { ...c, savedAt: now } : c;
+      })
+    };
+    setData(stamped); saveData(stamped);
+    scheduleSync(stamped, resumeMapRef.current);
   }, []);
 
   const updateResume = useCallback(m => {
-    resumeRef.current = m;
-    setResumeState(m);
-    saveResume(m);
-    syncMgr.current?.schedule(dataRef.current, m);
+    setResumeMap(m); saveResume(m);
+    scheduleSync(dataRef.current, m);
   }, []);
 
-  const goHome = useCallback(() => { setView('home'); setMobChaps(false); setMobNotes(false); }, []);
+  const goHome = useCallback(() => { setView('home'); setMobileSidebar(false); setMobileNotes(false); }, []);
 
-  const openCourse = useCallback((id, chapterIdx, fromNotes = false) => {
-    const idx = chapterIdx !== undefined ? chapterIdx : (resumeRef.current[id] ?? 0);
-    setChIdx(idx);
+  const openCourse = useCallback((id, chIdx, fromNotes = false) => {
     const d = dataRef.current;
+    const r = resumeMapRef.current;
+    const idx = chIdx !== undefined ? chIdx : (r[id] ?? 0);
+    setChapterIdx(idx);
     const updated = { ...d, courses: d.courses.map(c => c.id === id ? { ...c, lastAccessed: Date.now() } : c) };
-    dataRef.current = updated;
-    setDataState(updated);
-    saveData(updated);
-    if (!fromNotes) {
-      const nm = { ...resumeRef.current, [id]: idx };
-      resumeRef.current = nm;
-      setResumeState(nm);
-      saveResume(nm);
-      syncMgr.current?.schedule(updated, nm);
-    } else {
-      syncMgr.current?.schedule(updated, resumeRef.current);
-    }
+    setData(updated); saveData(updated);
+    scheduleSync(updated, r);
+    if (!fromNotes) { const nm = { ...r, [id]: idx }; setResumeMap(nm); saveResume(nm); scheduleSync(updated, nm); }
     setView(id);
   }, []);
 
-  const lock = () => {
-    syncMgr.current?.destroy();
-    localStorage.removeItem('cf_pw');
-    bootLogin();
-  };
+  const isCourse   = view !== 'home' && view !== 'notes';
+  const sidebarCos = useMemo(() => data.companies.filter(co => data.courses.some(c => c.companyId === co.id)), [data.companies, data.courses]);
+  const activeCo   = useMemo(() => isCourse ? data.courses.find(c => c.id === view)?.companyId : null, [isCourse, data.courses, view]);
 
-  const isCourse  = view !== 'home' && view !== 'notes';
-  const sidebarCos = useMemo(() => data.companies.filter(co => data.courses.some(c => c.companyId === co.id)), [data]);
-  const activeCo   = useMemo(() => isCourse ? data.courses.find(c => c.id === view)?.companyId : null, [isCourse, data, view]);
+  const exportMobile = useCallback(() => {
+    const { companies, courses } = dataRef.current;
+    downloadJson({ companies, courses }, `courseflow-backup-${new Date().toISOString().slice(0,10)}.json`);
+  }, []);
 
-  const syncLabel = {
-    idle:    FB_OK ? '☁ Synced' : '⚠ Local only',
-    pending: '↑ Saving…',
-    saving:  '↑ Saving…',
-    saved:   '✓ Saved',
-    offline: '⚡ Offline',
-    error:   '↺ Retry',
-  }[syncStatus] ?? '';
+  function handleLock() {
+  clearTimeout(syncTimer.current);
+  localStorage.removeItem('cf_session_pw');
+  bootLogin();
+}
+
+  // ── FIX: syncColor/syncLabel now properly handle 'offline' state
+  const syncColor = syncStatus === 'saved' ? 'var(--ac)' : (syncStatus === 'error' || syncStatus === 'offline') ? 'var(--red)' : 'var(--tm)';
+  const syncLabel = syncStatus === 'saving' ? '↑ Syncing…' : syncStatus === 'saved' ? '✓ Synced' : syncStatus === 'error' ? '✗ Sync error' : syncStatus === 'offline' ? '✗ Offline — will retry' : FIREBASE_CONFIGURED ? '☁ Cloud sync on' : '⚠ Local only';
 
   return (
-    <div className="layout">
-      {/* Desktop sidebar */}
-      <div className="sidebar">
+    <div style={{display:'flex',position:'fixed',inset:0,overflow:'hidden'}}>
+      <div className="sb">
         <div className="sb-logo" onClick={goHome} title="CourseFlow">CF</div>
         <div className="sb-div" />
-        <div className={`sb-btn ${view === 'home' && filterCo === 'all' ? 'active' : ''}`} onClick={() => { setView('home'); setFilterCo('all'); }}>
-          <span className="sb-ico">⬡</span><span className="sb-tip">All Courses</span>
+        <div className={`sb-item ${view==='home'&&filter==='all'?'on':''}`} onClick={() => { setView('home'); setFilter('all'); }}>
+          <span style={{fontSize:18}}>⬡</span><span className="sb-tip">All Courses</span>
         </div>
-        <div className={`sb-btn ${view === 'notes' ? 'active' : ''}`} onClick={() => setView('notes')}>
-          <span className="sb-ico">📓</span><span className="sb-tip">My Notes</span>
+        <div className={`sb-item ${view==='notes'?'on':''}`} onClick={() => setView('notes')}>
+          <span style={{fontSize:18}}>📓</span><span className="sb-tip">My Notes</span>
         </div>
         <div className="sb-div" />
         {sidebarCos.map(co => (
-          <div key={co.id} className={`sb-btn ${activeCo === co.id || (view === 'home' && filterCo === co.id) ? 'active' : ''}`}
-            onClick={() => { setView('home'); setFilterCo(co.id); }}>
-            <CoIcon co={co} size={24} /><span className="sb-tip">{co.name}</span>
+          <div key={co.id}
+            className={`sb-item ${activeCo===co.id || (view==='home'&&filter===co.id) ? 'on' : ''}`}
+            onClick={() => { setView('home'); setFilter(co.id); }}>
+            <CompanyIcon company={co} size={26} />
+            <span className="sb-tip">{co.name}</span>
           </div>
         ))}
-        <div style={{ flex: 1 }} />
-        <div
-          className={`sync-pill ${syncStatus}`}
-          style={{ fontSize: 8, flexDirection: 'column', gap: 3, margin: '4px 0', cursor: syncStatus === 'error' ? 'pointer' : 'default' }}
-          title={syncLabel}
-          onClick={() => syncStatus === 'error' && syncMgr.current?.flush()}
-        >
-          <div className="sync-dot" />
+        <div style={{flex:1}} />
+        <div style={{fontSize:9,color:syncColor,textAlign:'center',padding:'4px',lineHeight:1.4,cursor:'default'}} title={syncLabel}>
+          {syncStatus==='saving'?'↑':syncStatus==='saved'?'✓':(syncStatus==='error'||syncStatus==='offline')?'✗':FIREBASE_CONFIGURED?'☁':'⚠'}
         </div>
-        <div className="sb-btn" onClick={lock} style={{ marginBottom: 6 }}>
-          <span className="sb-ico">🔒</span><span className="sb-tip">Lock</span>
+        <div className="sb-item" onClick={handleLock} title="Lock" style={{marginBottom:8}}>
+          <span style={{fontSize:16}}>🔒</span><span className="sb-tip">Lock</span>
         </div>
       </div>
 
-      {/* Main area */}
       <div className="main">
         {view === 'home' && (
           <HomePage data={data} onUpdate={updateData} onOpenCourse={openCourse}
-            filterCo={filterCo} setFilterCo={setFilterCo} resumeMap={resumeMap}
-            triggerAdd={triggerAdd} setTriggerAdd={setTriggerAdd}
-            triggerImport={triggerImp} setTriggerImport={setTriggerImp} />
+            filterCompany={filter} setFilterCompany={setFilter} resumeMap={resumeMap}
+            triggerImport={triggerImport} setTriggerImport={setTriggerImport}
+            triggerAdd={triggerAdd} setTriggerAdd={setTriggerAdd} />
         )}
-        {view === 'notes' && <NotesPage data={data} onOpenCourse={openCourse} />}
+        {view === 'notes' && <GlobalNotesPage data={data} onOpenCourse={openCourse} />}
         {isCourse && (
-          <CoursePage
-            courseId={view} data={data} onUpdate={updateData} onBack={goHome}
+          <CoursePage courseId={view} data={data} onUpdate={updateData} onBack={goHome}
             resumeMap={resumeMap} onResumeUpdate={updateResume}
-            mobileChaptersOpen={mobChaps} setMobileChaptersOpen={setMobChaps}
-            mobileNotesOpen={mobNotes}    setMobileNotesOpen={setMobNotes}
-            initIdx={chIdx} onIdxChange={setChIdx} />
+            mobileNotesOpen={mobileNotes} setMobileNotesOpen={setMobileNotes}
+            initChapterIdx={chapterIdx} onChapterChange={setChapterIdx} />
         )}
       </div>
 
-      {/* Sync status + top-right chip (desktop, shown when active) */}
-      {(syncStatus === 'saving' || syncStatus === 'saved' || syncStatus === 'error' || syncStatus === 'offline') && (
-        <div style={{ position: 'fixed', top: 12, right: 16, zIndex: 900 }}
-          className={`sync-pill ${syncStatus}`}
-          onClick={() => syncStatus === 'error' && syncMgr.current?.flush()}
-          style={{ position: 'fixed', top: 12, right: 16, zIndex: 900, cursor: syncStatus === 'error' ? 'pointer' : 'default', background: 'var(--bg4)', border: '1px solid var(--bd2)', padding: '4px 10px', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 600 }}>
-          <div className="sync-dot" />
-          {syncLabel}
-        </div>
-      )}
-
-      {/* Mobile nav */}
-      <nav className="mobile-nav">
+      <nav className="mbn">
         {isCourse ? (
           <>
-            <button className="mn-btn" onClick={goHome}><span className="mn-ico">←</span><span>Home</span></button>
-            <button className={`mn-btn ${mobChaps ? 'active' : ''}`} onClick={() => setMobChaps(v => !v)}><span className="mn-ico">☰</span><span>Chapters</span></button>
-            <button className={`mn-btn ${mobNotes ? 'active' : ''}`} onClick={() => setMobNotes(v => !v)}><span className="mn-ico">📓</span><span>Notes</span></button>
-            <button className="mn-btn" onClick={lock}><span className="mn-ico">🔒</span><span>Lock</span></button>
+            <button className="mni" onClick={goHome}><span className="mni-i">←</span><span>Home</span></button>
+            <button className={`mni ${mobileSidebar?'on':''}`} onClick={() => setMobileSidebar(true)}><span className="mni-i">☰</span><span>Chapters</span></button>
+            <button className={`mni ${mobileNotes?'on':''}`} onClick={() => setMobileNotes(v => !v)}><span className="mni-i">📓</span><span>{mobileNotes?'Hide':'Notes'}</span></button>
+            <button className="mni" onClick={handleLock}><span className="mni-i">🔒</span><span>Lock</span></button>
           </>
         ) : (
           <>
-            <button className={`mn-btn ${view === 'home' ? 'active' : ''}`} onClick={goHome}><span className="mn-ico">⬡</span><span>Courses</span></button>
-            <button className={`mn-btn ${view === 'notes' ? 'active' : ''}`} onClick={() => setView('notes')}><span className="mn-ico">📓</span><span>Notes</span></button>
-            <button className="mn-btn" onClick={() => setTriggerAdd(true)}><span className="mn-ico">＋</span><span>Add</span></button>
-            <button className="mn-btn" onClick={() => setTriggerImp(true)}><span className="mn-ico">📥</span><span>Import</span></button>
-            <button className="mn-btn"
-              style={{ color: syncStatus === 'error' || syncStatus === 'offline' ? 'var(--red)' : syncStatus === 'saved' ? 'var(--ac)' : 'var(--t3)' }}
-              onClick={() => syncStatus === 'error' ? syncMgr.current?.flush() : downloadJson({ companies: data.companies, courses: data.courses }, `courseflow-${new Date().toISOString().slice(0, 10)}.json`)}>
-              <span className="mn-ico">💾</span>
-              <span>{syncStatus === 'saving' ? 'Sync…' : syncStatus === 'saved' ? 'Synced' : syncStatus === 'error' ? 'Retry' : syncStatus === 'offline' ? 'Offline' : 'Export'}</span>
-            </button>
-            <button className="mn-btn" onClick={lock}><span className="mn-ico">🔒</span><span>Lock</span></button>
+            <button className={`mni ${view==='home'?'on':''}`} onClick={goHome}><span className="mni-i">⬡</span><span>Courses</span></button>
+            <button className={`mni ${view==='notes'?'on':''}`} onClick={() => setView('notes')}><span className="mni-i">📓</span><span>Notes</span></button>
+            <button className="mni" onClick={() => setTriggerAdd(true)}><span className="mni-i">＋</span><span>Add</span></button>
+            <button className="mni" onClick={() => setTriggerImport(true)}><span className="mni-i">📥</span><span>Import</span></button>
+            <button className="mni" onClick={exportMobile}><span className="mni-i">💾</span><span style={{color:syncColor}}>{syncStatus==='saving'?'Sync…':syncStatus==='saved'?'Synced':syncStatus==='error'?'Err':syncStatus==='offline'?'Offline':'Export'}</span></button>
+            <button className="mni" onClick={handleLock}><span className="mni-i">🔒</span><span>Lock</span></button>
           </>
         )}
       </nav>
+
+      <div className={`mss ${mobileSidebar ? 'open' : ''}`}>
+        <div className="mss-bk" onClick={() => setMobileSidebar(false)} />
+        <div className="mss-pn" onClick={e => e.stopPropagation()}>
+          {isCourse && (
+            <MobileSidebarIndex courseId={view} data={data} onUpdate={updateData}
+              onClose={() => setMobileSidebar(false)}
+              activeChapterIdx={chapterIdx}
+              onSelectChapter={idx => { setChapterIdx(idx); setMobileSidebar(false); }} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════
-// BOOT
-// ══════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// Boot helpers
+// ─────────────────────────────────────────────
 const _root = ReactDOM.createRoot(document.getElementById('root'));
 function bootLogin() { _root.render(<LoginScreen />); }
 function bootApp(pw, data, resume) { _root.render(<App sessionPw={pw} initialData={data} initialResume={resume} />); }
 
-const _pw = localStorage.getItem('cf_pw');
-if (_pw) bootApp(_pw, loadData(), loadResume());
-else bootLogin();
+const _savedPw = localStorage.getItem('cf_session_pw');
+if (_savedPw) { bootApp(_savedPw, loadData(), loadResume()); }
+else { bootLogin(); }
 </script>
 </body>
 </html>
