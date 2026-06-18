@@ -1516,7 +1516,12 @@ function LoginScreen() {
         });
         const cloudIds = new Set(cloudData.courses.map(c => c.id));
         const localOnly = (localSnapshot?.courses || []).filter(c => !cloudIds.has(c.id));
-        finalData = { ...cloudData, courses: [...merged, ...localOnly] };
+
+        // FIX: same companies-union protection as the live sync merge below.
+        const companyById = Object.fromEntries((cloudData.companies || []).map(c => [c.id, c]));
+        (localSnapshot?.companies || []).forEach(c => { if (!companyById[c.id]) companyById[c.id] = c; });
+
+        finalData = { ...cloudData, companies: Object.values(companyById), courses: [...merged, ...localOnly] };
       }
       const finalResume = cloudResume ?? loadResume();
 
@@ -1617,7 +1622,14 @@ function App({ sessionPw, initialData, initialResume }) {
         const cloudIds = new Set(loaded.courses.map(c => c.id));
         const localOnly = (dataRef.current?.courses || []).filter(c => !cloudIds.has(c.id));
 
-        const finalData = { ...loaded, courses: [...merged, ...localOnly] };
+        // FIX: companies/platforms used to be taken straight from the cloud copy,
+        // with no protection at all (unlike courses, which are merged per-item).
+        // If a platform was just added locally but hadn't reached the cloud yet,
+        // that overwrite silently deleted it. Now we keep the union instead.
+        const companyById = Object.fromEntries((loaded.companies || []).map(c => [c.id, c]));
+        (dataRef.current?.companies || []).forEach(c => { if (!companyById[c.id]) companyById[c.id] = c; });
+
+        const finalData = { ...loaded, companies: Object.values(companyById), courses: [...merged, ...localOnly] };
         setData(finalData);
         saveData(finalData);
       } catch(e) {}
@@ -1697,6 +1709,12 @@ if (!changed) {
         return changed ? { ...c, savedAt: now } : c;
       })
     };
+    // FIX: update the ref synchronously so any code that runs later in this same
+    // click/action (e.g. jumping to a newly-added chapter, which schedules its
+    // own sync using dataRef.current) sees the fresh data instead of a stale
+    // snapshot from before this change. Without this, that follow-up sync could
+    // cancel and replace this correct save with an outdated one.
+    dataRef.current = stamped;
     setData(stamped); saveData(stamped);
     scheduleSync(stamped, resumeMapRef.current);
   }, []);
