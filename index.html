@@ -83,7 +83,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .si-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--tm);font-size:14px;pointer-events:none}
 
 /* ── Modal ── */
-.mbk{;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.mbk{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
 .mo{background:var(--bgc);border-radius:var(--rl);border:1px solid var(--bdl);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6)}
 .mh{padding:20px 24px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
 .mt{font-family:'Syne',sans-serif;font-size:17px;font-weight:700}
@@ -219,12 +219,43 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .nc{background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rl);padding:16px 18px;cursor:pointer;transition:border-color .12s}
 .nc:hover{border-color:var(--bdl)}
 .nc-co{font-size:11px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.nc-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .nc-ch{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:8px}
-.nc-pv{font-size:13px;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.nc-row .nc-ch{margin-bottom:0}
+.nc-car{color:var(--tm);font-size:13px;flex-shrink:0;margin-top:1px;opacity:.7;transition:opacity .12s}
+.nc:hover .nc-car{opacity:1;color:var(--ac)}
+.nc-pv{font-size:13px;color:var(--t2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-top:8px}
 .nc-pv mark{background:rgba(16,230,140,.22);color:var(--ac);border-radius:2px;padding:0 2px}
+.ngl-grp{display:flex;flex-direction:column;gap:10px}
+.ngl-hd{display:flex;align-items:baseline;gap:8px;padding:2px 2px 0}
+.ngl-hd-t{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t1)}
+.ngl-hd-n{font-size:11.5px;color:var(--tm);font-weight:600}
+
+/* ── Notes folders grid ── */
+.nflds{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.nfd{background:var(--bgc);border:1px solid var(--bd);border-radius:var(--rl);padding:18px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:border-color .15s,transform .15s,box-shadow .15s}
+.nfd:hover{border-color:var(--bdl);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.nfd-ico{width:52px;height:52px;border-radius:10px;flex-shrink:0;position:relative;overflow:hidden}
+.nfd-ico img{width:100%;height:100%;object-fit:cover;display:block}
+.nfd-ico-fb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px}
+.nfd-body{flex:1;min-width:0}
+.nfd-t{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nfd-n{font-size:12px;color:var(--tm)}
+
+/* ── Note detail modal ── */
+/* Compound selectors (.mbk.nm-bk / .mo.nm-mo) outrank the plain .mbk/.mo
+   rules — including the mobile bottom-sheet override above — so this
+   popup always stays centered with a soft overlay, on any screen size. */
+.mbk.nm-bk{align-items:center;justify-content:center;padding:20px;background:rgba(10,14,26,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.mo.nm-mo{width:100%;max-width:560px;max-height:80vh;border-radius:var(--rl);padding-bottom:0}
+.nm-co{font-size:11px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.nm-p{font-size:14.5px;color:var(--t1);line-height:1.8;white-space:pre-wrap}
+.nm-p mark{background:rgba(16,230,140,.22);color:var(--ac);border-radius:2px;padding:0 2px}
+
+
 
 /* ── Toast ── */
-.toast{;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ac);color:#0a0e1a;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;z-index:3000;white-space:nowrap;pointer-events:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ac);color:#0a0e1a;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;z-index:3000;white-space:nowrap;pointer-events:none}
 
 /* ── Mobile nav ── */
 .mbn{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bgs);border-top:1px solid var(--bd);padding-bottom:var(--sab);z-index:200;flex-direction:row;align-items:stretch}
@@ -931,26 +962,70 @@ function ImportModal({ data, onClose, onImport }) {
 }
 
 // ─────────────────────────────────────────────
-// GlobalNotesPage
+// NoteItem — click opens the full note in a popup
+// ─────────────────────────────────────────────
+function NoteItem({ course, chapter, idx, hl, onOpen }) {
+  return (
+    <div className="nc" onClick={() => onOpen({ course, chapter, idx })}>
+      <div className="nc-row">
+        <div className="nc-ch">Ch.{idx + 1} — {chapter.name}</div>
+        <span className="nc-car">⤢</span>
+      </div>
+      <div className="nc-pv">{hl(chapter.notes)}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// NoteModal — full note text in a popup
+// ─────────────────────────────────────────────
+function NoteModal({ note, hl, onClose, onOpenCourse }) {
+  if (!note) return null;
+  const { course, chapter, idx } = note;
+  return (
+    <div className="mbk nm-bk" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="mo nm-mo">
+        <div className="mh">
+          <div style={{minWidth:0}}>
+            <div className="nm-co">{course.title}</div>
+            <span className="mt">Ch.{idx + 1} — {chapter.name}</span>
+          </div>
+          <button className="xb" onClick={onClose}>×</button>
+        </div>
+        <div className="mb">
+          <div className="nm-p">{hl(chapter.notes)}</div>
+        </div>
+        <div className="mf">
+          <button className="btn btn-s" onClick={onClose}>Close</button>
+          <button className="btn btn-p" onClick={() => onOpenCourse(course.id, idx, true)}>↗ Open Chapter</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// FolderThumb — course thumbnail with a colored fallback if none/broken
+// ─────────────────────────────────────────────
+function FolderThumb({ course, color }) {
+  const [err, setErr] = useState(false);
+  return (
+    <div className="nfd-ico">
+      {course.thumbnail && !err
+        ? <img src={course.thumbnail} alt={course.title} loading="lazy" onError={() => setErr(true)} />
+        : <div className="nfd-ico-fb" style={{background:color+'22',color}}>📁</div>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// GlobalNotesPage — folders per course (thumbnails), full note in a popup
 // ─────────────────────────────────────────────
 function GlobalNotesPage({ data, onOpenCourse }) {
-  const [search, setSearch] = useState('');
+  const [search,       setSearch]       = useState('');
+  const [selectedCoId, setSelectedCoId] = useState(null);
+  const [activeNote,   setActiveNote]   = useState(null);
   const q = search.trim().toLowerCase();
-
-  const { all, filtered } = useMemo(() => {
-    const all = [];
-    data.courses.forEach(course => {
-      (course.chapters || []).forEach((ch, idx) => {
-        if (ch.notes?.trim()) all.push({ course, chapter: ch, idx });
-      });
-    });
-    const filtered = q ? all.filter(n =>
-      n.chapter.notes.toLowerCase().includes(q) ||
-      n.chapter.name.toLowerCase().includes(q)  ||
-      n.course.title.toLowerCase().includes(q)
-    ) : all;
-    return { all, filtered };
-  }, [data.courses, q]);
 
   const hl = text => {
     if (!q) return text;
@@ -959,34 +1034,134 @@ function GlobalNotesPage({ data, onOpenCourse }) {
     return <>{text.slice(0,i)}<mark>{text.slice(i,i+q.length)}</mark>{text.slice(i+q.length)}</>;
   };
 
+  // All notes grouped by course (alphabetical) — used for the folder grid + counts.
+  const { all, byCourseAll } = useMemo(() => {
+    const all = [];
+    data.courses.forEach(course => {
+      (course.chapters || []).forEach((ch, idx) => {
+        if (ch.notes?.trim()) all.push({ course, chapter: ch, idx });
+      });
+    });
+    const byCourse = new Map();
+    all.forEach(n => {
+      if (!byCourse.has(n.course.id)) byCourse.set(n.course.id, { course: n.course, notes: [] });
+      byCourse.get(n.course.id).notes.push(n);
+    });
+    const byCourseAll = [...byCourse.values()].sort((a, b) => a.course.title.localeCompare(b.course.title));
+    return { all, byCourseAll };
+  }, [data.courses]);
+
+  // Flat search results across all courses, grouped by course — only used while searching from the folder grid.
+  const searchGroups = useMemo(() => {
+    if (!q || selectedCoId) return [];
+    const filtered = all.filter(n =>
+      n.chapter.notes.toLowerCase().includes(q) ||
+      n.chapter.name.toLowerCase().includes(q)  ||
+      n.course.title.toLowerCase().includes(q)
+    );
+    const m = new Map();
+    filtered.forEach(n => {
+      if (!m.has(n.course.id)) m.set(n.course.id, { course: n.course, notes: [] });
+      m.get(n.course.id).notes.push(n);
+    });
+    return [...m.values()].sort((a, b) => a.course.title.localeCompare(b.course.title));
+  }, [all, q, selectedCoId]);
+  const searchCount = useMemo(() => searchGroups.reduce((s, g) => s + g.notes.length, 0), [searchGroups]);
+
+  // Notes for the currently open folder, always in chapter order, optionally filtered by search.
+  const selectedFolder = useMemo(() => {
+    if (!selectedCoId) return null;
+    const folder = byCourseAll.find(g => g.course.id === selectedCoId);
+    if (!folder) return null;
+    const notes = q
+      ? folder.notes.filter(n => n.chapter.notes.toLowerCase().includes(q) || n.chapter.name.toLowerCase().includes(q))
+      : folder.notes;
+    return { course: folder.course, notes: [...notes].sort((a, b) => a.idx - b.idx) };
+  }, [byCourseAll, selectedCoId, q]);
+
+  const colorFor = title => ACCENT_COLORS[(title || '?').charCodeAt(0) % ACCENT_COLORS.length];
+
   return (
     <div style={{display:'flex',flexDirection:'column',height:'100%',overflow:'hidden'}}>
       <div className="topbar">
-        <span className="topbar-title">📓 <span>My Notes</span></span>
+        {selectedFolder
+          ? <button className="btn btn-s btn-sm" onClick={() => setSelectedCoId(null)}>← All Notes</button>
+          : <span className="topbar-title">📓 <span>My Notes</span></span>}
         <div className="si-wrap">
           <span className="si-ico">🔍</span>
-          <input className="fi si" placeholder="Search notes…" value={search} onChange={e=>setSearch(e.target.value)} style={{width:220}} />
+          <input className="fi si" placeholder={selectedFolder ? 'Search in this course…' : 'Search notes…'}
+            value={search} onChange={e=>setSearch(e.target.value)} style={{width:220}} />
         </div>
       </div>
       <div className="content">
-        {all.length === 0
-          ? <div className="es"><div className="es-ico">📓</div><div className="es-t">No notes yet</div><div className="es-s">Open any course chapter and write notes — they'll all appear here.</div></div>
-          : filtered.length === 0
-            ? <div className="es"><div className="es-ico">🔍</div><div className="es-t">No matches</div><div className="es-s">No notes match "{search}".</div></div>
-            : <>
-                <div style={{marginBottom:16,fontSize:13,color:'var(--tm)'}}>{filtered.length} note{filtered.length!==1?'s':''}{q?` matching "${search}"`:''} — click to jump</div>
-                <div className="ngl">
-                  {filtered.map(({ course, chapter, idx }) => (
-                    <div key={`${course.id}-${idx}`} className="nc" onClick={() => onOpenCourse(course.id, idx, true)}>
-                      <div className="nc-co">{course.title}</div>
-                      <div className="nc-ch">Ch.{idx+1} — {chapter.name}</div>
-                      <div className="nc-pv">{hl(chapter.notes)}</div>
-                    </div>
-                  ))}
+        {all.length === 0 ? (
+          <div className="es"><div className="es-ico">📓</div><div className="es-t">No notes yet</div><div className="es-s">Open any course chapter and write notes — they'll all appear here.</div></div>
+
+        ) : selectedFolder ? (
+          selectedFolder.notes.length === 0 ? (
+            <div className="es"><div className="es-ico">🔍</div><div className="es-t">No matches</div><div className="es-s">No notes in "{selectedFolder.course.title}" match "{search}".</div></div>
+          ) : (
+            <>
+              <div className="sh">
+                <div>
+                  <span className="st">{selectedFolder.course.title}</span>
+                  <span className="sc">{selectedFolder.notes.length} note{selectedFolder.notes.length!==1?'s':''}</span>
                 </div>
-              </>
-        }
+              </div>
+              <div className="ngl">
+                {selectedFolder.notes.map(({ chapter, idx }) => (
+                  <NoteItem key={idx} course={selectedFolder.course} chapter={chapter} idx={idx} hl={hl} onOpen={setActiveNote} />
+                ))}
+              </div>
+            </>
+          )
+
+        ) : q ? (
+          searchCount === 0 ? (
+            <div className="es"><div className="es-ico">🔍</div><div className="es-t">No matches</div><div className="es-s">No notes match "{search}".</div></div>
+          ) : (
+            <>
+              <div style={{marginBottom:16,fontSize:13,color:'var(--tm)'}}>{searchCount} note{searchCount!==1?'s':''} matching "{search}"</div>
+              <div className="ngl">
+                {searchGroups.map(({ course, notes }) => (
+                  <div key={course.id} className="ngl-grp">
+                    <div className="ngl-hd">
+                      <span className="ngl-hd-t">{course.title}</span>
+                      <span className="ngl-hd-n">{notes.length} note{notes.length!==1?'s':''}</span>
+                    </div>
+                    {notes.map(({ chapter, idx }) => (
+                      <NoteItem key={idx} course={course} chapter={chapter} idx={idx} hl={hl} onOpen={setActiveNote} />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </>
+          )
+
+        ) : (
+          <>
+            <div className="sh">
+              <div>
+                <span className="st">My Notes</span>
+                <span className="sc">{byCourseAll.length} course{byCourseAll.length!==1?'s':''}</span>
+              </div>
+            </div>
+            <div className="nflds">
+              {byCourseAll.map(({ course, notes }) => (
+                <div key={course.id} className="nfd" onClick={() => setSelectedCoId(course.id)}>
+                  <FolderThumb course={course} color={colorFor(course.title)} />
+                  <div className="nfd-body">
+                    <div className="nfd-t">{course.title}</div>
+                    <div className="nfd-n">{notes.length} note{notes.length!==1?'s':''}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
+
+      <NoteModal note={activeNote} hl={hl} onClose={() => setActiveNote(null)} onOpenCourse={onOpenCourse} />
     </div>
   );
 }
