@@ -1388,40 +1388,55 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
   }, [resumeMap, courseId, onResumeUpdate, onChapterChange]);
 
   const markComplete = useCallback((force) => {
-    const will = force !== undefined ? force : !chapter?.completed;
-    updateCourse({ ...course, chapters: chapters.map((c,i) => i===activeIdx ? {...c,completed:will} : c) });
+    // FIX: read from dataRef2 (always current) instead of stale course/chapters closure
+    const latest = dataRef2.current?.courses?.find(c => c.id === courseId);
+    if (!latest) return;
+    const latestChapter = (latest.chapters || [])[activeIdx];
+    const will = force !== undefined ? force : !latestChapter?.completed;
+    updateCourse({ ...latest, chapters: (latest.chapters || []).map((c,i) => i===activeIdx ? {...c,completed:will} : c) });
     if (will) { haptic('medium'); setPopAnim(true); setTimeout(() => setPopAnim(false), 400); }
     else haptic('light');
-  }, [chapter, chapters, activeIdx, course, updateCourse]);
+  }, [courseId, activeIdx, updateCourse]);
 
   const saveNote = useCallback(val => {
-    updateCourse({ ...course, chapters: chapters.map((c,i) => i===activeIdx ? {...c,notes:val} : c) });
+    // FIX: read from dataRef2 so we never overwrite concurrent changes (e.g. a
+    // chapter marked complete moments before) with a stale snapshot of the course.
+    const latest = dataRef2.current?.courses?.find(c => c.id === courseId);
+    if (!latest) return;
+    updateCourse({ ...latest, chapters: (latest.chapters || []).map((c,i) => i===activeIdx ? {...c,notes:val} : c) });
     setNoteSaved(false);
     clearTimeout(noteSaveTimer.current);
     noteSaveTimer.current = setTimeout(() => setNoteSaved(true), 500);
-  }, [chapters, activeIdx, course, updateCourse]);
+  }, [courseId, activeIdx, updateCourse]);
 
   useEffect(() => () => clearTimeout(noteSaveTimer.current), []);
 
   const saveChapter = useCallback(chData => {
+    // FIX: same dataRef2 pattern - use fresh course data
+    const latest = dataRef2.current?.courses?.find(c => c.id === courseId);
+    if (!latest) return;
+    const latestChapters = latest.chapters || [];
     if (editIdx !== null) {
-      updateCourse({ ...course, chapters: chapters.map((c,i) => i===editIdx ? {...c,...chData} : c) });
+      updateCourse({ ...latest, chapters: latestChapters.map((c,i) => i===editIdx ? {...c,...chData} : c) });
     } else {
       const newChapter = { id: uid(), ...chData, completed: false, notes: '' };
-      const insertAt = chapters.length > 0 ? activeIdx + 1 : 0;
-      const nc = [...chapters.slice(0, insertAt), newChapter, ...chapters.slice(insertAt)];
-      updateCourse({ ...course, chapters: nc });
+      const insertAt = latestChapters.length > 0 ? activeIdx + 1 : 0;
+      const nc = [...latestChapters.slice(0, insertAt), newChapter, ...latestChapters.slice(insertAt)];
+      updateCourse({ ...latest, chapters: nc });
       goToChapter(insertAt);
     }
     setShowModal(false); setEditIdx(null);
-  }, [chapters, editIdx, activeIdx, course, updateCourse, goToChapter]);
+  }, [courseId, editIdx, activeIdx, updateCourse, goToChapter]);
 
   const deleteChapter = useCallback(idx => {
     if (!confirm('Delete this chapter?')) return;
-    const nc = chapters.filter((_,i) => i !== idx);
-    updateCourse({ ...course, chapters: nc });
+    // FIX: same dataRef2 pattern
+    const latest = dataRef2.current?.courses?.find(c => c.id === courseId);
+    if (!latest) return;
+    const nc = (latest.chapters || []).filter((_,i) => i !== idx);
+    updateCourse({ ...latest, chapters: nc });
     if (activeIdx >= nc.length) goToChapter(Math.max(0, nc.length - 1));
-  }, [chapters, activeIdx, course, updateCourse, goToChapter]);
+  }, [courseId, activeIdx, updateCourse, goToChapter]);
 
   const NotesContent = (
     <>
@@ -1815,7 +1830,7 @@ function App({ sessionPw, initialData, initialResume }) {
       try {
         const json = await decryptData(snap.data().data, pwRef.current);
         const parsed = JSON.parse(json);
-        if (parsed) { setResumeMap(parsed); saveResume(parsed); }
+        if (parsed) { resumeMapRef.current = parsed; setResumeMap(parsed); saveResume(parsed); }
       } catch(e) {}
     });
 
@@ -1895,6 +1910,9 @@ if (!changed) {
   }, []);
 
   const updateResume = useCallback(m => {
+    // FIX: update the ref immediately so openCourse sees the correct chapter
+    // index even if called before the next render (useEffect would be too late).
+    resumeMapRef.current = m;
     setResumeMap(m); saveResume(m);
     scheduleSync(dataRef.current, m);
   }, []);
