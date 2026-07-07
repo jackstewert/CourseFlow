@@ -1354,6 +1354,11 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
   const dataRef2 = useRef(data);
   useEffect(() => { dataRef2.current = data; }, [data]);
 
+  // Mirror resumeMap into a ref so goToChapter always builds its newMap from the
+  // latest value, even if called before React re-renders the prop.
+  const resumeMapRef2 = useRef(resumeMap);
+  useEffect(() => { resumeMapRef2.current = resumeMap; }, [resumeMap]);
+
   const [activeIdx,  setActiveIdxRaw] = useState(initChapterIdx ?? 0);
   const [videoKey,   setVideoKey]     = useState(0);
   const [showNotes,  setShowNotes]    = useState(false);
@@ -1376,16 +1381,25 @@ function CoursePage({ courseId, data, onUpdate, onBack, resumeMap, onResumeUpdat
 
   const updateCourse = useCallback(updated => {
     const next = { ...dataRef2.current, courses: dataRef2.current.courses.map(c => c.id === courseId ? updated : c) };
+    // REAL FIX: update the ref immediately so any action that fires in the same
+    // tick (before React re-renders and the useEffect can refresh it) reads the
+    // correct data. Without this, saveNote followed by markComplete (or vice
+    // versa) would have one of them reading a stale snapshot, silently
+    // overwriting the other's change.
+    dataRef2.current = next;
     onUpdate(next);
   }, [courseId, onUpdate]);
 
   const goToChapter = useCallback(idx => {
     setActiveIdxRaw(idx);
     setVideoKey(k => k + 1);
-    const newMap = { ...resumeMap, [courseId]: idx };
+    // FIX: use the ref (always current) instead of the prop (stale between renders)
+    // so rapid chapter switches or going home quickly doesn't save the wrong index.
+    const newMap = { ...resumeMapRef2.current, [courseId]: idx };
+    resumeMapRef2.current = newMap; // keep ref in sync immediately
     onResumeUpdate(newMap);
     onChapterChange?.(idx);
-  }, [resumeMap, courseId, onResumeUpdate, onChapterChange]);
+  }, [courseId, onResumeUpdate, onChapterChange]);
 
   const markComplete = useCallback((force) => {
     // FIX: read from dataRef2 (always current) instead of stale course/chapters closure
