@@ -1851,44 +1851,62 @@ function App({ sessionPw, initialData, initialResume }) {
     return () => { unsub1(); unsub2(); };
   }, [sessionPw]);
 
-  // ── FIX: offline-aware sync with auto-retry on reconnect
-  const syncTimer = useRef(null);
+  // ── FIX: offline-aware sync with auto-retry on reconnect, debounced typing,
+  // and a serial write queue so overlapping saves can never land out of order
+  // and clobber a newer note with an older one.
+  const syncTimer  = useRef(null);
+  const syncQueue  = useRef(Promise.resolve());
   const scheduleSyncRef = useRef(null);
-  scheduleSyncRef.current = (newData, newResume) => {
+  scheduleSyncRef.current = () => {
     if (!FIREBASE_CONFIGURED || !pwRef.current) return;
     clearTimeout(syncTimer.current);
     setSyncStatus('saving');
     localWriting.current = true;
-    syncTimer.current = setTimeout(async () => {
-      if (!navigator.onLine) {
-        setSyncStatus('offline');
-        localWriting.current = false;
-        return;
-      }
-      try {
-        await Promise.all([
-          cloudSave('data',   newData,   pwRef.current),
-          cloudSave('resume', newResume, pwRef.current),
-        ]);
-        setSyncStatus('saved');
-        setTimeout(() => setSyncStatus(''), 2500);
-      } catch(e) {
-        const isOffline = !navigator.onLine || e?.code === 'unavailable' || (e?.message||'').toLowerCase().includes('offline');
-        setSyncStatus(isOffline ? 'offline' : 'error');
-        console.error('CourseFlow sync failed:', e?.code, e?.message);
-      } finally {
-        setTimeout(() => { localWriting.current = false; }, 2000);
-      }
-    }, 0);
+    // FIX: debounce actual network writes (was 0ms, which fired a full
+    // re-encrypt + re-upload of the whole library on every keystroke while
+    // typing notes). Waiting for a pause in typing means one sync per pause
+    // instead of one per character.
+    syncTimer.current = setTimeout(() => {
+      // FIX: chain onto a queue instead of firing an independent async call.
+      // Independent calls can resolve out of order (a slow write from an
+      // earlier keystroke landing after a faster later one), silently
+      // overwriting newer notes with stale text. Chaining guarantees writes
+      // hit Firestore strictly in the order they were scheduled.
+      syncQueue.current = syncQueue.current.then(async () => {
+        if (!navigator.onLine) {
+          setSyncStatus('offline');
+          localWriting.current = false;
+          return;
+        }
+        try {
+          // FIX: always read dataRef/resumeMapRef at execution time (not
+          // whatever was passed in when scheduleSync was called) so a queued
+          // write always sends the freshest snapshot rather than a stale one
+          // captured before the debounce window closed.
+          await Promise.all([
+            cloudSave('data',   dataRef.current,      pwRef.current),
+            cloudSave('resume', resumeMapRef.current, pwRef.current),
+          ]);
+          setSyncStatus('saved');
+          setTimeout(() => setSyncStatus(''), 2500);
+        } catch(e) {
+          const isOffline = !navigator.onLine || e?.code === 'unavailable' || (e?.message||'').toLowerCase().includes('offline');
+          setSyncStatus(isOffline ? 'offline' : 'error');
+          console.error('CourseFlow sync failed:', e?.code, e?.message);
+        } finally {
+          setTimeout(() => { localWriting.current = false; }, 2000);
+        }
+      });
+    }, 800);
   };
-  const scheduleSync = (newData, newResume) => scheduleSyncRef.current(newData, newResume);
+  const scheduleSync = () => scheduleSyncRef.current();
 
   const syncStatusRef = useRef(syncStatus);
   useEffect(() => { syncStatusRef.current = syncStatus; }, [syncStatus]);
 
   useEffect(() => {
     const handleOnline = () => {
-      if (syncStatusRef.current === 'offline') scheduleSyncRef.current(dataRef.current, resumeMapRef.current);
+      if (syncStatusRef.current === 'offline') scheduleSyncRef.current();
     };
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
@@ -1920,7 +1938,7 @@ if (!changed) {
     // cancel and replace this correct save with an outdated one.
     dataRef.current = stamped;
     setData(stamped); saveData(stamped);
-    scheduleSync(stamped, resumeMapRef.current);
+    scheduleSync();
   }, []);
 
   const updateResume = useCallback(m => {
@@ -1928,7 +1946,7 @@ if (!changed) {
     // index even if called before the next render (useEffect would be too late).
     resumeMapRef.current = m;
     setResumeMap(m); saveResume(m);
-    scheduleSync(dataRef.current, m);
+    scheduleSync();
   }, []);
 
   const goHome = useCallback(() => { setView('home'); setMobileSidebar(false); setMobileNotes(false); }, []);
@@ -1939,9 +1957,15 @@ if (!changed) {
     const idx = chIdx !== undefined ? chIdx : (r[id] ?? 0);
     setChapterIdx(idx);
     const updated = { ...d, courses: d.courses.map(c => c.id === id ? { ...c, lastAccessed: Date.now() } : c) };
+    dataRef.current = updated;
     setData(updated); saveData(updated);
-    scheduleSync(updated, r);
-    if (!fromNotes) { const nm = { ...r, [id]: idx }; setResumeMap(nm); saveResume(nm); scheduleSync(updated, nm); }
+    scheduleSync();
+    if (!fromNotes) {
+      const nm = { ...r, [id]: idx };
+      resumeMapRef.current = nm;
+      setResumeMap(nm); saveResume(nm);
+      scheduleSync();
+    }
     setView(id);
   }, []);
 
