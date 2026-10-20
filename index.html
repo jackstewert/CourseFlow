@@ -389,7 +389,7 @@ async function cloudSave(key, value, password) {
   if (key === 'data') {
     const courseIds = (value.courses || []).map(c => c.id);
     const metaEnc = await encryptData(
-      JSON.stringify({ companies: value.companies, courseIds }), password
+      JSON.stringify({ companies: value.companies, courseIds, deleted: value.deleted || [] }), password
     );
     const batch = db.batch();
     batch.set(
@@ -427,7 +427,7 @@ async function cloudLoad(key, password) {
             return JSON.parse(await decryptData(snap.data().data, password));
           } catch { return null; }
         }));
-        return { companies: meta.companies || [], courses: courses.filter(Boolean) };
+        return { companies: meta.companies || [], courses: courses.filter(Boolean), deleted: meta.deleted || [] };
       }
       // Fall back to old single-doc format
       const snap = await db.collection('courseflow').doc('data').get();
@@ -457,7 +457,7 @@ function loadData() {
       const courses = (meta.courseIds || []).map(id => {
         try { return JSON.parse(localStorage.getItem(COURSE_PFX + id)); } catch { return null; }
       }).filter(Boolean);
-      return { companies: meta.companies || [], courses };
+      return { companies: meta.companies || [], courses, deleted: meta.deleted || [] };
     }
     const d = JSON.parse(localStorage.getItem(DATA_KEY));
     return (d && d.courses) ? d : EMPTY;
@@ -484,7 +484,7 @@ function saveData(d) {
       if (k.startsWith(COURSE_PFX) && !keepSet.has(k.slice(COURSE_PFX.length)))
         localStorage.removeItem(k);
     });
-    const meta = { companies: d.companies || [], courseIds };
+    const meta = { companies: d.companies || [], courseIds, deleted: d.deleted || [] };
     try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch {}
     localStorage.removeItem(DATA_KEY);
   } catch(e) { console.error('CourseFlow: saveData error', e); }
@@ -923,7 +923,7 @@ function ImportModal({ data, onClose, onImport }) {
       if (newCourseCount  > 0) parts.push(`${newCourseCount} new course${newCourseCount!==1?'s':''}`);
       if (newChapterCount > 0) parts.push(`${newChapterCount} new chapter${newChapterCount!==1?'s':''}`);
       const msg = parts.length > 0 ? `✓ Imported: ${parts.join(', ')}` : '✓ Nothing new to import';
-      onImport({ courses: [...updatedCourses, ...brandNew], companies: [...data.companies, ...newCompanies] }, msg);
+      onImport({ ...data, deleted: (data.deleted || []).filter(id => !brandNew.some(c => c.id === id)), courses: [...updatedCourses, ...brandNew], companies: [...data.companies, ...newCompanies] }, msg);
     } catch { setErr('Could not parse file. Make sure it is a valid CourseFlow JSON backup.'); }
   };
 
@@ -1225,7 +1225,7 @@ function HomePage({ data, onUpdate, onOpenCourse, filterCompany, setFilterCompan
     if (!confirm(`Delete "${c?.title}"? This cannot be undone.`)) return;
     const remaining = data.courses.filter(x => x.id !== id);
     const usedCos   = new Set(remaining.map(x => x.companyId).filter(Boolean));
-    onUpdate({ ...data, courses: remaining, companies: data.companies.filter(co => usedCos.has(co.id)) });
+    onUpdate({ ...data, courses: remaining, deleted: [...(data.deleted || []), id], companies: data.companies.filter(co => usedCos.has(co.id)) });
   }, [data, onUpdate]);
 
   const doExport = useCallback(() => {
@@ -1725,7 +1725,8 @@ function LoginScreen() {
         const companyById = Object.fromEntries((cloudData.companies || []).map(c => [c.id, c]));
         (localSnapshot?.companies || []).forEach(c => { if (!companyById[c.id]) companyById[c.id] = c; });
 
-        finalData = { ...cloudData, companies: Object.values(companyById), courses: [...merged, ...localOnly] };
+        const deleted = [...new Set([...(cloudData.deleted || []), ...(localSnapshot?.deleted || [])])];
+        finalData = { ...cloudData, deleted, companies: Object.values(companyById), courses: [...merged, ...localOnly].filter(c => !deleted.includes(c.id)) };
       }
       const finalResume = cloudResume ?? loadResume();
 
@@ -1833,7 +1834,8 @@ function App({ sessionPw, initialData, initialResume }) {
         const companyById = Object.fromEntries((loaded.companies || []).map(c => [c.id, c]));
         (dataRef.current?.companies || []).forEach(c => { if (!companyById[c.id]) companyById[c.id] = c; });
 
-        const finalData = { ...loaded, companies: Object.values(companyById), courses: [...merged, ...localOnly] };
+        const deleted = [...new Set([...(loaded.deleted || []), ...(dataRef.current?.deleted || [])])];
+        const finalData = { ...loaded, deleted, companies: Object.values(companyById), courses: [...merged, ...localOnly].filter(c => !deleted.includes(c.id)) };
         setData(finalData);
         saveData(finalData);
       } catch(e) {}
