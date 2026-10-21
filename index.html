@@ -19,7 +19,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
 :root {
-  --bg:#0a0e1a; --sab: env(safe-area-insert-bottom); --bg2:#111827; --bgc:#161d2e; --bgh:#1e2740; --bgs:#0d1220;
+  --bg:#0a0e1a; --sab: env(safe-area-inset-bottom); --bg2:#111827; --bgc:#161d2e; --bgh:#1e2740; --bgs:#0d1220;
   --ac:#10e68c; --acd:#0bbf76; --acg:rgba(16,230,140,.15); --ac2:#4f8ef7;
   --t1:#e8edf5; --t2:#8b95a8; --tm:#4a5568;
   --bd:#1e2d45; --bdl:#263548;
@@ -83,7 +83,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .si-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--tm);font-size:14px;pointer-events:none}
 
 /* ── Modal ── */
-.mbk{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.mbk{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
 .mo{background:var(--bgc);border-radius:var(--rl);border:1px solid var(--bdl);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6)}
 .mh{padding:20px 24px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
 .mt{font-family:'Syne',sans-serif;font-size:17px;font-weight:700}
@@ -266,16 +266,16 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 /* ── Mobile slide-in sidebar ── */
 .mss{position:fixed;inset:0;z-index:500;pointer-events:none;display:flex}
 .mss.open{pointer-events:all}
-.mss-bk{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:1;opacity:0;transition:opacity .22s}
-.mss.open .mss-bk{opacity:1}
+.mss-bk{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:1;opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s}
+.mss.open .mss-bk{opacity:1;visibility:visible;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .mss-pn{position:absolute;top:0;bottom:0;left:0;width:80%;max-width:320px;background:var(--bgs);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;padding-top:env(safe-area-inset-top);z-index:2;transform:translateX(-100%);transition:transform .22s}
 .mss.open .mss-pn{transform:translateX(0)}
 
 /* ── Mobile bottom sheet (notes) ── */
 .mns{position:fixed;inset:0;z-index:500;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end}
 .mns.open{pointer-events:all}
-.mns-bk{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);opacity:0;transition:opacity .28s}
-.mns.open .mns-bk{opacity:1}
+.mns-bk{position:absolute;inset:0;background:rgba(0,0,0,.6);opacity:0;visibility:hidden;transition:opacity .28s,visibility .28s}
+.mns.open .mns-bk{opacity:1;visibility:visible;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .mns-pn{position:relative;z-index:1;background:var(--bgc);border-radius:20px 20px 0 0;border-top:1px solid var(--bdl);display:flex;flex-direction:column;height:72vh;padding-bottom:env(safe-area-inset-bottom);transform:translateY(100%);transition:transform .28s}
 .mns.open .mns-pn{transform:translateY(0)}
 .mns-hnd{width:36px;height:4px;background:var(--bdl);border-radius:2px;margin:10px auto 6px;flex-shrink:0}
