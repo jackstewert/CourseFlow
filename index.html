@@ -563,9 +563,6 @@ function buildEmbedSrc(parsed) {
 function VideoPlayer({ url, videoKey, onEnded }) {
   const parsed = useMemo(() => parseVideoUrl(url), [url]);
   const [loaded, setLoaded] = useState(false);
-  const isIPhone = /iPhone|iPod/i.test(navigator.userAgent);
-  const [nativeFailed, setNativeFailed] = useState(false);
-  useEffect(() => { setNativeFailed(false); }, [videoKey]);
   useEffect(() => { setLoaded(false); }, [videoKey]);
   useEffect(() => {
     if (parsed.type !== 'youtube') return;
@@ -592,38 +589,14 @@ function VideoPlayer({ url, videoKey, onEnded }) {
   }
 
   if (parsed.type === 'gdrive') {
-  // iPhone: native <video> player. Falls back to the iframe if the file won't stream.
-  if (isIPhone)
-  {
     return (
-  <div style={{width:'100%',aspectRatio:'16 / 9',borderRadius:'var(--rl)',overflow:'hidden',marginBottom:20,background:'#000',position:'relative'}}>
-    <iframe key={videoKey} src={buildEmbedSrc(parsed)}
-      style={{position:'absolute',top:0,left:0,width:'200%',height:'200%',border:'none',transform:'scale(0.5)',transformOrigin:'0 0'}}
-      allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />
-  </div>
-);
-  }
-  if (isIPhone && !nativeFailed) {
-    return (
-      <div className="vw">
-        <video key={videoKey}
-          src={`https://drive.usercontent.google.com/download?id=${parsed.id}&export=download&confirm=t`}
-          controls playsInline preload="metadata"
-          onEnded={() => onEnded?.()}
-          onError={() => setNativeFailed(true)}
-          style={{width:'100%',height:'100%',display:'block',background:'#000',borderRadius:'var(--rl)'}} />
+      <div style={{width:'100%',aspectRatio:'16 / 9',borderRadius:'var(--rl)',overflow:'hidden',marginBottom:20,background:'#000'}}>
+        <iframe key={videoKey} src={buildEmbedSrc(parsed)}
+          style={{width:'100%',height:'100%',border:'none'}}
+          allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />
       </div>
     );
   }
-  // Desktop (and iPhone fallback): your existing iframe, unchanged
-  return (
-    <div style={{width:'100%',aspectRatio:'16 / 9',borderRadius:'var(--rl)',overflow:'hidden',marginBottom:20,background:'#000'}}>
-      <iframe key={videoKey} src={buildEmbedSrc(parsed)}
-        style={{width:'100%',height:'100%',border:'none'}}
-        allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowFullScreen />
-    </div>
-  );
-}
 
   return (
     <div className="vw">
